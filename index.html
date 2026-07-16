@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>The Hollow Circle — Summoning Rite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night: #0c120d;
+    --night-deep: #060a07;
+    --moss: #5c7350;
+    --moss-dim: #3c4d34;
+    --bone: #e8dfc4;
+    --bone-dim: #b9ad8d;
+    --amber: #d99a3e;
+    --amber-bright: #f0be6c;
+    --witch: #7a4a8a;
+    --witch-bright: #a874bb;
+    --blood: #6b2b3a;
+    --line: rgba(217,154,62,0.3);
+    --rune-line: rgba(168,116,187,0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 8%, rgba(217,154,62,0.14), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 15% 95%, rgba(122,74,138,0.16), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 85% 95%, rgba(92,115,80,0.18), transparent 65%),
+      linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+    color: var(--bone);
+    height: 100dvh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left));
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* forest silhouette along the base */
+  body::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 22vh;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        100deg,
+        transparent 0 3%,
+        rgba(6,10,7,0.9) 3% 3.4%,
+        transparent 3.4% 8%
+      ),
+      linear-gradient(180deg, transparent, rgba(4,7,5,0.85) 70%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, black 60%);
+            mask-image: linear-gradient(180deg, transparent, black 60%);
+    z-index: 0;
+  }
+
+  /* drifting will-o-the-wisps */
+  .wisp {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--amber-bright);
+    box-shadow: 0 0 8px 3px rgba(240,190,108,0.7);
+    opacity: 0;
+    pointer-events: none;
+    animation: drift 7s ease-in-out infinite;
+    z-index: 0;
+  }
+  .wisp:nth-child(1){ left: 12%; top: 70%; animation-delay: 0s; }
+  .wisp:nth-child(2){ left: 85%; top: 60%; animation-delay: 1.6s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+  .wisp:nth-child(3){ left: 50%; top: 82%; animation-delay: 3.2s; }
+  .wisp:nth-child(4){ left: 25%; top: 55%; animation-delay: 4.8s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+
+  @keyframes drift {
+    0%   { opacity: 0; transform: translateY(0) translateX(0); }
+    15%  { opacity: 0.9; }
+    50%  { transform: translateY(-40px) translateX(8px); }
+    85%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(-85px) translateX(-6px); }
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    max-height: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin: 0 0 0.2rem;
+  }
+
+  h1 {
+    font-family: 'MedievalSharp', serif;
+    font-weight: 400;
+    font-size: clamp(1.4rem, 5.5vw, 2.1rem);
+    letter-spacing: 0.02em;
+    margin: 0 0 0.15rem;
+    color: var(--amber-bright);
+    text-shadow: 0 0 22px rgba(240,190,108,0.35), 0 0 46px rgba(122,74,138,0.2);
+  }
+
+  .sub {
+    font-style: italic;
+    color: var(--bone-dim);
+    font-size: 0.8rem;
+    margin: 0 0 0.7rem;
+  }
+
+  .divider {
+    width: 120px;
+    height: 1px;
+    margin: 0 auto 0.9rem;
+    background: linear-gradient(90deg, transparent, var(--witch-bright), var(--amber), transparent);
+  }
+
+  /* the ritual circle behind the dice */
+  .circle-wrap {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  .circle-wrap::before,
+  .circle-wrap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .circle-wrap::before {
+    width: 112%;
+    height: 200%;
+    border: 1px dashed var(--rune-line);
+  }
+  .circle-wrap::after {
+    width: 128%;
+    height: 230%;
+    border: 1px solid rgba(92,115,80,0.25);
+  }
+
+  .table {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(0.6rem, 3.5vw, 1.6rem);
+    flex-wrap: nowrap;
+    position: relative;
+  }
+
+  .relic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .relic-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.56rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+  }
+
+  .stage {
+    width: min(24vw, 104px);
+    height: min(24vw, 104px);
+    perspective: 800px;
+  }
+
+  /* Coin -> Rune Stone */
+  .coin {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 900ms cubic-bezier(.2,.8,.2,1);
+  }
+  .coin.spinning {
+    animation: coinToss 900ms cubic-bezier(.3,.6,.4,1);
+  }
+  .coin-side {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    background:
+      radial-gradient(circle at 32% 28%, #7d8f6e, #4f6242 45%, #384a2c 78%, #232f1a 100%);
+    border: 3px solid #232f1a;
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.6),
+      inset 0 0 0 6px rgba(0,0,0,0.18),
+      inset 0 2px 4px rgba(255,255,255,0.18);
+  }
+  .coin-side.tails {
+    transform: rotateY(180deg);
+    background:
+      radial-gradient(circle at 32% 28%, #2a2033, #211a2b 45%, #17111e 78%, #0e0a13 100%);
+    border-color: #17111e;
+  }
+  .coin-symbol {
+    width: 46%;
+    height: 46%;
+  }
+  .coin-symbol svg { width: 100%; height: 100%; display: block; }
+
+  @keyframes coinToss {
+    0%   { transform: rotateY(0deg) translateY(0); }
+    35%  { transform: rotateY(900deg) translateY(-46px); }
+    70%  { transform: rotateY(1620deg) translateY(0); }
+    100% { transform: rotateY(var(--coin-end, 1800deg)) translateY(0); }
+  }
+
+  /* Dice shared -> carved wood/bone blocks */
+  .die {
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 30% 22%, rgba(217,154,62,0.08), transparent 55%),
+      linear-gradient(160deg, #2a2018, #1a140e 55%, #100c08);
+    border: 2px solid var(--line);
+    box-shadow:
+      0 8px 20px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 0 24px rgba(0,0,0,0.5);
+    transition: transform 550ms cubic-bezier(.2,.8,.2,1), box-shadow 550ms;
+  }
+  .die.rolling {
+    animation: tumble 650ms cubic-bezier(.3,.6,.35,1);
+  }
+  .die.rolling {
+    box-shadow:
+      0 8px 20px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 0 24px rgba(0,0,0,0.5),
+      0 0 22px 2px rgba(168,116,187,0.4);
+  }
+  @keyframes tumble {
+    0%   { transform: rotate(0deg) scale(1); }
+    30%  { transform: rotate(160deg) scale(1.06); }
+    55%  { transform: rotate(300deg) scale(0.96); }
+    80%  { transform: rotate(430deg) scale(1.03); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .creature-face {
+    font-size: min(10vw, 3.4rem);
+    line-height: 1;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+  }
+
+  .number-face {
+    font-family: 'MedievalSharp', serif;
+    font-weight: 400;
+    font-size: min(6.8vw, 2.3rem);
+    color: var(--amber-bright);
+    text-shadow: 0 0 14px rgba(240,190,108,0.45);
+  }
+
+  .result-name {
+    min-height: 1.1em;
+    font-size: 0.76rem;
+    color: var(--bone-dim);
+    font-style: italic;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+
+  .roll-all {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--night-deep);
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    border: none;
+    padding: 0.7rem 2.2rem;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.45);
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+  .roll-all:hover { transform: translateY(-2px); box-shadow: 0 9px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.45); }
+  .roll-all:active { transform: translateY(0); }
+
+  .hint {
+    font-size: 0.66rem;
+    color: rgba(232,223,196,0.4);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .roll-counter {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin: 0.15rem 0 0;
+    cursor: pointer;
+  }
+  .roll-counter .n {
+    color: var(--amber-bright);
+    font-size: 0.75rem;
+  }
+  .roll-counter:active { opacity: 0.6; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coin.spinning, .die.rolling { animation: none; }
+    .wisp { animation: none; opacity: 0; }
+  }
+
+  /* Summoning record */
+  .record {
+    margin-top: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+
+  .record-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.56rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--witch-bright);
+    margin: 0 0 0.4rem;
+  }
+
+  .slots {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0.4rem;
+  }
+
+  .slot {
+    width: min(27vw, 144px);
+    min-height: min(15vw, 64px);
+    border-radius: 11px;
+    border: 1.5px dashed var(--line);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    padding: 0.32rem 0.35rem;
+    transition: border-color 300ms, background 300ms, box-shadow 300ms;
+  }
+
+  .slot-index {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(232,223,196,0.35);
+  }
+
+  .slot-empty .slot-mark {
+    font-size: 1.1rem;
+    color: rgba(232,223,196,0.25);
+  }
+
+  .slot.filled {
+    border-style: solid;
+  }
+
+  .slot.filled.is-stone {
+    border-color: var(--amber);
+    background: rgba(217,154,62,0.08);
+    box-shadow: 0 0 16px rgba(217,154,62,0.15);
+  }
+
+  .slot.filled.is-shadow {
+    border-color: var(--witch);
+    background: rgba(122,74,138,0.1);
+    box-shadow: 0 0 16px rgba(122,74,138,0.18);
+  }
+
+  .slot-face {
+    font-size: min(8vw, 1.85rem);
+    line-height: 1;
+  }
+
+  .slot-name {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    font-weight: 400;
+    color: var(--bone);
+  }
+
+  .slot-power {
+    font-size: 0.6rem;
+    color: var(--bone-dim);
+    font-style: italic;
+  }
+
+  .slot-tag {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.46rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.08rem 0.35rem;
+    border-radius: 999px;
+    margin-top: 0.05rem;
+  }
+
+  .slot.is-stone .slot-tag {
+    color: var(--amber-bright);
+    background: rgba(217,154,62,0.18);
+  }
+
+  .slot.is-shadow .slot-tag {
+    color: var(--witch-bright);
+    background: rgba(122,74,138,0.24);
+  }
+
+  .clear-record {
+    background: none;
+    border: none;
+    color: rgba(232,223,196,0.42);
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 0;
+  }
+  .clear-record:hover { color: var(--bone-dim); }
+
+  /* Long-press hold feedback on record slots */
+  .slot {
+    position: relative;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+  .slot.filled { cursor: pointer; }
+  .slot-hold-fill {
+    position: absolute;
+    left: 0; bottom: 0; right: 0;
+    height: 0%;
+    background: linear-gradient(0deg, rgba(240,190,108,0.35), transparent);
+    transition: height linear;
+    pointer-events: none;
+  }
+  .slot.is-shadow .slot-hold-fill {
+    background: linear-gradient(0deg, rgba(168,116,187,0.35), transparent);
+  }
+  .slot.just-collected {
+    animation: collectedFlash 550ms ease;
+  }
+  @keyframes collectedFlash {
+    0%   { box-shadow: 0 0 0 0 rgba(240,190,108,0.6); }
+    40%  { box-shadow: 0 0 24px 6px rgba(240,190,108,0.55); }
+    100% { box-shadow: 0 0 16px rgba(217,154,62,0.15); }
+  }
+
+  /* Persistent collection */
+  .collection {
+    margin-top: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+
+  .collection-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 0.35rem;
+  }
+
+  .cslots {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0.35rem;
+  }
+
+  .cslot {
+    width: min(14vw, 56px);
+    height: min(14vw, 56px);
+    border-radius: 11px;
+    border: 1.5px dashed rgba(232,223,196,0.2);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    line-height: 1;
+  }
+
+  .cslot .cslot-mark {
+    font-size: 1rem;
+    color: rgba(232,223,196,0.22);
+  }
+
+  .cslot.filled {
+    border-style: solid;
+  }
+
+  .cslot.filled.is-stone {
+    border-color: var(--amber);
+    background: rgba(217,154,62,0.08);
+  }
+
+  .cslot.filled.is-shadow {
+    border-color: var(--witch);
+    background: rgba(122,74,138,0.1);
+  }
+
+  .cslot-face {
+    font-size: min(7vw, 1.65rem);
+  }
+
+  .cslot-power {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.66rem;
+  }
+
+  .cslot.is-stone .cslot-power {
+    color: var(--amber-bright);
+  }
+
+  .cslot.is-shadow .cslot-power {
+    color: var(--witch-bright);
+  }
+
+  .collection-hint {
+    font-size: 0.58rem;
+    color: rgba(232,223,196,0.38);
+    font-style: italic;
+    margin: 0 0 0.3rem;
+  }
+
+  .prev-summary {
+    margin-top: 0.45rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+
+  .prev-summary-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin: 0 0 0.3rem;
+  }
+
+  .prev-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+
+  .prev-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    border: 1px solid var(--amber-bright);
+    background: rgba(217,154,62,0.12);
+    color: var(--amber-bright);
+  }
+
+  .prev-empty {
+    font-size: 0.62rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.35);
+  }
+
+  .cslot.matched {
+    border-color: var(--amber-bright) !important;
+    box-shadow: 0 0 10px 2px rgba(240,190,108,0.55);
+  }
+
+  .cslot.filled {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .cslot.filled:active {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+
+  .match-status {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--bone-dim);
+    margin: 0.4rem 0 0;
+  }
+  .match-status .count {
+    color: var(--amber-bright);
+  }
+  .match-status.complete {
+    color: var(--amber-bright);
+    text-shadow: 0 0 14px rgba(240,190,108,0.5);
+    animation: completePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes completePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+
+  /* Summary modal shown after the 11th roll */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4,7,5,0.82);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    padding: 1.2rem;
+  }
+  .modal-backdrop.open {
+    display: flex;
+  }
+  .modal-card {
+    width: 100%;
+    max-width: 380px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(217,154,62,0.1), transparent 60%),
+      linear-gradient(160deg, #1b2416, #10160d 60%, #0a0d08);
+    border: 1.5px solid var(--rune-line);
+    border-radius: 16px;
+    padding: 1.4rem 1.3rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(122,74,138,0.15);
+  }
+  .modal-eyebrow {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin: 0 0 0.3rem;
+  }
+  .modal-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 1.3rem;
+    color: var(--amber-bright);
+    text-shadow: 0 0 20px rgba(240,190,108,0.35);
+    margin: 0 0 0.7rem;
+  }
+  .modal-count {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.95rem;
+    color: var(--bone);
+    margin: 0 0 0.9rem;
+  }
+  .modal-count .n {
+    color: var(--amber-bright);
+    font-size: 1.15rem;
+  }
+  .modal-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+  }
+  .modal-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.68rem;
+  }
+  .modal-chip.matched {
+    border: 1px solid var(--amber-bright);
+    background: rgba(217,154,62,0.14);
+    color: var(--amber-bright);
+  }
+  .modal-chip.unmatched {
+    border: 1px solid rgba(232,223,196,0.2);
+    background: rgba(255,255,255,0.02);
+    color: var(--bone-dim);
+  }
+  .modal-empty {
+    font-style: italic;
+    color: var(--bone-dim);
+    font-size: 0.8rem;
+    margin: 0 0 1rem;
+  }
+  .modal-continue {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--night-deep);
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    border: none;
+    padding: 0.65rem 1.8rem;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+  .modal-continue:active { transform: translateY(1px); }
+</style>
+</head>
+<body>
+
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+
+  <div class="frame">
+    <p class="eyebrow">A Rite of the Hollow Wood</p>
+    <h1>The Summoning Circle</h1>
+    <p class="sub">Cast a relic alone, or call the circle entire.</p>
+    <div class="divider"></div>
+
+    <div class="circle-wrap">
+      <div class="table">
+        <div class="relic">
+          <span class="relic-label">Stone or Shadow</span>
+          <div class="stage">
+            <div class="coin" id="coin">
+              <div class="coin-side heads">
+                <span class="coin-symbol">
+                  <svg viewBox="0 0 100 100"><polygon points="50,18 84,82 16,82" fill="none" stroke="#1c2a12" stroke-width="5" stroke-linejoin="round"/></svg>
+                </span>
+              </div>
+              <div class="coin-side tails"></div>
+            </div>
+          </div>
+          <div class="result-name" id="coin-name">&nbsp;</div>
+        </div>
+
+        <div class="relic">
+          <span class="relic-label">Kindred Folk</span>
+          <div class="stage">
+            <div class="die" id="creature-die">
+              <span class="creature-face" id="creature-face">🧌</span>
+            </div>
+          </div>
+          <div class="result-name" id="creature-name">Goblin</div>
+        </div>
+
+        <div class="relic">
+          <span class="relic-label">Fated Number</span>
+          <div class="stage">
+            <div class="die" id="number-die">
+              <span class="number-face" id="number-face">1</span>
+            </div>
+          </div>
+          <div class="result-name">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="roll-all" id="roll-all">Cast All Three</button>
+      <p class="hint">tap any single relic to adjust it, then cast all three to record the summon</p>
+      <p class="roll-counter" id="roll-counter">Roll <span class="n" id="roll-count">0</span> / 11</p>
+    </div>
+
+    <div class="record">
+      <p class="record-title">The Summoning Record</p>
+      <div class="slots" id="slots">
+        <div class="slot slot-empty" id="slot-0">
+          <span class="slot-index">First</span>
+          <span class="slot-mark">—</span>
+          <span class="slot-hold-fill" id="hold-0"></span>
+        </div>
+        <div class="slot slot-empty" id="slot-1">
+          <span class="slot-index">Second</span>
+          <span class="slot-mark">—</span>
+          <span class="slot-hold-fill" id="hold-1"></span>
+        </div>
+        <div class="slot slot-empty" id="slot-2">
+          <span class="slot-index">Third</span>
+          <span class="slot-mark">—</span>
+          <span class="slot-hold-fill" id="hold-2"></span>
+        </div>
+      </div>
+      <button class="clear-record" id="clear-record">clear the record</button>
+    </div>
+
+    <div class="collection">
+      <p class="collection-title">Your Collection</p>
+      <p class="collection-hint">hold a summon above to keep it here — 3 stone &amp; their shadows</p>
+      <div class="cslots" id="cslots"></div>
+      <p class="match-status" id="match-status">Matched Pairs: <span class="count">0</span> / 3</p>
+      <button class="clear-record" id="clear-collection">clear the collection</button>
+    </div>
+
+    <div class="prev-summary">
+      <p class="prev-summary-title">Last Rite's Matches</p>
+      <div class="prev-chips" id="prev-chips">
+        <span class="prev-empty">no rite completed yet</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-card">
+      <p class="modal-eyebrow">The Rite Concludes</p>
+      <p class="modal-title">Eleven Rolls Cast</p>
+      <div id="modal-body"></div>
+      <button class="modal-continue" id="modal-continue">Begin Anew</button>
+    </div>
+  </div>
+
+<script>
+  const creatures = [
+    { face: '🧌', name: 'Goblin' },
+    { face: '👺', name: 'Demon' },
+    { face: '🧛‍♂️', name: 'Vampire' },
+    { face: '🧚🏻', name: 'Fairy' },
+    { face: '🧞', name: 'Djinn' },
+    { face: '🧝🏻‍♀️', name: 'Elf' }
+  ];
+
+  const coinEl = document.getElementById('coin');
+  const coinNameEl = document.getElementById('coin-name');
+  let coinRotation = 0;
+  let coinIsHeads = true;
+
+  const creatureDie = document.getElementById('creature-die');
+  const creatureFace = document.getElementById('creature-face');
+  const creatureName = document.getElementById('creature-name');
+
+  const numberDie = document.getElementById('number-die');
+  const numberFace = document.getElementById('number-face');
+  const powerFaces = [1, 3, 4, 6, 6, 6]; // tuned via Monte Carlo to favor summons calling shadows
+
+  function flipCoin() {
+    return new Promise(resolve => {
+      const landsHeads = Math.random() < 0.5;
+      const extraSpins = 4 + Math.floor(Math.random() * 2); // 4-5 full spins
+      const targetOffset = landsHeads ? 0 : 180;
+      const base = coinRotation - (coinRotation % 360);
+      const newRotation = base + extraSpins * 360 + targetOffset + 360;
+      coinEl.style.setProperty('--coin-end', newRotation + 'deg');
+      coinEl.classList.remove('spinning');
+      void coinEl.offsetWidth;
+      coinEl.classList.add('spinning');
+      coinEl.style.transform = `rotateY(${newRotation}deg)`;
+
+      setTimeout(() => {
+        coinEl.classList.remove('spinning');
+        coinRotation = newRotation;
+        coinIsHeads = landsHeads;
+        coinNameEl.textContent = landsHeads ? 'Philosopher\u2019s Stone' : 'Shadow';
+        resolve({ isStone: landsHeads });
+      }, 900);
+    });
+  }
+
+  function rollCreature() {
+    return new Promise(resolve => {
+      creatureDie.classList.remove('rolling');
+      void creatureDie.offsetWidth;
+      creatureDie.classList.add('rolling');
+
+      let flickers = 0;
+      const flickerInterval = setInterval(() => {
+        creatureFace.textContent = creatures[Math.floor(Math.random() * creatures.length)].face;
+        flickers++;
+        if (flickers > 6) clearInterval(flickerInterval);
+      }, 70);
+
+      setTimeout(() => {
+        clearInterval(flickerInterval);
+        creatureDie.classList.remove('rolling');
+        const result = creatures[Math.floor(Math.random() * creatures.length)];
+        creatureFace.textContent = result.face;
+        creatureName.textContent = result.name;
+        resolve(result);
+      }, 650);
+    });
+  }
+
+  function rollNumber() {
+    return new Promise(resolve => {
+      numberDie.classList.remove('rolling');
+      void numberDie.offsetWidth;
+      numberDie.classList.add('rolling');
+
+      let flickers = 0;
+      const flickerInterval = setInterval(() => {
+        numberFace.textContent = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+        flickers++;
+        if (flickers > 6) clearInterval(flickerInterval);
+      }, 70);
+
+      setTimeout(() => {
+        clearInterval(flickerInterval);
+        numberDie.classList.remove('rolling');
+        const result = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+        numberFace.textContent = result;
+        resolve({ value: result });
+      }, 650);
+    });
+  }
+
+  coinEl.addEventListener('click', flipCoin);
+  creatureDie.addEventListener('click', rollCreature);
+  numberDie.addEventListener('click', rollNumber);
+
+  const rollAllBtn = document.getElementById('roll-all');
+  const clearRecordBtn = document.getElementById('clear-record');
+  const rollCounterEl = document.getElementById('roll-counter');
+  const rollCountEl = document.getElementById('roll-count');
+  let rollCount = 0;
+
+  function updateRollCounter() {
+    rollCount += 1;
+    rollCountEl.textContent = rollCount;
+  }
+
+  rollCounterEl.addEventListener('click', () => {
+    rollCount = 0;
+    rollCountEl.textContent = rollCount;
+  });
+
+  const slotEls = [
+    document.getElementById('slot-0'),
+    document.getElementById('slot-1'),
+    document.getElementById('slot-2')
+  ];
+  const slotLabels = ['First', 'Second', 'Third'];
+  let record = [];
+
+  function renderSlot(i) {
+    const el = slotEls[i];
+    const entry = record[i];
+    if (!entry) {
+      el.className = 'slot slot-empty';
+      el.innerHTML = `
+        <span class="slot-index">${slotLabels[i]}</span>
+        <span class="slot-mark">—</span>
+        <span class="slot-hold-fill" id="hold-${i}"></span>
+      `;
+      return;
+    }
+    el.className = `slot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}`;
+    el.innerHTML = `
+      <span class="slot-index">${slotLabels[i]}</span>
+      <span class="slot-face">${entry.face}</span>
+      <span class="slot-name">${entry.name}</span>
+      <span class="slot-power">Power ${entry.power}</span>
+      <span class="slot-tag">${entry.isStone ? 'Summon' : 'Shadow'}</span>
+      <span class="slot-hold-fill" id="hold-${i}"></span>
+    `;
+  }
+
+  function renderRecord() {
+    for (let i = 0; i < 3; i++) renderSlot(i);
+  }
+
+  function clearRecord() {
+    record = [];
+    renderRecord();
+  }
+
+  clearRecordBtn.addEventListener('click', clearRecord);
+
+  rollAllBtn.addEventListener('click', async () => {
+    if (rollCount >= 11) {
+      openSummaryModal();
+      return;
+    }
+
+    rollAllBtn.disabled = true;
+    rollAllBtn.style.opacity = '0.6';
+    rollAllBtn.style.cursor = 'default';
+
+    const [coinResult, creatureResult, numberResult] = await Promise.all([
+      flipCoin(),
+      rollCreature(),
+      rollNumber()
+    ]);
+
+    if (record.length >= 3) record = [];
+
+    record.push({
+      face: creatureResult.face,
+      name: creatureResult.name,
+      power: numberResult.value,
+      isStone: coinResult.isStone
+    });
+    renderRecord();
+    updateRollCounter();
+
+    rollAllBtn.disabled = false;
+    rollAllBtn.style.opacity = '';
+    rollAllBtn.style.cursor = '';
+  });
+
+  // --- Persistent Collection (up to 6, across the whole game) ---
+  const MAX_COLLECTION = 6;
+  const cslotsEl = document.getElementById('cslots');
+  const matchStatusEl = document.getElementById('match-status');
+  const clearCollectionBtn = document.getElementById('clear-collection');
+  let collection = []; // { face, name, power, isStone }
+
+  function computeMatchedTypes() {
+    const groups = {}; // name -> { stones: [], shadows: [] }
+    collection.forEach(e => {
+      if (!groups[e.name]) groups[e.name] = { stones: [], shadows: [] };
+      (e.isStone ? groups[e.name].stones : groups[e.name].shadows).push(e.power);
+    });
+    const matched = new Set();
+    Object.keys(groups).forEach(name => {
+      const g = groups[name];
+      if (g.stones.length && g.shadows.length && Math.max(...g.stones) >= Math.min(...g.shadows)) {
+        matched.add(name);
+      }
+    });
+    return matched;
+  }
+
+  function renderCollection() {
+    const matchedTypes = computeMatchedTypes();
+
+    cslotsEl.innerHTML = '';
+    for (let i = 0; i < MAX_COLLECTION; i++) {
+      const entry = collection[i];
+      const div = document.createElement('div');
+      if (!entry) {
+        div.className = 'cslot';
+        div.innerHTML = `<span class="cslot-mark">—</span>`;
+      } else {
+        const isMatched = matchedTypes.has(entry.name);
+        div.className = `cslot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}${isMatched ? ' matched' : ''}`;
+        div.innerHTML = `
+          <span class="cslot-face">${entry.face}</span>
+          <span class="cslot-power">${entry.power}</span>
+        `;
+        div.title = 'Tap to remove';
+        div.addEventListener('click', () => {
+          collection.splice(i, 1);
+          renderCollection();
+        });
+      }
+      cslotsEl.appendChild(div);
+    }
+
+    const count = matchedTypes.size;
+    matchStatusEl.innerHTML = `Matched Pairs: <span class="count">${count}</span> / 3`;
+    matchStatusEl.classList.toggle('complete', count >= 3);
+  }
+
+  function clearCollection() {
+    collection = [];
+    renderCollection();
+  }
+  clearCollectionBtn.addEventListener('click', clearCollection);
+  renderCollection();
+
+  function addToCollection(entry, sourceEl) {
+    if (collection.length >= MAX_COLLECTION) return;
+    collection.push({ face: entry.face, name: entry.name, power: entry.power, isStone: entry.isStone });
+    renderCollection();
+    if (sourceEl) {
+      sourceEl.classList.remove('just-collected');
+      void sourceEl.offsetWidth;
+      sourceEl.classList.add('just-collected');
+    }
+  }
+
+  // Press-and-hold on a filled record slot to bank it into the collection
+  const HOLD_MS = 550;
+  slotEls.forEach((el, i) => {
+    let holdTimer = null;
+    let holdFillEl = null;
+
+    function startHold(e) {
+      if (!record[i]) return; // only filled slots can be held
+      if (collection.length >= MAX_COLLECTION) return;
+      holdFillEl = document.getElementById(`hold-${i}`);
+      if (holdFillEl) {
+        holdFillEl.style.transition = `height ${HOLD_MS}ms linear`;
+        holdFillEl.style.height = '100%';
+      }
+      holdTimer = setTimeout(() => {
+        addToCollection(record[i], el);
+        cancelHold();
+      }, HOLD_MS);
+    }
+
+    function cancelHold() {
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+      if (holdFillEl) {
+        holdFillEl.style.transition = 'height 150ms ease';
+        holdFillEl.style.height = '0%';
+      }
+    }
+
+    el.addEventListener('pointerdown', startHold);
+    el.addEventListener('pointerup', cancelHold);
+    el.addEventListener('pointerleave', cancelHold);
+    el.addEventListener('pointercancel', cancelHold);
+    // prevent the iOS text-selection callout during a long press
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  });
+
+  function getMatchedEntries() {
+    const matchedTypes = computeMatchedTypes();
+    const seen = new Set();
+    const entries = [];
+    collection.forEach(entry => {
+      if (matchedTypes.has(entry.name) && !seen.has(entry.name)) {
+        seen.add(entry.name);
+        entries.push({ face: entry.face, name: entry.name });
+      }
+    });
+    return entries;
+  }
+
+  function chipsMarkup(entries, emptyText) {
+    if (entries.length === 0) {
+      return `<span class="prev-empty">${emptyText}</span>`;
+    }
+    return entries.map(e => `<span class="prev-chip">${e.face} ${e.name}</span>`).join('');
+  }
+
+  // --- End-of-cycle summary modal (after the 11th roll) ---
+  const modalBackdrop = document.getElementById('modal-backdrop');
+  const modalBody = document.getElementById('modal-body');
+  const modalContinueBtn = document.getElementById('modal-continue');
+  const prevChipsEl = document.getElementById('prev-chips');
+
+  function buildSummaryMarkup() {
+    const matchedEntries = getMatchedEntries();
+    return `
+      <p class="modal-count">Matched Pairs: <span class="n">${matchedEntries.length}</span> / 3</p>
+      <div class="modal-list">${chipsMarkup(matchedEntries, 'No pairs were matched this rite.')}</div>
+    `;
+  }
+
+  function openSummaryModal() {
+    modalBody.innerHTML = buildSummaryMarkup();
+    modalBackdrop.classList.add('open');
+    rollAllBtn.disabled = true;
+    rollAllBtn.style.opacity = '0.6';
+    rollAllBtn.style.cursor = 'default';
+  }
+
+  function closeSummaryAndReset() {
+    // bank this rite's matched pairs into the "Last Rite's Matches" panel before clearing
+    prevChipsEl.innerHTML = chipsMarkup(getMatchedEntries(), 'no matches this rite');
+
+    modalBackdrop.classList.remove('open');
+    rollCount = 0;
+    rollCountEl.textContent = rollCount;
+    record = [];
+    renderRecord();
+    collection = [];
+    renderCollection();
+    rollAllBtn.disabled = false;
+    rollAllBtn.style.opacity = '';
+    rollAllBtn.style.cursor = '';
+  }
+
+  modalContinueBtn.addEventListener('click', closeSummaryAndReset);
+</script>
+
+</body>
+</html>
