@@ -46,7 +46,8 @@
     align-items: center;
     justify-content: center;
     padding: max(0.75rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left));
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
   }
 
@@ -107,6 +108,330 @@
     justify-content: center;
     position: relative;
     z-index: 1;
+  }
+
+  /* Screen toggle */
+  .screen-toggle {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+    z-index: 2;
+    position: relative;
+  }
+  .toggle-btn {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(232,223,196,0.18);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 200ms ease;
+  }
+  .toggle-btn.active {
+    color: var(--night-deep);
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    border-color: var(--amber);
+  }
+
+  /* Creature Cards screen */
+  .cards-frame {
+    justify-content: flex-start;
+    padding-bottom: 1rem;
+  }
+
+  /* Battle screen */
+  .battle-frame {
+    justify-content: flex-start;
+    padding-bottom: 1rem;
+  }
+  .hp-row {
+    display: flex;
+    gap: 0.8rem;
+    width: 100%;
+    margin: 0.3rem 0 0.6rem;
+  }
+  .hp-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .hp-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+  }
+  .hp-label.enemy {
+    color: #e2777f;
+  }
+  .hp-bar-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    border: 1px solid rgba(232,223,196,0.15);
+  }
+  .hp-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--amber-bright));
+    transition: width 400ms ease;
+  }
+  .hp-bar-fill.enemy {
+    background: linear-gradient(90deg, var(--blood), #e2777f);
+  }
+  .hp-value {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone);
+  }
+  .battle-banner {
+    font-family: 'MedievalSharp', serif;
+    font-size: 1rem;
+    color: var(--amber-bright);
+    text-shadow: 0 0 16px rgba(240,190,108,0.4);
+    margin: 0 0 0.6rem;
+  }
+  .battle-banner.lose {
+    color: #e2777f;
+    text-shadow: 0 0 16px rgba(107,43,58,0.5);
+  }
+  .battle-columns {
+    display: flex;
+    gap: 0.6rem;
+    width: 100%;
+  }
+  .battle-col {
+    flex: 1;
+    min-width: 0;
+  }
+  .battle-col-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 0.4rem;
+    text-align: center;
+  }
+  .battle-col-title.enemy {
+    color: #e2777f;
+  }
+  .battle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .battle-card {
+    border: 1.5px solid var(--rune-line);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    padding: 0.55rem 0.6rem;
+    text-align: center;
+  }
+  .battle-card.enemy-card {
+    border-color: var(--blood);
+  }
+  .battle-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    margin-bottom: 0.4rem;
+  }
+  .battle-card-face {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+  .battle-card-name {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.7rem;
+    color: var(--amber-bright);
+  }
+  .battle-card.enemy-card .battle-card-name {
+    color: #e2777f;
+  }
+  .battle-card-power {
+    font-size: 0.58rem;
+    color: var(--bone-dim);
+    font-style: italic;
+  }
+  .battle-attack-btn {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--night-deep);
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    border: none;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .battle-card.enemy-card .battle-attack-btn {
+    background: linear-gradient(180deg, #e2777f, var(--blood));
+  }
+  .battle-attack-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .battle-result {
+    font-size: 0.6rem;
+    color: var(--bone-dim);
+    font-style: italic;
+    margin-top: 0.35rem;
+    min-height: 1.4em;
+  }
+  .battle-result.hit {
+    color: var(--amber-bright);
+    font-style: normal;
+  }
+  .battle-card.enemy-card .battle-result.hit {
+    color: #e2777f;
+  }
+
+  .cards-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: 0.4rem;
+  }
+  .cards-empty {
+    font-style: italic;
+    font-size: 0.82rem;
+    color: var(--bone-dim);
+    padding: 1.5rem 1rem;
+  }
+  .creature-card {
+    border: 1.5px solid var(--rune-line);
+    border-radius: 14px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(217,154,62,0.07), transparent 60%),
+      linear-gradient(160deg, #1b2416, #10160d 60%, #0a0d08);
+    padding: 0.8rem 0.9rem;
+    text-align: left;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+
+  /* Enemy roster — unclaimed shadows, visually hostile */
+  .enemy-section {
+    width: 100%;
+    margin-top: 0.9rem;
+  }
+  .enemy-divider {
+    background: linear-gradient(90deg, transparent, var(--blood), transparent);
+    margin-bottom: 0.7rem;
+  }
+  .enemy-title {
+    font-family: 'MedievalSharp', serif;
+    font-size: 1.05rem;
+    color: #e2777f;
+    text-shadow: 0 0 16px rgba(107,43,58,0.6);
+    margin: 0 0 0.15rem;
+  }
+  .enemy-sub {
+    margin-bottom: 0.6rem !important;
+    color: rgba(226,119,127,0.55) !important;
+  }
+  .enemy-card {
+    border: 1.5px solid var(--blood);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(107,43,58,0.22), transparent 60%),
+      linear-gradient(160deg, #2a1216, #180a0c 60%, #0d0607);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 18px rgba(107,43,58,0.2);
+  }
+  .enemy-card .card-header {
+    border-bottom-color: rgba(226,119,127,0.18);
+  }
+  .enemy-card .card-name {
+    color: #e2777f;
+  }
+  .enemy-card .card-shadow-power {
+    color: #e2777f;
+    background: rgba(107,43,58,0.28);
+    border-color: var(--blood);
+  }
+  .enemy-card .power-slot label {
+    color: #a8555c;
+  }
+  .enemy-card .power-slot textarea:focus {
+    border-color: var(--blood);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(232,223,196,0.12);
+  }
+  .card-face {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+  .card-name {
+    font-family: 'MedievalSharp', serif;
+    font-size: 1.05rem;
+    color: var(--amber-bright);
+  }
+  .card-header {
+    flex-wrap: wrap;
+  }
+  .card-shadow-power {
+    margin-left: auto;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--witch-bright);
+    background: rgba(122,74,138,0.16);
+    border: 1px solid var(--witch);
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+  }
+  .card-powers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .power-slot label {
+    display: block;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin-bottom: 0.2rem;
+  }
+  .power-slot textarea {
+    width: 100%;
+    min-height: 52px;
+    resize: vertical;
+    font-family: 'EB Garamond', serif;
+    font-size: 0.8rem;
+    color: var(--bone);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(232,223,196,0.15);
+    border-radius: 8px;
+    padding: 0.35rem 0.45rem;
+  }
+  .power-slot textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+  .power-slot textarea::placeholder {
+    color: rgba(232,223,196,0.28);
+    font-style: italic;
   }
 
   .eyebrow {
@@ -282,6 +607,38 @@
     100% { transform: rotate(360deg) scale(1); }
   }
 
+  /* Power die styled as an octahedron (d8) — two four-sided pyramids base-to-base */
+  .die.die-d8 {
+    position: relative;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  .die.die-d8.rolling {
+    box-shadow: none;
+  }
+  .d8-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.55));
+  }
+  .d8-face-top {
+    fill: url(#d8GradTop);
+    stroke: var(--line);
+    stroke-width: 2.5;
+  }
+  .d8-face-bottom {
+    fill: url(#d8GradBottom);
+    stroke: var(--line);
+    stroke-width: 2.5;
+  }
+  .d8-edge {
+    stroke: rgba(217,154,62,0.4);
+    stroke-width: 1.3;
+  }
+
   .creature-face {
     font-size: min(10vw, 3.4rem);
     line-height: 1;
@@ -294,6 +651,8 @@
     font-size: min(6.8vw, 2.3rem);
     color: var(--amber-bright);
     text-shadow: 0 0 14px rgba(240,190,108,0.45);
+    position: relative;
+    z-index: 1;
   }
 
   .result-name {
@@ -349,6 +708,37 @@
     font-size: 0.75rem;
   }
   .roll-counter:active { opacity: 0.6; }
+
+  .target-indicator {
+    margin-top: 0.55rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px dashed var(--rune-line);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: border-color 300ms, background 300ms;
+  }
+  .target-indicator.locked {
+    border-style: solid;
+    border-color: var(--amber);
+    background: rgba(217,154,62,0.08);
+  }
+  .target-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--moss);
+  }
+  .target-value {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+  }
+  .target-indicator.locked .target-value {
+    color: var(--amber-bright);
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .coin.spinning, .die.rolling { animation: none; }
@@ -523,61 +913,61 @@
     margin: 0 0 0.35rem;
   }
 
-  .cslots {
+  .rslots {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 0.35rem;
-    flex-wrap: nowrap;
-    margin-bottom: 0.35rem;
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
   }
 
-  .cslot {
-    width: min(14vw, 56px);
-    height: min(14vw, 56px);
-    border-radius: 11px;
+  .rslot {
+    width: min(11.5vw, 42px);
+    height: min(11.5vw, 42px);
+    border-radius: 9px;
     border: 1.5px dashed rgba(232,223,196,0.2);
     background: rgba(255,255,255,0.02);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.05rem;
+    gap: 0.03rem;
     line-height: 1;
   }
 
-  .cslot .cslot-mark {
-    font-size: 1rem;
+  .rslot .rslot-mark {
+    font-size: 0.78rem;
     color: rgba(232,223,196,0.22);
   }
 
-  .cslot.filled {
+  .rslot.filled {
     border-style: solid;
   }
 
-  .cslot.filled.is-stone {
+  .rslot.filled.is-stone {
     border-color: var(--amber);
     background: rgba(217,154,62,0.08);
   }
 
-  .cslot.filled.is-shadow {
+  .rslot.filled.is-shadow {
     border-color: var(--witch);
     background: rgba(122,74,138,0.1);
   }
 
-  .cslot-face {
-    font-size: min(7vw, 1.65rem);
+  .rslot-face {
+    font-size: min(5.2vw, 1.2rem);
   }
 
-  .cslot-power {
+  .rslot-power {
     font-family: 'MedievalSharp', serif;
-    font-size: 0.66rem;
+    font-size: 0.54rem;
   }
 
-  .cslot.is-stone .cslot-power {
+  .rslot.is-stone .rslot-power {
     color: var(--amber-bright);
   }
 
-  .cslot.is-shadow .cslot-power {
+  .rslot.is-shadow .rslot-power {
     color: var(--witch-bright);
   }
 
@@ -628,41 +1018,6 @@
     font-size: 0.62rem;
     font-style: italic;
     color: rgba(232,223,196,0.35);
-  }
-
-  .cslot.matched {
-    border-color: var(--amber-bright) !important;
-    box-shadow: 0 0 10px 2px rgba(240,190,108,0.55);
-  }
-
-  .cslot.filled {
-    cursor: pointer;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  .cslot.filled:active {
-    transform: scale(0.9);
-    opacity: 0.6;
-  }
-
-  .match-status {
-    font-family: 'MedievalSharp', serif;
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
-    color: var(--bone-dim);
-    margin: 0.4rem 0 0;
-  }
-  .match-status .count {
-    color: var(--amber-bright);
-  }
-  .match-status.complete {
-    color: var(--amber-bright);
-    text-shadow: 0 0 14px rgba(240,190,108,0.5);
-    animation: completePulse 1.6s ease-in-out infinite;
-  }
-  @keyframes completePulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.65; }
   }
 
   /* Summary modal shown after the 11th roll */
@@ -751,6 +1106,27 @@
     font-size: 0.8rem;
     margin: 0 0 1rem;
   }
+  .modal-empty-line {
+    font-style: italic;
+    color: var(--bone-dim);
+    font-size: 0.78rem;
+    margin: 0 0 0.8rem;
+  }
+  .modal-count.enemy-count .n {
+    color: #e2777f;
+  }
+  .modal-chip-enemy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.68rem;
+    border: 1px solid var(--blood);
+    background: rgba(107,43,58,0.2);
+    color: #e2777f;
+  }
   .modal-continue {
     font-family: 'MedievalSharp', serif;
     font-size: 0.8rem;
@@ -765,6 +1141,40 @@
     box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.45);
   }
   .modal-continue:active { transform: translateY(1px); }
+
+  .battle-roll-dice {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 0.9rem;
+  }
+
+  .battle-roll-result {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.78rem;
+    color: var(--bone-dim);
+    margin: 0.9rem 0 0;
+    min-height: 1.2em;
+  }
+  .battle-roll-result.hit {
+    color: var(--amber-bright);
+    text-shadow: 0 0 12px rgba(240,190,108,0.35);
+  }
+  .battle-roll-result.miss {
+    color: #e2777f;
+  }
+  .battle-roll-hint {
+    font-size: 0.62rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.45);
+    margin: 0.6rem 0 0;
+    animation: rollHintPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes rollHintPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+  }
 </style>
 </head>
 <body>
@@ -774,7 +1184,13 @@
   <div class="wisp"></div>
   <div class="wisp"></div>
 
-  <div class="frame">
+  <div class="screen-toggle">
+    <button class="toggle-btn active" id="tab-cast">The Circle</button>
+    <button class="toggle-btn" id="tab-cards">Creature Cards</button>
+    <button class="toggle-btn" id="tab-battle">Battle</button>
+  </div>
+
+  <div class="frame" id="cast-screen">
     <p class="eyebrow">A Rite of the Hollow Wood</p>
     <h1>The Summoning Circle</h1>
     <p class="sub">Cast a relic alone, or call the circle entire.</p>
@@ -810,7 +1226,22 @@
         <div class="relic">
           <span class="relic-label">Fated Number</span>
           <div class="stage">
-            <div class="die" id="number-die">
+            <div class="die die-d8" id="number-die">
+              <svg class="d8-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <defs>
+                  <linearGradient id="d8GradTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#352a1e"/>
+                    <stop offset="100%" stop-color="#1a140e"/>
+                  </linearGradient>
+                  <linearGradient id="d8GradBottom" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1a140e"/>
+                    <stop offset="100%" stop-color="#0a0704"/>
+                  </linearGradient>
+                </defs>
+                <polygon class="d8-face-top" points="50,5 95,50 5,50"/>
+                <polygon class="d8-face-bottom" points="5,50 95,50 50,95"/>
+                <line class="d8-edge" x1="50" y1="5" x2="50" y2="95"/>
+              </svg>
               <span class="number-face" id="number-face">1</span>
             </div>
           </div>
@@ -821,46 +1252,84 @@
 
     <div class="controls">
       <button class="roll-all" id="roll-all">Cast All Three</button>
-      <p class="hint">tap any single relic to adjust it, then cast all three to record the summon</p>
+      <p class="hint">free rolls until you cast a stone — then 11 rolls are recorded</p>
       <p class="roll-counter" id="roll-counter">Roll <span class="n" id="roll-count">0</span> / 11</p>
     </div>
 
-    <div class="record">
-      <p class="record-title">The Summoning Record</p>
-      <div class="slots" id="slots">
-        <div class="slot slot-empty" id="slot-0">
-          <span class="slot-index">First</span>
-          <span class="slot-mark">—</span>
-          <span class="slot-hold-fill" id="hold-0"></span>
-        </div>
-        <div class="slot slot-empty" id="slot-1">
-          <span class="slot-index">Second</span>
-          <span class="slot-mark">—</span>
-          <span class="slot-hold-fill" id="hold-1"></span>
-        </div>
-        <div class="slot slot-empty" id="slot-2">
-          <span class="slot-index">Third</span>
-          <span class="slot-mark">—</span>
-          <span class="slot-hold-fill" id="hold-2"></span>
-        </div>
-      </div>
-      <button class="clear-record" id="clear-record">clear the record</button>
+    <div class="target-indicator" id="target-indicator">
+      <span class="target-label">Rite Target</span>
+      <span class="target-value" id="target-value">— roll a stone to lock in —</span>
     </div>
 
-    <div class="collection">
-      <p class="collection-title">Your Collection</p>
-      <p class="collection-hint">hold a summon above to keep it here — 3 stone &amp; their shadows</p>
-      <div class="cslots" id="cslots"></div>
-      <p class="match-status" id="match-status">Matched Pairs: <span class="count">0</span> / 3</p>
-      <button class="clear-record" id="clear-collection">clear the collection</button>
+    <div class="record">
+      <p class="record-title">This Rite's Rolls</p>
+      <div class="rslots" id="rite-slots"></div>
     </div>
 
     <div class="prev-summary">
-      <p class="prev-summary-title">Last Rite's Matches</p>
+      <p class="prev-summary-title">Last Rite</p>
       <div class="prev-chips" id="prev-chips">
         <span class="prev-empty">no rite completed yet</span>
       </div>
     </div>
+  </div>
+
+  <div class="frame cards-frame" id="cards-screen" style="display:none;">
+    <p class="eyebrow">A Rite of the Hollow Wood</p>
+    <h1>Creature Cards</h1>
+    <p class="sub">Every matched summon earns a card here, to sketch its powers.</p>
+    <div class="divider"></div>
+    <div class="cards-list" id="cards-list">
+      <p class="cards-empty" id="cards-empty">No creature has matched a shadow yet — complete a rite to earn your first card.</p>
+    </div>
+
+    <div class="enemy-section" id="enemy-section">
+      <div class="divider enemy-divider"></div>
+      <p class="enemy-title">The Enemy</p>
+      <p class="sub enemy-sub">Unclaimed shadows, left to fight against you.</p>
+      <div class="cards-list" id="enemy-list">
+        <p class="cards-empty" id="enemy-empty">No shadow has gone unclaimed yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame battle-frame" id="battle-screen" style="display:none;">
+    <p class="eyebrow">A Rite of the Hollow Wood</p>
+    <h1>The Battle</h1>
+    <p class="sub">Each creature strikes according to its bound power.</p>
+    <div class="divider"></div>
+
+    <div class="hp-row">
+      <div class="hp-block">
+        <span class="hp-label">You</span>
+        <div class="hp-bar-track"><div class="hp-bar-fill" id="player-hp-fill"></div></div>
+        <span class="hp-value" id="player-hp-value">20</span>
+      </div>
+      <div class="hp-block">
+        <span class="hp-label enemy">Enemy</span>
+        <div class="hp-bar-track"><div class="hp-bar-fill enemy" id="enemy-hp-fill"></div></div>
+        <span class="hp-value" id="enemy-hp-value">20</span>
+      </div>
+    </div>
+
+    <p class="battle-banner" id="battle-banner" style="display:none;"></p>
+
+    <div class="battle-columns">
+      <div class="battle-col">
+        <p class="battle-col-title">Your Creatures</p>
+        <div class="battle-list" id="battle-ally-list">
+          <p class="cards-empty">No creature cards yet.</p>
+        </div>
+      </div>
+      <div class="battle-col">
+        <p class="battle-col-title enemy">Enemy Creatures</p>
+        <div class="battle-list" id="battle-enemy-list">
+          <p class="cards-empty">No enemy cards yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="clear-record" id="reset-battle">reset the battle</button>
   </div>
 
   <div class="modal-backdrop" id="modal-backdrop">
@@ -869,6 +1338,51 @@
       <p class="modal-title">Eleven Rolls Cast</p>
       <div id="modal-body"></div>
       <button class="modal-continue" id="modal-continue">Begin Anew</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="battle-roll-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="battle-roll-label">Rolling...</p>
+      <div class="battle-roll-dice">
+        <div class="stage" id="battle-coin-stage" style="display:none;">
+          <div class="coin" id="battle-coin">
+            <div class="coin-side heads">
+              <span class="coin-symbol">
+                <svg viewBox="0 0 100 100"><polygon points="50,18 84,82 16,82" fill="none" stroke="#1c2a12" stroke-width="5" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+            <div class="coin-side tails"></div>
+          </div>
+        </div>
+        <div class="stage" id="battle-creature-stage" style="display:none;">
+          <div class="die" id="battle-creature-die">
+            <span class="creature-face" id="battle-creature-face">🧌</span>
+          </div>
+        </div>
+        <div class="stage" id="battle-power-stage" style="display:none;">
+          <div class="die die-d8" id="battle-power-die">
+            <svg class="d8-svg" viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <linearGradient id="d8GradTopBattle" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#352a1e"/>
+                  <stop offset="100%" stop-color="#1a140e"/>
+                </linearGradient>
+                <linearGradient id="d8GradBottomBattle" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1a140e"/>
+                  <stop offset="100%" stop-color="#0a0704"/>
+                </linearGradient>
+              </defs>
+              <polygon class="d8-face-top" points="50,5 95,50 5,50" style="fill:url(#d8GradTopBattle)"/>
+              <polygon class="d8-face-bottom" points="5,50 95,50 50,95" style="fill:url(#d8GradBottomBattle)"/>
+              <line class="d8-edge" x1="50" y1="5" x2="50" y2="95"/>
+            </svg>
+            <span class="number-face" id="battle-power-face">1</span>
+          </div>
+        </div>
+      </div>
+      <p class="battle-roll-result" id="battle-roll-result"></p>
+      <p class="battle-roll-hint" id="battle-roll-hint" style="display:none;">tap to continue</p>
     </div>
   </div>
 
@@ -893,7 +1407,7 @@
 
   const numberDie = document.getElementById('number-die');
   const numberFace = document.getElementById('number-face');
-  const powerFaces = [1, 3, 4, 6, 6, 6]; // tuned via Monte Carlo to favor summons calling shadows
+  const powerFaces = [1, 1, 3, 3, 6, 6, 9, 9]; // d8 shape, values 1/3/6/9 (two faces each)
 
   function flipCoin() {
     return new Promise(resolve => {
@@ -970,9 +1484,10 @@
   numberDie.addEventListener('click', rollNumber);
 
   const rollAllBtn = document.getElementById('roll-all');
-  const clearRecordBtn = document.getElementById('clear-record');
   const rollCounterEl = document.getElementById('roll-counter');
   const rollCountEl = document.getElementById('roll-count');
+  const targetValueEl = document.getElementById('target-value');
+  const targetIndicatorEl = document.getElementById('target-indicator');
   let rollCount = 0;
 
   function updateRollCounter() {
@@ -985,47 +1500,47 @@
     rollCountEl.textContent = rollCount;
   });
 
-  const slotEls = [
-    document.getElementById('slot-0'),
-    document.getElementById('slot-1'),
-    document.getElementById('slot-2')
-  ];
-  const slotLabels = ['First', 'Second', 'Third'];
-  let record = [];
+  // --- Rite state: the first stone rolled each rite locks a target creature,
+  // and that same roll starts the 11-roll counted/saved window ---
+  let riteTarget = null;     // { face, name } or null until a stone is rolled
+  let riteRollLog = [];      // every counted roll this rite (post-lock only): { face, name, power, isStone }
 
-  function renderSlot(i) {
-    const el = slotEls[i];
-    const entry = record[i];
-    if (!entry) {
-      el.className = 'slot slot-empty';
-      el.innerHTML = `
-        <span class="slot-index">${slotLabels[i]}</span>
-        <span class="slot-mark">—</span>
-        <span class="slot-hold-fill" id="hold-${i}"></span>
-      `;
-      return;
+  function renderTarget() {
+    if (!riteTarget) {
+      targetValueEl.textContent = '— roll a stone to lock in —';
+      targetIndicatorEl.classList.remove('locked');
+    } else {
+      targetValueEl.textContent = `${riteTarget.face} ${riteTarget.name}`;
+      targetIndicatorEl.classList.add('locked');
     }
-    el.className = `slot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}`;
-    el.innerHTML = `
-      <span class="slot-index">${slotLabels[i]}</span>
-      <span class="slot-face">${entry.face}</span>
-      <span class="slot-name">${entry.name}</span>
-      <span class="slot-power">Power ${entry.power}</span>
-      <span class="slot-tag">${entry.isStone ? 'Summon' : 'Shadow'}</span>
-      <span class="slot-hold-fill" id="hold-${i}"></span>
-    `;
   }
 
-  function renderRecord() {
-    for (let i = 0; i < 3; i++) renderSlot(i);
+  // Build 11 empty roll slots once
+  const riteSlotsEl = document.getElementById('rite-slots');
+  const riteSlotEls = [];
+  for (let i = 0; i < 11; i++) {
+    const div = document.createElement('div');
+    div.className = 'rslot';
+    div.innerHTML = `<span class="rslot-mark">—</span>`;
+    riteSlotsEl.appendChild(div);
+    riteSlotEls.push(div);
   }
 
-  function clearRecord() {
-    record = [];
-    renderRecord();
+  function renderRiteSlots() {
+    riteSlotEls.forEach((el, i) => {
+      const entry = riteRollLog[i];
+      if (!entry) {
+        el.className = 'rslot';
+        el.innerHTML = `<span class="rslot-mark">—</span>`;
+      } else {
+        el.className = `rslot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}`;
+        el.innerHTML = `
+          <span class="rslot-face">${entry.face}</span>
+          <span class="rslot-power">${entry.power}</span>
+        `;
+      }
+    });
   }
-
-  clearRecordBtn.addEventListener('click', clearRecord);
 
   rollAllBtn.addEventListener('click', async () => {
     if (rollCount >= 11) {
@@ -1043,144 +1558,60 @@
       rollNumber()
     ]);
 
-    if (record.length >= 3) record = [];
-
-    record.push({
+    const entry = {
       face: creatureResult.face,
       name: creatureResult.name,
       power: numberResult.value,
       isStone: coinResult.isStone
-    });
-    renderRecord();
-    updateRollCounter();
+    };
+
+    if (riteTarget === null) {
+      // still searching for the first stone — these rolls are free and unsaved
+      if (entry.isStone) {
+        riteTarget = { face: entry.face, name: entry.name };
+        renderTarget();
+        // the locking roll itself is the first counted, saved roll
+        riteRollLog.push(entry);
+        renderRiteSlots();
+        updateRollCounter();
+      }
+      // a shadow rolled before the target locks: nothing saved, nothing counted
+    } else {
+      // target already locked — every roll from here counts and is saved
+      riteRollLog.push(entry);
+      renderRiteSlots();
+      updateRollCounter();
+    }
 
     rollAllBtn.disabled = false;
     rollAllBtn.style.opacity = '';
     rollAllBtn.style.cursor = '';
   });
 
-  // --- Persistent Collection (up to 6, across the whole game) ---
-  const MAX_COLLECTION = 6;
-  const cslotsEl = document.getElementById('cslots');
-  const matchStatusEl = document.getElementById('match-status');
-  const clearCollectionBtn = document.getElementById('clear-collection');
-  let collection = []; // { face, name, power, isStone }
-
-  function computeMatchedTypes() {
+  function computeRiteResults() {
     const groups = {}; // name -> { stones: [], shadows: [] }
-    collection.forEach(e => {
+    riteRollLog.forEach(e => {
       if (!groups[e.name]) groups[e.name] = { stones: [], shadows: [] };
-      (e.isStone ? groups[e.name].stones : groups[e.name].shadows).push(e.power);
+      (e.isStone ? groups[e.name].stones : groups[e.name].shadows).push(e);
     });
-    const matched = new Set();
+
+    let allyMatch = null;
+    const enemyMatches = [];
+
     Object.keys(groups).forEach(name => {
       const g = groups[name];
-      if (g.stones.length && g.shadows.length && Math.max(...g.stones) >= Math.min(...g.shadows)) {
-        matched.add(name);
+      if (g.stones.length && g.shadows.length) {
+        const face = g.stones[0].face;
+        const shadowPower = g.shadows[0].power;
+        if (riteTarget && name === riteTarget.name) {
+          allyMatch = { face, name, shadowPower };
+        } else {
+          enemyMatches.push({ face, name, power: shadowPower });
+        }
       }
     });
-    return matched;
-  }
 
-  function renderCollection() {
-    const matchedTypes = computeMatchedTypes();
-
-    cslotsEl.innerHTML = '';
-    for (let i = 0; i < MAX_COLLECTION; i++) {
-      const entry = collection[i];
-      const div = document.createElement('div');
-      if (!entry) {
-        div.className = 'cslot';
-        div.innerHTML = `<span class="cslot-mark">—</span>`;
-      } else {
-        const isMatched = matchedTypes.has(entry.name);
-        div.className = `cslot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}${isMatched ? ' matched' : ''}`;
-        div.innerHTML = `
-          <span class="cslot-face">${entry.face}</span>
-          <span class="cslot-power">${entry.power}</span>
-        `;
-        div.title = 'Tap to remove';
-        div.addEventListener('click', () => {
-          collection.splice(i, 1);
-          renderCollection();
-        });
-      }
-      cslotsEl.appendChild(div);
-    }
-
-    const count = matchedTypes.size;
-    matchStatusEl.innerHTML = `Matched Pairs: <span class="count">${count}</span> / 3`;
-    matchStatusEl.classList.toggle('complete', count >= 3);
-  }
-
-  function clearCollection() {
-    collection = [];
-    renderCollection();
-  }
-  clearCollectionBtn.addEventListener('click', clearCollection);
-  renderCollection();
-
-  function addToCollection(entry, sourceEl) {
-    if (collection.length >= MAX_COLLECTION) return;
-    collection.push({ face: entry.face, name: entry.name, power: entry.power, isStone: entry.isStone });
-    renderCollection();
-    if (sourceEl) {
-      sourceEl.classList.remove('just-collected');
-      void sourceEl.offsetWidth;
-      sourceEl.classList.add('just-collected');
-    }
-  }
-
-  // Press-and-hold on a filled record slot to bank it into the collection
-  const HOLD_MS = 550;
-  slotEls.forEach((el, i) => {
-    let holdTimer = null;
-    let holdFillEl = null;
-
-    function startHold(e) {
-      if (!record[i]) return; // only filled slots can be held
-      if (collection.length >= MAX_COLLECTION) return;
-      holdFillEl = document.getElementById(`hold-${i}`);
-      if (holdFillEl) {
-        holdFillEl.style.transition = `height ${HOLD_MS}ms linear`;
-        holdFillEl.style.height = '100%';
-      }
-      holdTimer = setTimeout(() => {
-        addToCollection(record[i], el);
-        cancelHold();
-      }, HOLD_MS);
-    }
-
-    function cancelHold() {
-      if (holdTimer) {
-        clearTimeout(holdTimer);
-        holdTimer = null;
-      }
-      if (holdFillEl) {
-        holdFillEl.style.transition = 'height 150ms ease';
-        holdFillEl.style.height = '0%';
-      }
-    }
-
-    el.addEventListener('pointerdown', startHold);
-    el.addEventListener('pointerup', cancelHold);
-    el.addEventListener('pointerleave', cancelHold);
-    el.addEventListener('pointercancel', cancelHold);
-    // prevent the iOS text-selection callout during a long press
-    el.addEventListener('contextmenu', e => e.preventDefault());
-  });
-
-  function getMatchedEntries() {
-    const matchedTypes = computeMatchedTypes();
-    const seen = new Set();
-    const entries = [];
-    collection.forEach(entry => {
-      if (matchedTypes.has(entry.name) && !seen.has(entry.name)) {
-        seen.add(entry.name);
-        entries.push({ face: entry.face, name: entry.name });
-      }
-    });
-    return entries;
+    return { allyMatch, enemyMatches };
   }
 
   function chipsMarkup(entries, emptyText) {
@@ -1197,11 +1628,18 @@
   const prevChipsEl = document.getElementById('prev-chips');
 
   function buildSummaryMarkup() {
-    const matchedEntries = getMatchedEntries();
-    return `
-      <p class="modal-count">Matched Pairs: <span class="n">${matchedEntries.length}</span> / 3</p>
-      <div class="modal-list">${chipsMarkup(matchedEntries, 'No pairs were matched this rite.')}</div>
-    `;
+    const { allyMatch, enemyMatches } = computeRiteResults();
+    const targetLine = riteTarget
+      ? `<p class="modal-count">Target: <span class="n">${riteTarget.face} ${riteTarget.name}</span></p>`
+      : `<p class="modal-count">No stone was ever rolled — no target locked.</p>`;
+    const allyLine = allyMatch
+      ? `<div class="modal-list">${chipsMarkup([allyMatch], '')}</div>`
+      : `<p class="modal-empty-line">No shadow of your target was cast this rite.</p>`;
+    const enemyLine = enemyMatches.length
+      ? `<p class="modal-count enemy-count">Enemy summons: <span class="n">${enemyMatches.length}</span></p>
+         <div class="modal-list">${enemyMatches.map(e => `<span class="modal-chip-enemy">${e.face} ${e.name}</span>`).join('')}</div>`
+      : `<p class="modal-empty-line">No enemy summons this rite.</p>`;
+    return `${targetLine}${allyLine}${enemyLine}`;
   }
 
   function openSummaryModal() {
@@ -1213,22 +1651,495 @@
   }
 
   function closeSummaryAndReset() {
-    // bank this rite's matched pairs into the "Last Rite's Matches" panel before clearing
-    prevChipsEl.innerHTML = chipsMarkup(getMatchedEntries(), 'no matches this rite');
+    const { allyMatch, enemyMatches } = computeRiteResults();
+
+    // bank this rite's result into the "Last Rite" panel before clearing
+    prevChipsEl.innerHTML = allyMatch
+      ? chipsMarkup([allyMatch], '')
+      : (riteTarget ? chipsMarkup([], `${riteTarget.face} ${riteTarget.name} — no shadow cast`) : chipsMarkup([], 'no target locked this rite'));
+
+    addMatchedCreaturesToCards(allyMatch ? [allyMatch] : []);
+    addEnemyMatchesToCards(enemyMatches);
 
     modalBackdrop.classList.remove('open');
     rollCount = 0;
     rollCountEl.textContent = rollCount;
-    record = [];
-    renderRecord();
-    collection = [];
-    renderCollection();
+    riteTarget = null;
+    riteRollLog = [];
+    renderRiteSlots();
+    renderTarget();
     rollAllBtn.disabled = false;
     rollAllBtn.style.opacity = '';
     rollAllBtn.style.cursor = '';
+
+    // the rite is over — head straight into battle with whatever cards were just earned
+    showScreen('battle');
   }
 
   modalContinueBtn.addEventListener('click', closeSummaryAndReset);
+
+  // --- Creature Cards screen ---
+  const castScreenEl = document.getElementById('cast-screen');
+  const cardsScreenEl = document.getElementById('cards-screen');
+  const tabCastBtn = document.getElementById('tab-cast');
+  const tabCardsBtn = document.getElementById('tab-cards');
+  const cardsListEl = document.getElementById('cards-list');
+  const cardsEmptyEl = document.getElementById('cards-empty');
+  const enemyListEl = document.getElementById('enemy-list');
+  const enemyEmptyEl = document.getElementById('enemy-empty');
+
+  let cardCreatures = [];       // [{ face, name }] in the order they first earned a card
+  const cardAbilities = {};     // name -> { p1, p2, p3, p4 }
+  const cardShadowPower = {};   // name -> most recent matched shadow power
+
+  let enemyCards = [];          // [{ face, name }] — one card per enemy creature type
+  const enemyAbilities = {};    // name -> { p1, p2, p3, p4 }
+  const enemyPower = {};        // name -> most recent matched power
+
+  function addMatchedCreaturesToCards(matchedEntries) {
+    matchedEntries.forEach(entry => {
+      if (!cardAbilities[entry.name]) {
+        cardCreatures.push({ face: entry.face, name: entry.name });
+        cardAbilities[entry.name] = { p1: '', p2: '', p3: '', p4: '' };
+      }
+      cardShadowPower[entry.name] = entry.shadowPower;
+    });
+    renderCardsScreen();
+  }
+
+  function addEnemyMatchesToCards(enemyMatches) {
+    enemyMatches.forEach(entry => {
+      if (!enemyAbilities[entry.name]) {
+        enemyCards.push({ face: entry.face, name: entry.name });
+        enemyAbilities[entry.name] = { p1: '', p2: '', p3: '', p4: '' };
+      }
+      enemyPower[entry.name] = entry.power;
+    });
+    renderEnemyList();
+  }
+
+  function renderCardsScreen() {
+    if (cardCreatures.length === 0) {
+      cardsEmptyEl.style.display = '';
+      // clear any stray cards but keep the empty message element
+      Array.from(cardsListEl.querySelectorAll('.creature-card')).forEach(el => el.remove());
+      return;
+    }
+    cardsEmptyEl.style.display = 'none';
+    cardsListEl.innerHTML = '';
+    cardCreatures.forEach(({ face, name }) => {
+      const abilities = cardAbilities[name];
+      const shadowPower = cardShadowPower[name];
+      const card = document.createElement('div');
+      card.className = 'creature-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="card-face">${face}</span>
+          <span class="card-name">${name}</span>
+          <span class="card-shadow-power">Shadow Power ${shadowPower}</span>
+        </div>
+        <div class="card-powers">
+          ${[1,2,3,4].map(n => `
+            <div class="power-slot">
+              <label>Power ${n}</label>
+              <textarea data-name="${name}" data-slot="p${n}" placeholder="Attack or ability...">${abilities['p' + n]}</textarea>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      cardsListEl.appendChild(card);
+    });
+  }
+
+  function renderEnemyList() {
+    if (enemyCards.length === 0) {
+      enemyEmptyEl.style.display = '';
+      Array.from(enemyListEl.querySelectorAll('.creature-card')).forEach(el => el.remove());
+      return;
+    }
+    enemyEmptyEl.style.display = 'none';
+    enemyListEl.innerHTML = '';
+    enemyCards.forEach(({ face, name }) => {
+      const abilities = enemyAbilities[name];
+      const power = enemyPower[name];
+      const card = document.createElement('div');
+      card.className = 'creature-card enemy-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="card-face">${face}</span>
+          <span class="card-name">Shadow ${name}</span>
+          <span class="card-shadow-power">Power ${power}</span>
+        </div>
+        <div class="card-powers">
+          ${[1,2,3,4].map(n => `
+            <div class="power-slot">
+              <label>Power ${n}</label>
+              <textarea data-name="${name}" data-slot="p${n}" placeholder="Attack or ability...">${abilities['p' + n]}</textarea>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      enemyListEl.appendChild(card);
+    });
+  }
+
+  // keep typed text in state as the user types, using event delegation
+  cardsListEl.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.tagName === 'TEXTAREA' && t.dataset.name && t.dataset.slot) {
+      cardAbilities[t.dataset.name][t.dataset.slot] = t.value;
+    }
+  });
+
+  enemyListEl.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.tagName === 'TEXTAREA' && t.dataset.name && t.dataset.slot) {
+      enemyAbilities[t.dataset.name][t.dataset.slot] = t.value;
+    }
+  });
+
+  // --- Battle screen ---
+  const battleScreenEl = document.getElementById('battle-screen');
+  const tabBattleBtn = document.getElementById('tab-battle');
+  const battleAllyListEl = document.getElementById('battle-ally-list');
+  const battleEnemyListEl = document.getElementById('battle-enemy-list');
+  const playerHpFillEl = document.getElementById('player-hp-fill');
+  const enemyHpFillEl = document.getElementById('enemy-hp-fill');
+  const playerHpValueEl = document.getElementById('player-hp-value');
+  const enemyHpValueEl = document.getElementById('enemy-hp-value');
+  const battleBannerEl = document.getElementById('battle-banner');
+  const resetBattleBtn = document.getElementById('reset-battle');
+
+  const MAX_HP = 20;
+  let playerHP = MAX_HP;
+  let enemyHP = MAX_HP;
+  let battleOver = false;
+  const battleResults = {}; // key `${side}:${name}` -> last result detail string + hit bool
+
+  // Resolves one creature's attack based on its bound power (1 / 3 / 6 / 9).
+  // 1 -> roll the creature die; a match on this card's own creature lands 1 dmg.
+  // 3 -> roll the power die for damage, then flip the coin: stone = attack lands, shadow = no attack.
+  // 6 -> roll the power die for damage; always lands, no efficacy check.
+  // 9 -> flip the coin: stone = full 9-point attack lands, shadow = no attack.
+  function resolveAttack(cardName, power) {
+    if (power === 1) {
+      const rolled = creatures[Math.floor(Math.random() * creatures.length)];
+      const hit = rolled.name === cardName;
+      const rolledD8 = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+      return {
+        hit,
+        damage: hit ? rolledD8 : 0,
+        detail: hit
+          ? `d6: ${rolled.face} ${rolled.name} — match! d8: ${rolledD8} — ${rolledD8} dmg deployed`
+          : `d6: ${rolled.face} ${rolled.name} — no match — no attack`,
+        rolls: { type: 'd8creature', creature: rolled, d8: rolledD8 }
+      };
+    }
+    if (power === 3) {
+      const rolledD8 = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+      const isStone = Math.random() < 0.5;
+      return {
+        hit: isStone,
+        damage: isStone ? rolledD8 : 0,
+        detail: isStone
+          ? `d8: ${rolledD8} · d2: Stone — Efficacy ✓, ${rolledD8} dmg`
+          : `d8: ${rolledD8} · d2: Shadow — Efficacy ✗, no attack`,
+        rolls: { type: 'd8coin', d8: rolledD8, isStone }
+      };
+    }
+    if (power === 6) {
+      const dmg = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+      return {
+        hit: true,
+        damage: dmg,
+        detail: `d8: ${dmg} — automatic, ${dmg} dmg`,
+        rolls: { type: 'd8', d8: dmg }
+      };
+    }
+    if (power === 9) {
+      const isStone = Math.random() < 0.5;
+      return {
+        hit: isStone,
+        damage: isStone ? 9 : 0,
+        detail: isStone ? `d2: Stone — deployed, 9 dmg` : `d2: Shadow — no attack`,
+        rolls: { type: 'coin', isStone }
+      };
+    }
+    return { hit: false, damage: 0, detail: 'Unbound power — no attack', rolls: { type: 'none' } };
+  }
+
+  // --- Battle dice animation (reuses the same visuals/timing as the main dice) ---
+  const battleRollOverlay = document.getElementById('battle-roll-overlay');
+  const battleRollLabelEl = document.getElementById('battle-roll-label');
+  const battleRollResultEl = document.getElementById('battle-roll-result');
+  const battleRollHintEl = document.getElementById('battle-roll-hint');
+  const battleCoinStageEl = document.getElementById('battle-coin-stage');
+  const battleCreatureStageEl = document.getElementById('battle-creature-stage');
+  const battlePowerStageEl = document.getElementById('battle-power-stage');
+  const battleCoinEl = document.getElementById('battle-coin');
+  const battleCreatureDieEl = document.getElementById('battle-creature-die');
+  const battleCreatureFaceEl = document.getElementById('battle-creature-face');
+  const battlePowerDieEl = document.getElementById('battle-power-die');
+  const battlePowerFaceEl = document.getElementById('battle-power-face');
+
+  function animateBattleCoin(landsHeads) {
+    return new Promise(resolve => {
+      const extraSpins = 4 + Math.floor(Math.random() * 2);
+      const targetOffset = landsHeads ? 0 : 180;
+      const newRotation = extraSpins * 360 + targetOffset + 360;
+      battleCoinEl.style.setProperty('--coin-end', newRotation + 'deg');
+      battleCoinEl.classList.remove('spinning');
+      void battleCoinEl.offsetWidth;
+      battleCoinEl.classList.add('spinning');
+      battleCoinEl.style.transform = `rotateY(${newRotation}deg)`;
+      setTimeout(() => {
+        battleCoinEl.classList.remove('spinning');
+        resolve();
+      }, 900);
+    });
+  }
+
+  function animateBattleCreatureDie(resultFace) {
+    return new Promise(resolve => {
+      battleCreatureDieEl.classList.remove('rolling');
+      void battleCreatureDieEl.offsetWidth;
+      battleCreatureDieEl.classList.add('rolling');
+      let flickers = 0;
+      const interval = setInterval(() => {
+        battleCreatureFaceEl.textContent = creatures[Math.floor(Math.random() * creatures.length)].face;
+        flickers++;
+        if (flickers > 6) clearInterval(interval);
+      }, 70);
+      setTimeout(() => {
+        clearInterval(interval);
+        battleCreatureDieEl.classList.remove('rolling');
+        battleCreatureFaceEl.textContent = resultFace;
+        resolve();
+      }, 650);
+    });
+  }
+
+  function animateBattlePowerDie(resultValue) {
+    return new Promise(resolve => {
+      battlePowerDieEl.classList.remove('rolling');
+      void battlePowerDieEl.offsetWidth;
+      battlePowerDieEl.classList.add('rolling');
+      let flickers = 0;
+      const interval = setInterval(() => {
+        battlePowerFaceEl.textContent = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+        flickers++;
+        if (flickers > 6) clearInterval(interval);
+      }, 70);
+      setTimeout(() => {
+        clearInterval(interval);
+        battlePowerDieEl.classList.remove('rolling');
+        battlePowerFaceEl.textContent = resultValue;
+        resolve();
+      }, 650);
+    });
+  }
+
+  async function playAttackAnimation(rolls) {
+    battleCoinStageEl.style.display = 'none';
+    battleCreatureStageEl.style.display = 'none';
+    battlePowerStageEl.style.display = 'none';
+
+    const tasks = [];
+    if (rolls.type === 'd8creature') {
+      battleCreatureStageEl.style.display = '';
+      battlePowerStageEl.style.display = '';
+      tasks.push(animateBattleCreatureDie(rolls.creature.face));
+      tasks.push(animateBattlePowerDie(rolls.d8));
+    } else if (rolls.type === 'creature') {
+      battleCreatureStageEl.style.display = '';
+      tasks.push(animateBattleCreatureDie(rolls.creature.face));
+    } else if (rolls.type === 'd8coin') {
+      battlePowerStageEl.style.display = '';
+      battleCoinStageEl.style.display = '';
+      tasks.push(animateBattlePowerDie(rolls.d8));
+      tasks.push(animateBattleCoin(rolls.isStone));
+    } else if (rolls.type === 'd8') {
+      battlePowerStageEl.style.display = '';
+      tasks.push(animateBattlePowerDie(rolls.d8));
+    } else if (rolls.type === 'coin') {
+      battleCoinStageEl.style.display = '';
+      tasks.push(animateBattleCoin(rolls.isStone));
+    }
+    await Promise.all(tasks);
+  }
+
+  function setAllAttackButtonsDisabled(disabled) {
+    document.querySelectorAll('.battle-attack-btn').forEach(btn => { btn.disabled = disabled; });
+  }
+
+  function updateHpDisplay() {
+    playerHpFillEl.style.width = `${Math.max(0, (playerHP / MAX_HP) * 100)}%`;
+    enemyHpFillEl.style.width = `${Math.max(0, (enemyHP / MAX_HP) * 100)}%`;
+    playerHpValueEl.textContent = Math.max(0, playerHP);
+    enemyHpValueEl.textContent = Math.max(0, enemyHP);
+  }
+
+  function checkBattleEnd() {
+    if (playerHP <= 0 || enemyHP <= 0) {
+      battleOver = true;
+      battleBannerEl.style.display = '';
+      if (enemyHP <= 0 && playerHP <= 0) {
+        battleBannerEl.textContent = 'Both fall at once...';
+      } else if (enemyHP <= 0) {
+        battleBannerEl.textContent = 'Victory! The enemy falls.';
+        battleBannerEl.classList.remove('lose');
+      } else {
+        battleBannerEl.textContent = 'Defeat... you have fallen.';
+        battleBannerEl.classList.add('lose');
+      }
+      setTimeout(endBattleAndReturnToRoll, 1800);
+    }
+  }
+
+  function endBattleAndReturnToRoll() {
+    // wipe the creature roster on both sides for a fresh game
+    cardCreatures = [];
+    Object.keys(cardAbilities).forEach(k => delete cardAbilities[k]);
+    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
+
+    enemyCards = [];
+    Object.keys(enemyAbilities).forEach(k => delete enemyAbilities[k]);
+    Object.keys(enemyPower).forEach(k => delete enemyPower[k]);
+
+    Object.keys(battleResults).forEach(k => delete battleResults[k]);
+
+    playerHP = MAX_HP;
+    enemyHP = MAX_HP;
+    battleOver = false;
+    battleBannerEl.style.display = 'none';
+    battleBannerEl.classList.remove('lose');
+
+    renderCardsScreen();
+    renderEnemyList();
+    renderBattleScreen();
+    showScreen('cast');
+  }
+
+  function renderBattleCard(face, name, power, side) {
+    const key = `${side}:${name}`;
+    const result = battleResults[key];
+    const card = document.createElement('div');
+    card.className = side === 'enemy' ? 'battle-card enemy-card' : 'battle-card';
+    card.innerHTML = `
+      <div class="battle-card-header">
+        <span class="battle-card-face">${face}</span>
+        <span class="battle-card-name">${name}</span>
+        <span class="battle-card-power">Power ${power}</span>
+      </div>
+      <button class="battle-attack-btn" data-name="${name}" data-power="${power}" data-side="${side}" ${battleOver ? 'disabled' : ''}>Attack</button>
+      <p class="battle-result ${result && result.hit ? 'hit' : ''}">${result ? result.detail : ''}</p>
+    `;
+    return card;
+  }
+
+  function renderBattleScreen() {
+    battleAllyListEl.innerHTML = '';
+    if (cardCreatures.length === 0) {
+      battleAllyListEl.innerHTML = `<p class="cards-empty">No creature cards yet.</p>`;
+    } else {
+      cardCreatures.forEach(({ face, name }) => {
+        battleAllyListEl.appendChild(renderBattleCard(face, name, cardShadowPower[name], 'ally'));
+      });
+    }
+
+    battleEnemyListEl.innerHTML = '';
+    if (enemyCards.length === 0) {
+      battleEnemyListEl.innerHTML = `<p class="cards-empty">No enemy cards yet.</p>`;
+    } else {
+      enemyCards.forEach(({ face, name }) => {
+        battleEnemyListEl.appendChild(renderBattleCard(face, name, enemyPower[name], 'enemy'));
+      });
+    }
+
+    updateHpDisplay();
+    if (!battleOver) battleBannerEl.style.display = 'none';
+  }
+
+  function waitForTapToContinue() {
+    return new Promise(resolve => {
+      function handler() {
+        battleRollOverlay.removeEventListener('click', handler);
+        battleRollHintEl.style.display = 'none';
+        resolve();
+      }
+      battleRollOverlay.addEventListener('click', handler);
+    });
+  }
+
+  async function handleAttack(side, name, power) {
+    if (battleOver) return;
+    setAllAttackButtonsDisabled(true);
+
+    const result = resolveAttack(name, power);
+
+    battleRollLabelEl.textContent = `Rolling for ${name}...`;
+    battleRollResultEl.textContent = '';
+    battleRollResultEl.classList.remove('hit', 'miss');
+    battleRollHintEl.style.display = 'none';
+    battleRollOverlay.classList.add('open');
+    await playAttackAnimation(result.rolls);
+
+    // hold on the result — tap anywhere on the popup to advance
+    battleRollLabelEl.textContent = result.hit ? `${result.damage} points deployed!` : 'No attack landed';
+    battleRollResultEl.textContent = result.detail;
+    battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
+    battleRollHintEl.style.display = '';
+    await waitForTapToContinue();
+
+    battleRollOverlay.classList.remove('open');
+
+    battleResults[`${side}:${name}`] = result;
+    if (result.hit) {
+      if (side === 'ally') {
+        enemyHP = Math.max(0, enemyHP - result.damage);
+      } else {
+        playerHP = Math.max(0, playerHP - result.damage);
+      }
+    }
+    checkBattleEnd();
+    renderBattleScreen();
+  }
+
+  battleAllyListEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.battle-attack-btn');
+    if (!btn) return;
+    handleAttack('ally', btn.dataset.name, Number(btn.dataset.power));
+  });
+
+  battleEnemyListEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.battle-attack-btn');
+    if (!btn) return;
+    handleAttack('enemy', btn.dataset.name, Number(btn.dataset.power));
+  });
+
+  resetBattleBtn.addEventListener('click', () => {
+    playerHP = MAX_HP;
+    enemyHP = MAX_HP;
+    battleOver = false;
+    Object.keys(battleResults).forEach(k => delete battleResults[k]);
+    battleBannerEl.style.display = 'none';
+    battleBannerEl.classList.remove('lose');
+    renderBattleScreen();
+  });
+
+  function showScreen(which) {
+    castScreenEl.style.display = which === 'cast' ? '' : 'none';
+    cardsScreenEl.style.display = which === 'cards' ? '' : 'none';
+    battleScreenEl.style.display = which === 'battle' ? '' : 'none';
+    tabCastBtn.classList.toggle('active', which === 'cast');
+    tabCardsBtn.classList.toggle('active', which === 'cards');
+    tabBattleBtn.classList.toggle('active', which === 'battle');
+    if (which === 'battle') renderBattleScreen();
+  }
+
+  tabCastBtn.addEventListener('click', () => showScreen('cast'));
+  tabCardsBtn.addEventListener('click', () => showScreen('cards'));
+  tabBattleBtn.addEventListener('click', () => showScreen('battle'));
 </script>
 
 </body>
