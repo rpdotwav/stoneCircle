@@ -138,15 +138,76 @@
   }
 
   /* Creature Cards screen */
-  .cards-frame {
+  .title-frame {
+    gap: 0.9rem;
+  }
+  .title-heading {
+    font-family: 'MedievalSharp', serif;
+    font-weight: 400;
+    font-size: clamp(1.7rem, 7vw, 2.6rem);
+    letter-spacing: 0.03em;
+    margin: 0 0 0.2rem;
+    color: var(--amber-bright);
+    text-shadow: 0 0 26px rgba(240,190,108,0.4), 0 0 50px rgba(122,74,138,0.22);
+  }
+  .title-symbol {
+    width: 68px;
+    height: 68px;
+    margin: 0.2rem 0 0.6rem;
+    filter: drop-shadow(0 0 10px rgba(217,154,62,0.35));
+  }
+  #title-begin-btn {
+    margin-top: 0.3rem;
+  }
+
+  .howto-frame {
     justify-content: flex-start;
     padding-bottom: 1rem;
+  }
+  .howto-body {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin: 0.3rem 0 1rem;
+  }
+  .howto-step {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--bone-dim);
+  }
+  .howto-step strong {
+    color: var(--amber-bright);
+    font-family: 'MedievalSharp', serif;
+    font-weight: 400;
   }
 
   /* Battle screen */
   .battle-frame {
     justify-content: flex-start;
     padding-bottom: 1rem;
+  }
+  .round-indicator {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+    text-align: center;
+    margin: 0.2rem 0 0;
+  }
+  .first-attacker-indicator {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    font-style: italic;
+    color: var(--amber);
+    text-align: center;
+    margin: 0.15rem 0 0;
+  }
+  .battle-attack-btn.waiting-turn {
+    opacity: 0.35;
+    cursor: default;
   }
   .hp-row {
     display: flex;
@@ -283,6 +344,13 @@
   .battle-attack-btn:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+  .battle-card.retired {
+    opacity: 0.5;
+  }
+  .battle-card.retired .battle-attack-btn {
+    background: rgba(255,255,255,0.05);
+    color: rgba(232,223,196,0.4);
   }
   .battle-result {
     font-size: 0.6rem;
@@ -709,20 +777,36 @@
   }
   .roll-counter:active { opacity: 0.6; }
 
+  .ff-btn {
+    margin-top: 0.4rem;
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 0.68rem;
+    color: rgba(232,223,196,0.45);
+    background: none;
+    border: 1px dashed rgba(232,223,196,0.25);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+  }
+  .ff-btn:active {
+    opacity: 0.6;
+  }
+
   .target-indicator {
     margin-top: 0.55rem;
     padding: 0.4rem 0.8rem;
-    border: 1px dashed var(--rune-line);
+    border: 1px solid var(--amber);
+    background: rgba(217,154,62,0.08);
     border-radius: 999px;
     display: flex;
     align-items: center;
     gap: 0.4rem;
     transition: border-color 300ms, background 300ms;
   }
-  .target-indicator.locked {
-    border-style: solid;
-    border-color: var(--amber);
-    background: rgba(217,154,62,0.08);
+  .target-indicator.player2 {
+    border-color: var(--blood);
+    background: rgba(107,43,58,0.12);
   }
   .target-label {
     font-family: 'MedievalSharp', serif;
@@ -734,10 +818,10 @@
   .target-value {
     font-family: 'MedievalSharp', serif;
     font-size: 0.72rem;
-    color: var(--bone-dim);
-  }
-  .target-indicator.locked .target-value {
     color: var(--amber-bright);
+  }
+  .target-indicator.player2 .target-value {
+    color: #e2777f;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -760,6 +844,9 @@
     text-transform: uppercase;
     color: var(--witch-bright);
     margin: 0 0 0.4rem;
+  }
+  .record-title.enemy {
+    color: #e2777f;
   }
 
   .slots {
@@ -1185,12 +1272,21 @@
   <div class="wisp"></div>
 
   <div class="screen-toggle">
-    <button class="toggle-btn active" id="tab-cast">The Circle</button>
-    <button class="toggle-btn" id="tab-cards">Creature Cards</button>
-    <button class="toggle-btn" id="tab-battle">Battle</button>
+    <button class="toggle-btn" id="howto-btn">❔ How to Play</button>
   </div>
 
-  <div class="frame" id="cast-screen">
+  <div class="frame title-frame" id="title-screen">
+    <p class="eyebrow">A Rite of the Hollow Wood</p>
+    <h1 class="title-heading">The Hollow Rite</h1>
+    <p class="sub">A two-player summoning duel — roll for creatures, match stone to shadow, and battle for the best of three rounds.</p>
+    <div class="divider"></div>
+    <div class="title-symbol">
+      <svg viewBox="0 0 100 100"><polygon points="50,10 90,85 10,85" fill="none" stroke="var(--amber)" stroke-width="3" stroke-linejoin="round"/></svg>
+    </div>
+    <button class="roll-all" id="title-begin-btn">Begin the Rite</button>
+  </div>
+
+  <div class="frame" id="cast-screen" style="display:none;">
     <p class="eyebrow">A Rite of the Hollow Wood</p>
     <h1>The Summoning Circle</h1>
     <p class="sub">Cast a relic alone, or call the circle entire.</p>
@@ -1252,45 +1348,40 @@
 
     <div class="controls">
       <button class="roll-all" id="roll-all">Cast All Three</button>
-      <p class="hint">free rolls until you cast a stone — then 11 rolls are recorded</p>
-      <p class="roll-counter" id="roll-counter">Roll <span class="n" id="roll-count">0</span> / 11</p>
+      <p class="hint">pass the device back and forth — one roll each, alternating, until both reach 11</p>
+      <p class="roll-counter" id="roll-counter">P1: <span class="n" id="p1-roll-count">0</span>/11 · P2: <span class="n" id="p2-roll-count">0</span>/11</p>
+      <button class="ff-btn" id="fast-forward">⏩ Fast Forward (testing)</button>
     </div>
 
     <div class="target-indicator" id="target-indicator">
-      <span class="target-label">Rite Target</span>
-      <span class="target-value" id="target-value">— roll a stone to lock in —</span>
+      <span class="target-label">Now Rolling</span>
+      <span class="target-value" id="target-value">Player 1</span>
     </div>
 
     <div class="record">
-      <p class="record-title">This Rite's Rolls</p>
-      <div class="rslots" id="rite-slots"></div>
+      <p class="record-title">Player 1's Rolls</p>
+      <div class="rslots" id="p1-rite-slots"></div>
     </div>
 
-    <div class="prev-summary">
-      <p class="prev-summary-title">Last Rite</p>
-      <div class="prev-chips" id="prev-chips">
-        <span class="prev-empty">no rite completed yet</span>
-      </div>
+    <div class="record">
+      <p class="record-title enemy">Player 2's Rolls</p>
+      <div class="rslots" id="p2-rite-slots"></div>
     </div>
   </div>
 
-  <div class="frame cards-frame" id="cards-screen" style="display:none;">
+  <div class="frame howto-frame" id="howto-screen" style="display:none;">
     <p class="eyebrow">A Rite of the Hollow Wood</p>
-    <h1>Creature Cards</h1>
-    <p class="sub">Every matched summon earns a card here, to sketch its powers.</p>
+    <h1>How to Play</h1>
     <div class="divider"></div>
-    <div class="cards-list" id="cards-list">
-      <p class="cards-empty" id="cards-empty">No creature has matched a shadow yet — complete a rite to earn your first card.</p>
+    <div class="howto-body">
+      <p class="howto-step"><strong>1. Roll, alternating.</strong> Pass the device back and forth — one roll each, tapping "Cast All Three" — until both players reach 11 rolls.</p>
+      <p class="howto-step"><strong>2. Match your creatures.</strong> Rolling both a stone <em>and</em> a shadow of the same creature during your 11 rolls claims that creature for your roster. The shadow's power (0–3) becomes that creature's power in battle.</p>
+      <p class="howto-step"><strong>3. Coin flip.</strong> Once both players finish rolling, a coin decides who attacks first this round.</p>
+      <p class="howto-step"><strong>4. Battle.</strong> Turns alternate. Each creature can attack twice before it retires. A creature's power (0–3) sets how many times it rolls the d8 for damage — power 0 rolls once, power 3 rolls four times, summed together.</p>
+      <p class="howto-step"><strong>5. Win the round.</strong> Knock the other player from 20 to 0, or — if both sides run out of attacks first — whoever has more points left wins the round.</p>
+      <p class="howto-step"><strong>6. Best of three.</strong> Every round starts from a blank slate — both rosters wipe clean and you roll a fresh 11 each before the next round begins. First to 2 round wins takes the game.</p>
     </div>
-
-    <div class="enemy-section" id="enemy-section">
-      <div class="divider enemy-divider"></div>
-      <p class="enemy-title">The Enemy</p>
-      <p class="sub enemy-sub">Unclaimed shadows, left to fight against you.</p>
-      <div class="cards-list" id="enemy-list">
-        <p class="cards-empty" id="enemy-empty">No shadow has gone unclaimed yet.</p>
-      </div>
-    </div>
+    <button class="modal-continue" id="howto-back-btn">Back</button>
   </div>
 
   <div class="frame battle-frame" id="battle-screen" style="display:none;">
@@ -1299,14 +1390,17 @@
     <p class="sub">Each creature strikes according to its bound power.</p>
     <div class="divider"></div>
 
+    <p class="round-indicator" id="round-indicator">Round 1 of 3 · Score 0 – 0</p>
+    <p class="first-attacker-indicator" id="first-attacker-indicator">Coin says: Player 1 attacks first</p>
+
     <div class="hp-row">
       <div class="hp-block">
-        <span class="hp-label">You</span>
+        <span class="hp-label">Player 1</span>
         <div class="hp-bar-track"><div class="hp-bar-fill" id="player-hp-fill"></div></div>
         <span class="hp-value" id="player-hp-value">20</span>
       </div>
       <div class="hp-block">
-        <span class="hp-label enemy">Enemy</span>
+        <span class="hp-label enemy">Player 2</span>
         <div class="hp-bar-track"><div class="hp-bar-fill enemy" id="enemy-hp-fill"></div></div>
         <span class="hp-value" id="enemy-hp-value">20</span>
       </div>
@@ -1316,13 +1410,13 @@
 
     <div class="battle-columns">
       <div class="battle-col">
-        <p class="battle-col-title">Your Creatures</p>
+        <p class="battle-col-title">Player 1's Creatures</p>
         <div class="battle-list" id="battle-ally-list">
           <p class="cards-empty">No creature cards yet.</p>
         </div>
       </div>
       <div class="battle-col">
-        <p class="battle-col-title enemy">Enemy Creatures</p>
+        <p class="battle-col-title enemy">Player 2's Creatures</p>
         <div class="battle-list" id="battle-enemy-list">
           <p class="cards-empty">No enemy cards yet.</p>
         </div>
@@ -1330,6 +1424,7 @@
     </div>
 
     <button class="clear-record" id="reset-battle">reset the battle</button>
+    <button class="ff-btn" id="fast-forward-battle">⏩ Fast Forward Round (testing)</button>
   </div>
 
   <div class="modal-backdrop" id="modal-backdrop">
@@ -1386,6 +1481,37 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="coin-flip-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="coin-flip-eyebrow">Round 1 — Who Attacks First?</p>
+      <p class="modal-title" id="coin-flip-title">Flip the Coin</p>
+      <div class="battle-roll-dice">
+        <div class="stage" id="coin-flip-stage">
+          <div class="coin" id="coin-flip-coin">
+            <div class="coin-side heads">
+              <span class="coin-symbol">
+                <svg viewBox="0 0 100 100"><polygon points="50,18 84,82 16,82" fill="none" stroke="#1c2a12" stroke-width="5" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+            <div class="coin-side tails"></div>
+          </div>
+        </div>
+      </div>
+      <p class="battle-roll-result" id="coin-flip-result"></p>
+      <button class="modal-continue" id="coin-flip-btn">Flip Coin</button>
+      <button class="modal-continue" id="coin-flip-continue-btn" style="display:none;">Continue to Battle</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="round-result-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="round-result-eyebrow">Round 1 Complete</p>
+      <p class="modal-title" id="round-result-title">Player 1 Wins!</p>
+      <p class="modal-count" id="round-result-score">Score 1 – 0</p>
+      <button class="modal-continue" id="round-result-continue">Continue</button>
+    </div>
+  </div>
+
 <script>
   const creatures = [
     { face: '🧌', name: 'Goblin' },
@@ -1407,7 +1533,7 @@
 
   const numberDie = document.getElementById('number-die');
   const numberFace = document.getElementById('number-face');
-  const powerFaces = [1, 1, 3, 3, 6, 6, 9, 9]; // d8 shape, values 1/3/6/9 (two faces each)
+  const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // d8 shape, values 0-3 (two faces each)
 
   function flipCoin() {
     return new Promise(resolve => {
@@ -1485,50 +1611,51 @@
 
   const rollAllBtn = document.getElementById('roll-all');
   const rollCounterEl = document.getElementById('roll-counter');
-  const rollCountEl = document.getElementById('roll-count');
+  const p1RollCountEl = document.getElementById('p1-roll-count');
+  const p2RollCountEl = document.getElementById('p2-roll-count');
   const targetValueEl = document.getElementById('target-value');
   const targetIndicatorEl = document.getElementById('target-indicator');
-  let rollCount = 0;
-
-  function updateRollCounter() {
-    rollCount += 1;
-    rollCountEl.textContent = rollCount;
-  }
 
   rollCounterEl.addEventListener('click', () => {
-    rollCount = 0;
-    rollCountEl.textContent = rollCount;
+    p1RollLog = [];
+    p2RollLog = [];
+    activePlayer = 1;
+    p1RollCountEl.textContent = 0;
+    p2RollCountEl.textContent = 0;
+    renderRiteSlots();
+    renderTurnIndicator();
   });
 
-  // --- Rite state: the first stone rolled each rite locks a target creature,
-  // and that same roll starts the 11-roll counted/saved window ---
-  let riteTarget = null;     // { face, name } or null until a stone is rolled
-  let riteRollLog = [];      // every counted roll this rite (post-lock only): { face, name, power, isStone }
+  // --- Two-player turn state: rolls alternate one at a time, back and forth,
+  // until BOTH players have reached 11 rolls each ---
+  let activePlayer = 1;       // whose turn it is to roll RIGHT NOW
+  let p1RollLog = [];         // Player 1's rolls this turn: { face, name, power, isStone }
+  let p2RollLog = [];         // Player 2's rolls this turn
 
-  function renderTarget() {
-    if (!riteTarget) {
-      targetValueEl.textContent = '— roll a stone to lock in —';
-      targetIndicatorEl.classList.remove('locked');
-    } else {
-      targetValueEl.textContent = `${riteTarget.face} ${riteTarget.name}`;
-      targetIndicatorEl.classList.add('locked');
+  function renderTurnIndicator() {
+    targetValueEl.textContent = `Player ${activePlayer}`;
+    targetIndicatorEl.classList.toggle('player2', activePlayer === 2);
+  }
+
+  // Build 11 empty roll slots for each player, once
+  function buildSlotRow(containerId) {
+    const container = document.getElementById(containerId);
+    const els = [];
+    for (let i = 0; i < 11; i++) {
+      const div = document.createElement('div');
+      div.className = 'rslot';
+      div.innerHTML = `<span class="rslot-mark">—</span>`;
+      container.appendChild(div);
+      els.push(div);
     }
+    return els;
   }
+  const p1SlotEls = buildSlotRow('p1-rite-slots');
+  const p2SlotEls = buildSlotRow('p2-rite-slots');
 
-  // Build 11 empty roll slots once
-  const riteSlotsEl = document.getElementById('rite-slots');
-  const riteSlotEls = [];
-  for (let i = 0; i < 11; i++) {
-    const div = document.createElement('div');
-    div.className = 'rslot';
-    div.innerHTML = `<span class="rslot-mark">—</span>`;
-    riteSlotsEl.appendChild(div);
-    riteSlotEls.push(div);
-  }
-
-  function renderRiteSlots() {
-    riteSlotEls.forEach((el, i) => {
-      const entry = riteRollLog[i];
+  function renderSlotRow(slotEls, rollLog) {
+    slotEls.forEach((el, i) => {
+      const entry = rollLog[i];
       if (!entry) {
         el.className = 'rslot';
         el.innerHTML = `<span class="rslot-mark">—</span>`;
@@ -1542,8 +1669,30 @@
     });
   }
 
+  function renderRiteSlots() {
+    renderSlotRow(p1SlotEls, p1RollLog);
+    renderSlotRow(p2SlotEls, p2RollLog);
+    p1RollCountEl.textContent = p1RollLog.length;
+    p2RollCountEl.textContent = p2RollLog.length;
+  }
+
+  function bothPlayersDone() {
+    return p1RollLog.length >= 11 && p2RollLog.length >= 11;
+  }
+
+  // After a roll, hand the turn to the other player — unless they're already
+  // done, in which case the current player keeps going until they finish too.
+  function advanceRollTurn() {
+    const other = activePlayer === 1 ? 2 : 1;
+    const otherLog = other === 1 ? p1RollLog : p2RollLog;
+    if (otherLog.length < 11) {
+      activePlayer = other;
+    }
+    // else: other player already has their 11 — same player rolls again
+  }
+
   rollAllBtn.addEventListener('click', async () => {
-    if (rollCount >= 11) {
+    if (bothPlayersDone()) {
       openSummaryModal();
       return;
     }
@@ -1565,53 +1714,53 @@
       isStone: coinResult.isStone
     };
 
-    if (riteTarget === null) {
-      // still searching for the first stone — these rolls are free and unsaved
-      if (entry.isStone) {
-        riteTarget = { face: entry.face, name: entry.name };
-        renderTarget();
-        // the locking roll itself is the first counted, saved roll
-        riteRollLog.push(entry);
-        renderRiteSlots();
-        updateRollCounter();
-      }
-      // a shadow rolled before the target locks: nothing saved, nothing counted
-    } else {
-      // target already locked — every roll from here counts and is saved
-      riteRollLog.push(entry);
-      renderRiteSlots();
-      updateRollCounter();
-    }
+    const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+    activeLog.push(entry);
+    renderRiteSlots();
+    advanceRollTurn();
+    renderTurnIndicator();
 
     rollAllBtn.disabled = false;
     rollAllBtn.style.opacity = '';
     rollAllBtn.style.cursor = '';
   });
 
-  function computeRiteResults() {
+  // Testing helper: instantly plays out the rest of both players' 11 rolls, alternating
+  // turn by turn just like real play would, then pops the summary immediately.
+  const fastForwardBtn = document.getElementById('fast-forward');
+  fastForwardBtn.addEventListener('click', () => {
+    while (!bothPlayersDone()) {
+      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+      if (activeLog.length < 11) {
+        const creature = creatures[Math.floor(Math.random() * creatures.length)];
+        const power = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+        const isStone = Math.random() < 0.5;
+        activeLog.push({ face: creature.face, name: creature.name, power, isStone });
+      }
+      advanceRollTurn();
+    }
+    renderRiteSlots();
+    renderTurnIndicator();
+    openSummaryModal();
+  });
+
+  // Any creature type with both a stone and a shadow rolled is a match.
+  function computeMatchesFor(rollLog) {
     const groups = {}; // name -> { stones: [], shadows: [] }
-    riteRollLog.forEach(e => {
+    rollLog.forEach(e => {
       if (!groups[e.name]) groups[e.name] = { stones: [], shadows: [] };
       (e.isStone ? groups[e.name].stones : groups[e.name].shadows).push(e);
     });
 
-    let allyMatch = null;
-    const enemyMatches = [];
-
+    const matches = [];
     Object.keys(groups).forEach(name => {
       const g = groups[name];
       if (g.stones.length && g.shadows.length) {
-        const face = g.stones[0].face;
-        const shadowPower = g.shadows[0].power;
-        if (riteTarget && name === riteTarget.name) {
-          allyMatch = { face, name, shadowPower };
-        } else {
-          enemyMatches.push({ face, name, power: shadowPower });
-        }
+        matches.push({ face: g.stones[0].face, name, shadowPower: g.shadows[0].power });
       }
     });
 
-    return { allyMatch, enemyMatches };
+    return matches;
   }
 
   function chipsMarkup(entries, emptyText) {
@@ -1621,25 +1770,19 @@
     return entries.map(e => `<span class="prev-chip">${e.face} ${e.name}</span>`).join('');
   }
 
-  // --- End-of-cycle summary modal (after the 11th roll) ---
+  // --- End-of-turn summary modal (once both players have finished all 11 rolls) ---
   const modalBackdrop = document.getElementById('modal-backdrop');
   const modalBody = document.getElementById('modal-body');
   const modalContinueBtn = document.getElementById('modal-continue');
-  const prevChipsEl = document.getElementById('prev-chips');
 
   function buildSummaryMarkup() {
-    const { allyMatch, enemyMatches } = computeRiteResults();
-    const targetLine = riteTarget
-      ? `<p class="modal-count">Target: <span class="n">${riteTarget.face} ${riteTarget.name}</span></p>`
-      : `<p class="modal-count">No stone was ever rolled — no target locked.</p>`;
-    const allyLine = allyMatch
-      ? `<div class="modal-list">${chipsMarkup([allyMatch], '')}</div>`
-      : `<p class="modal-empty-line">No shadow of your target was cast this rite.</p>`;
-    const enemyLine = enemyMatches.length
-      ? `<p class="modal-count enemy-count">Enemy summons: <span class="n">${enemyMatches.length}</span></p>
-         <div class="modal-list">${enemyMatches.map(e => `<span class="modal-chip-enemy">${e.face} ${e.name}</span>`).join('')}</div>`
-      : `<p class="modal-empty-line">No enemy summons this rite.</p>`;
-    return `${targetLine}${allyLine}${enemyLine}`;
+    const p1Matches = computeMatchesFor(p1RollLog);
+    const p2Matches = computeMatchesFor(p2RollLog);
+    const p1Block = `<p class="modal-count">Player 1's Matches</p>
+      ${p1Matches.length ? `<div class="modal-list">${chipsMarkup(p1Matches, '')}</div>` : `<p class="modal-empty-line">No matches for Player 1.</p>`}`;
+    const p2Block = `<p class="modal-count enemy-count">Player 2's Matches</p>
+      ${p2Matches.length ? `<div class="modal-list">${chipsMarkup(p2Matches, '')}</div>` : `<p class="modal-empty-line">No matches for Player 2.</p>`}`;
+    return `${p1Block}${p2Block}`;
   }
 
   function openSummaryModal() {
@@ -1651,156 +1794,63 @@
   }
 
   function closeSummaryAndReset() {
-    const { allyMatch, enemyMatches } = computeRiteResults();
+    const p1Matches = computeMatchesFor(p1RollLog);
+    const p2Matches = computeMatchesFor(p2RollLog);
 
-    // bank this rite's result into the "Last Rite" panel before clearing
-    prevChipsEl.innerHTML = allyMatch
-      ? chipsMarkup([allyMatch], '')
-      : (riteTarget ? chipsMarkup([], `${riteTarget.face} ${riteTarget.name} — no shadow cast`) : chipsMarkup([], 'no target locked this rite'));
-
-    addMatchedCreaturesToCards(allyMatch ? [allyMatch] : []);
-    addEnemyMatchesToCards(enemyMatches);
+    addMatchedCreaturesToCards(p1Matches);
+    addEnemyMatchesToCards(p2Matches.map(m => ({ face: m.face, name: m.name, power: m.shadowPower })));
 
     modalBackdrop.classList.remove('open');
-    rollCount = 0;
-    rollCountEl.textContent = rollCount;
-    riteTarget = null;
-    riteRollLog = [];
+    p1RollLog = [];
+    p2RollLog = [];
+    activePlayer = 1;
     renderRiteSlots();
-    renderTarget();
     rollAllBtn.disabled = false;
     rollAllBtn.style.opacity = '';
     rollAllBtn.style.cursor = '';
 
-    // the rite is over — head straight into battle with whatever cards were just earned
-    showScreen('battle');
+    // both rosters are set — show the coin-flip popup for who attacks first
+    renderTurnIndicator();
+    openCoinFlipOverlay();
   }
 
   modalContinueBtn.addEventListener('click', closeSummaryAndReset);
 
-  // --- Creature Cards screen ---
+  // --- Creature rosters (rendered live on the Battle screen only) ---
+  const titleScreenEl = document.getElementById('title-screen');
+  const titleBeginBtn = document.getElementById('title-begin-btn');
   const castScreenEl = document.getElementById('cast-screen');
-  const cardsScreenEl = document.getElementById('cards-screen');
-  const tabCastBtn = document.getElementById('tab-cast');
-  const tabCardsBtn = document.getElementById('tab-cards');
-  const cardsListEl = document.getElementById('cards-list');
-  const cardsEmptyEl = document.getElementById('cards-empty');
-  const enemyListEl = document.getElementById('enemy-list');
-  const enemyEmptyEl = document.getElementById('enemy-empty');
+  const howtoScreenEl = document.getElementById('howto-screen');
+  const howtoBtn = document.getElementById('howto-btn');
+  const howtoBackBtn = document.getElementById('howto-back-btn');
+  let screenBeforeHowto = 'title';
 
   let cardCreatures = [];       // [{ face, name }] in the order they first earned a card
-  const cardAbilities = {};     // name -> { p1, p2, p3, p4 }
   const cardShadowPower = {};   // name -> most recent matched shadow power
 
-  let enemyCards = [];          // [{ face, name }] — one card per enemy creature type
-  const enemyAbilities = {};    // name -> { p1, p2, p3, p4 }
+  let enemyCards = [];          // [{ face, name }] — Player 2's creature roster
   const enemyPower = {};        // name -> most recent matched power
 
   function addMatchedCreaturesToCards(matchedEntries) {
     matchedEntries.forEach(entry => {
-      if (!cardAbilities[entry.name]) {
+      if (!cardShadowPower.hasOwnProperty(entry.name)) {
         cardCreatures.push({ face: entry.face, name: entry.name });
-        cardAbilities[entry.name] = { p1: '', p2: '', p3: '', p4: '' };
       }
       cardShadowPower[entry.name] = entry.shadowPower;
     });
-    renderCardsScreen();
   }
 
   function addEnemyMatchesToCards(enemyMatches) {
     enemyMatches.forEach(entry => {
-      if (!enemyAbilities[entry.name]) {
+      if (!enemyPower.hasOwnProperty(entry.name)) {
         enemyCards.push({ face: entry.face, name: entry.name });
-        enemyAbilities[entry.name] = { p1: '', p2: '', p3: '', p4: '' };
       }
       enemyPower[entry.name] = entry.power;
     });
-    renderEnemyList();
   }
-
-  function renderCardsScreen() {
-    if (cardCreatures.length === 0) {
-      cardsEmptyEl.style.display = '';
-      // clear any stray cards but keep the empty message element
-      Array.from(cardsListEl.querySelectorAll('.creature-card')).forEach(el => el.remove());
-      return;
-    }
-    cardsEmptyEl.style.display = 'none';
-    cardsListEl.innerHTML = '';
-    cardCreatures.forEach(({ face, name }) => {
-      const abilities = cardAbilities[name];
-      const shadowPower = cardShadowPower[name];
-      const card = document.createElement('div');
-      card.className = 'creature-card';
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="card-face">${face}</span>
-          <span class="card-name">${name}</span>
-          <span class="card-shadow-power">Shadow Power ${shadowPower}</span>
-        </div>
-        <div class="card-powers">
-          ${[1,2,3,4].map(n => `
-            <div class="power-slot">
-              <label>Power ${n}</label>
-              <textarea data-name="${name}" data-slot="p${n}" placeholder="Attack or ability...">${abilities['p' + n]}</textarea>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      cardsListEl.appendChild(card);
-    });
-  }
-
-  function renderEnemyList() {
-    if (enemyCards.length === 0) {
-      enemyEmptyEl.style.display = '';
-      Array.from(enemyListEl.querySelectorAll('.creature-card')).forEach(el => el.remove());
-      return;
-    }
-    enemyEmptyEl.style.display = 'none';
-    enemyListEl.innerHTML = '';
-    enemyCards.forEach(({ face, name }) => {
-      const abilities = enemyAbilities[name];
-      const power = enemyPower[name];
-      const card = document.createElement('div');
-      card.className = 'creature-card enemy-card';
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="card-face">${face}</span>
-          <span class="card-name">Shadow ${name}</span>
-          <span class="card-shadow-power">Power ${power}</span>
-        </div>
-        <div class="card-powers">
-          ${[1,2,3,4].map(n => `
-            <div class="power-slot">
-              <label>Power ${n}</label>
-              <textarea data-name="${name}" data-slot="p${n}" placeholder="Attack or ability...">${abilities['p' + n]}</textarea>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      enemyListEl.appendChild(card);
-    });
-  }
-
-  // keep typed text in state as the user types, using event delegation
-  cardsListEl.addEventListener('input', (e) => {
-    const t = e.target;
-    if (t.tagName === 'TEXTAREA' && t.dataset.name && t.dataset.slot) {
-      cardAbilities[t.dataset.name][t.dataset.slot] = t.value;
-    }
-  });
-
-  enemyListEl.addEventListener('input', (e) => {
-    const t = e.target;
-    if (t.tagName === 'TEXTAREA' && t.dataset.name && t.dataset.slot) {
-      enemyAbilities[t.dataset.name][t.dataset.slot] = t.value;
-    }
-  });
 
   // --- Battle screen ---
   const battleScreenEl = document.getElementById('battle-screen');
-  const tabBattleBtn = document.getElementById('tab-battle');
   const battleAllyListEl = document.getElementById('battle-ally-list');
   const battleEnemyListEl = document.getElementById('battle-enemy-list');
   const playerHpFillEl = document.getElementById('player-hp-fill');
@@ -1809,63 +1859,111 @@
   const enemyHpValueEl = document.getElementById('enemy-hp-value');
   const battleBannerEl = document.getElementById('battle-banner');
   const resetBattleBtn = document.getElementById('reset-battle');
+  const roundIndicatorEl = document.getElementById('round-indicator');
 
   const MAX_HP = 20;
   let playerHP = MAX_HP;
   let enemyHP = MAX_HP;
   let battleOver = false;
   const battleResults = {}; // key `${side}:${name}` -> last result detail string + hit bool
+  const attackCounts = {};  // key `${side}:${name}` -> number of attacks made this battle
+  const MAX_ATTACKS = 2;
 
-  // Resolves one creature's attack based on its bound power (1 / 3 / 6 / 9).
-  // 1 -> roll the creature die; a match on this card's own creature lands 1 dmg.
-  // 3 -> roll the power die for damage, then flip the coin: stone = attack lands, shadow = no attack.
-  // 6 -> roll the power die for damage; always lands, no efficacy check.
-  // 9 -> flip the coin: stone = full 9-point attack lands, shadow = no attack.
+  // --- Best of 3 rounds: keep rosters across rounds, only HP/attacks reset each round ---
+  const BEST_OF = 3;
+  let roundWins = { p1: 0, p2: 0 };
+  let currentRound = 1;
+
+  function renderRoundIndicator() {
+    roundIndicatorEl.textContent = `Round ${currentRound} of ${BEST_OF} · Score ${roundWins.p1} – ${roundWins.p2}`;
+  }
+
+  // --- Coin flip decides who attacks first each round, then turns strictly alternate ---
+  const firstAttackerIndicatorEl = document.getElementById('first-attacker-indicator');
+  let roundFirstPlayer = 1; // 1 or 2 — decided fresh each round by a coin flip
+  let currentAttacker = 1;  // whose turn it is to attack right now
+
+  const coinFlipOverlay = document.getElementById('coin-flip-overlay');
+  const coinFlipEyebrowEl = document.getElementById('coin-flip-eyebrow');
+  const coinFlipTitleEl = document.getElementById('coin-flip-title');
+  const coinFlipResultEl = document.getElementById('coin-flip-result');
+  const coinFlipCoinEl = document.getElementById('coin-flip-coin');
+  const coinFlipBtn = document.getElementById('coin-flip-btn');
+  const coinFlipContinueBtn = document.getElementById('coin-flip-continue-btn');
+
+  function openCoinFlipOverlay() {
+    coinFlipEyebrowEl.textContent = `Round ${currentRound} — Who Attacks First?`;
+    coinFlipTitleEl.textContent = 'Flip the Coin';
+    coinFlipResultEl.textContent = '';
+    coinFlipCoinEl.classList.remove('spinning');
+    coinFlipCoinEl.style.transform = '';
+    coinFlipBtn.style.display = '';
+    coinFlipBtn.disabled = false;
+    coinFlipContinueBtn.style.display = 'none';
+    coinFlipOverlay.classList.add('open');
+  }
+
+  function animateCoinFlipCoin(landsHeads) {
+    return new Promise(resolve => {
+      const extraSpins = 4 + Math.floor(Math.random() * 2);
+      const targetOffset = landsHeads ? 0 : 180;
+      const newRotation = extraSpins * 360 + targetOffset + 360;
+      coinFlipCoinEl.style.setProperty('--coin-end', newRotation + 'deg');
+      coinFlipCoinEl.classList.remove('spinning');
+      void coinFlipCoinEl.offsetWidth;
+      coinFlipCoinEl.classList.add('spinning');
+      coinFlipCoinEl.style.transform = `rotateY(${newRotation}deg)`;
+      setTimeout(() => {
+        coinFlipCoinEl.classList.remove('spinning');
+        resolve();
+      }, 900);
+    });
+  }
+
+  coinFlipBtn.addEventListener('click', async () => {
+    coinFlipBtn.disabled = true;
+    const landsHeads = Math.random() < 0.5; // stone = Player 1, shadow = Player 2
+    await animateCoinFlipCoin(landsHeads);
+
+    roundFirstPlayer = landsHeads ? 1 : 2;
+    currentAttacker = roundFirstPlayer;
+    const firstSide = currentAttacker === 1 ? 'ally' : 'enemy';
+    if (isSideExhausted(firstSide)) {
+      currentAttacker = currentAttacker === 1 ? 2 : 1; // that side can't act — give it to the other
+    }
+    renderFirstAttackerIndicator();
+
+    coinFlipTitleEl.textContent = `Player ${currentAttacker} Attacks First!`;
+    coinFlipResultEl.textContent = landsHeads ? 'The coin lands on the Stone.' : 'The coin lands on the Shadow.';
+    coinFlipBtn.style.display = 'none';
+    coinFlipContinueBtn.style.display = '';
+  });
+
+  coinFlipContinueBtn.addEventListener('click', () => {
+    coinFlipOverlay.classList.remove('open');
+    showScreen('battle');
+  });
+
+  function renderFirstAttackerIndicator() {
+    firstAttackerIndicatorEl.textContent = `Coin says: Player ${roundFirstPlayer} attacks first`;
+  }
+
+  // Resolves one creature's attack based on its bound power (0-3):
+  // rolls the d8 (power + 1) times and sums the results for total damage.
+  // power 0 -> 1 roll, power 1 -> 2 rolls, power 2 -> 3 rolls, power 3 -> 4 rolls.
   function resolveAttack(cardName, power) {
-    if (power === 1) {
-      const rolled = creatures[Math.floor(Math.random() * creatures.length)];
-      const hit = rolled.name === cardName;
-      const rolledD8 = powerFaces[Math.floor(Math.random() * powerFaces.length)];
-      return {
-        hit,
-        damage: hit ? rolledD8 : 0,
-        detail: hit
-          ? `d6: ${rolled.face} ${rolled.name} — match! d8: ${rolledD8} — ${rolledD8} dmg deployed`
-          : `d6: ${rolled.face} ${rolled.name} — no match — no attack`,
-        rolls: { type: 'd8creature', creature: rolled, d8: rolledD8 }
-      };
+    const numRolls = power + 1;
+    const values = [];
+    for (let i = 0; i < numRolls; i++) {
+      values.push(powerFaces[Math.floor(Math.random() * powerFaces.length)]);
     }
-    if (power === 3) {
-      const rolledD8 = powerFaces[Math.floor(Math.random() * powerFaces.length)];
-      const isStone = Math.random() < 0.5;
-      return {
-        hit: isStone,
-        damage: isStone ? rolledD8 : 0,
-        detail: isStone
-          ? `d8: ${rolledD8} · d2: Stone — Efficacy ✓, ${rolledD8} dmg`
-          : `d8: ${rolledD8} · d2: Shadow — Efficacy ✗, no attack`,
-        rolls: { type: 'd8coin', d8: rolledD8, isStone }
-      };
-    }
-    if (power === 6) {
-      const dmg = powerFaces[Math.floor(Math.random() * powerFaces.length)];
-      return {
-        hit: true,
-        damage: dmg,
-        detail: `d8: ${dmg} — automatic, ${dmg} dmg`,
-        rolls: { type: 'd8', d8: dmg }
-      };
-    }
-    if (power === 9) {
-      const isStone = Math.random() < 0.5;
-      return {
-        hit: isStone,
-        damage: isStone ? 9 : 0,
-        detail: isStone ? `d2: Stone — deployed, 9 dmg` : `d2: Shadow — no attack`,
-        rolls: { type: 'coin', isStone }
-      };
-    }
-    return { hit: false, damage: 0, detail: 'Unbound power — no attack', rolls: { type: 'none' } };
+    const damage = values.reduce((sum, v) => sum + v, 0);
+    return {
+      hit: true,
+      damage,
+      detail: `d8 ×${numRolls}: [${values.join(', ')}] — ${damage} dmg`,
+      rolls: { type: 'multiD8', values }
+    };
   }
 
   // --- Battle dice animation (reuses the same visuals/timing as the main dice) ---
@@ -1944,28 +2042,13 @@
     battleCreatureStageEl.style.display = 'none';
     battlePowerStageEl.style.display = 'none';
 
-    const tasks = [];
-    if (rolls.type === 'd8creature') {
-      battleCreatureStageEl.style.display = '';
+    if (rolls.type === 'multiD8') {
       battlePowerStageEl.style.display = '';
-      tasks.push(animateBattleCreatureDie(rolls.creature.face));
-      tasks.push(animateBattlePowerDie(rolls.d8));
-    } else if (rolls.type === 'creature') {
-      battleCreatureStageEl.style.display = '';
-      tasks.push(animateBattleCreatureDie(rolls.creature.face));
-    } else if (rolls.type === 'd8coin') {
-      battlePowerStageEl.style.display = '';
-      battleCoinStageEl.style.display = '';
-      tasks.push(animateBattlePowerDie(rolls.d8));
-      tasks.push(animateBattleCoin(rolls.isStone));
-    } else if (rolls.type === 'd8') {
-      battlePowerStageEl.style.display = '';
-      tasks.push(animateBattlePowerDie(rolls.d8));
-    } else if (rolls.type === 'coin') {
-      battleCoinStageEl.style.display = '';
-      tasks.push(animateBattleCoin(rolls.isStone));
+      for (let i = 0; i < rolls.values.length; i++) {
+        battleRollLabelEl.textContent = `Rolling ${i + 1} of ${rolls.values.length}...`;
+        await animateBattlePowerDie(rolls.values[i]);
+      }
     }
-    await Promise.all(tasks);
   }
 
   function setAllAttackButtonsDisabled(disabled) {
@@ -1979,34 +2062,122 @@
     enemyHpValueEl.textContent = Math.max(0, enemyHP);
   }
 
-  function checkBattleEnd() {
-    if (playerHP <= 0 || enemyHP <= 0) {
-      battleOver = true;
-      battleBannerEl.style.display = '';
-      if (enemyHP <= 0 && playerHP <= 0) {
-        battleBannerEl.textContent = 'Both fall at once...';
-      } else if (enemyHP <= 0) {
-        battleBannerEl.textContent = 'Victory! The enemy falls.';
-        battleBannerEl.classList.remove('lose');
-      } else {
-        battleBannerEl.textContent = 'Defeat... you have fallen.';
-        battleBannerEl.classList.add('lose');
-      }
-      setTimeout(endBattleAndReturnToRoll, 1800);
-    }
+  function isSideExhausted(side) {
+    const cards = side === 'ally' ? cardCreatures : enemyCards;
+    if (cards.length === 0) return true; // nothing to attack with
+    return cards.every(c => (attackCounts[`${side}:${c.name}`] || 0) >= MAX_ATTACKS);
   }
 
-  function endBattleAndReturnToRoll() {
-    // wipe the creature roster on both sides for a fresh game
-    cardCreatures = [];
-    Object.keys(cardAbilities).forEach(k => delete cardAbilities[k]);
-    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
+  function checkBattleEnd() {
+    if (battleOver) return;
+    const koHappened = playerHP <= 0 || enemyHP <= 0;
+    const standoff = !koHappened && isSideExhausted('ally') && isSideExhausted('enemy');
+    if (!koHappened && !standoff) return; // round continues
 
+    battleOver = true;
+
+    let roundWinner = null; // 'p1' | 'p2' | null (tie)
+    if (playerHP <= 0 && enemyHP <= 0) {
+      roundWinner = null;
+    } else if (enemyHP <= 0) {
+      roundWinner = 'p1';
+    } else if (playerHP <= 0) {
+      roundWinner = 'p2';
+    } else if (playerHP > enemyHP) {
+      roundWinner = 'p1';
+    } else if (enemyHP > playerHP) {
+      roundWinner = 'p2';
+    }
+
+    if (roundWinner === 'p1') roundWins.p1 += 1;
+    if (roundWinner === 'p2') roundWins.p2 += 1;
+    renderRoundIndicator();
+    renderBattleScreen();
+
+    const matchOver = roundWins.p1 >= 2 || roundWins.p2 >= 2 || currentRound >= BEST_OF;
+    showRoundResultPopup(roundWinner, matchOver);
+  }
+
+  const roundResultOverlay = document.getElementById('round-result-overlay');
+  const roundResultEyebrowEl = document.getElementById('round-result-eyebrow');
+  const roundResultTitleEl = document.getElementById('round-result-title');
+  const roundResultScoreEl = document.getElementById('round-result-score');
+  const roundResultContinueBtn = document.getElementById('round-result-continue');
+  let pendingMatchOver = false;
+
+  function showRoundResultPopup(roundWinner, matchOver) {
+    const scoreText = `Score ${roundWins.p1} – ${roundWins.p2}`;
+    pendingMatchOver = matchOver;
+
+    if (matchOver) {
+      roundResultEyebrowEl.textContent = 'The Game Concludes';
+      if (roundWins.p1 > roundWins.p2) {
+        roundResultTitleEl.textContent = 'Player 1 Wins the Game!';
+      } else if (roundWins.p2 > roundWins.p1) {
+        roundResultTitleEl.textContent = 'Player 2 Wins the Game!';
+      } else {
+        roundResultTitleEl.textContent = 'The Game Ends in a Tie';
+      }
+      roundResultContinueBtn.textContent = 'New Game';
+    } else {
+      roundResultEyebrowEl.textContent = `Round ${currentRound} Complete`;
+      if (roundWinner === 'p1') {
+        roundResultTitleEl.textContent = 'Player 1 Wins the Round!';
+      } else if (roundWinner === 'p2') {
+        roundResultTitleEl.textContent = 'Player 2 Wins the Round!';
+      } else {
+        roundResultTitleEl.textContent = 'Round Tied — No Point Awarded';
+      }
+      roundResultContinueBtn.textContent = 'Continue';
+    }
+    roundResultScoreEl.textContent = scoreText;
+    roundResultOverlay.classList.add('open');
+  }
+
+  roundResultContinueBtn.addEventListener('click', () => {
+    roundResultOverlay.classList.remove('open');
+    if (pendingMatchOver) {
+      fullMatchReset();
+    } else {
+      continueToNextRound();
+    }
+  });
+
+  function continueToNextRound() {
+    currentRound += 1;
+
+    // rule change: no creatures persist between rounds — everyone starts blank
+    cardCreatures = [];
+    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
     enemyCards = [];
-    Object.keys(enemyAbilities).forEach(k => delete enemyAbilities[k]);
     Object.keys(enemyPower).forEach(k => delete enemyPower[k]);
 
     Object.keys(battleResults).forEach(k => delete battleResults[k]);
+    Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
+    playerHP = MAX_HP;
+    enemyHP = MAX_HP;
+    battleOver = false;
+    battleBannerEl.style.display = 'none';
+    battleBannerEl.classList.remove('lose');
+    renderRoundIndicator();
+
+    activePlayer = 1;
+    renderTurnIndicator();
+
+    renderBattleScreen();
+    showScreen('cast');
+  }
+
+  function fullMatchReset() {
+    // the match is decided — wipe the creature roster on both sides for a fresh match
+    cardCreatures = [];
+    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
+
+    enemyCards = [];
+    Object.keys(enemyPower).forEach(k => delete enemyPower[k]);
+
+    Object.keys(battleResults).forEach(k => delete battleResults[k]);
+    Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
 
     playerHP = MAX_HP;
     enemyHP = MAX_HP;
@@ -2014,24 +2185,41 @@
     battleBannerEl.style.display = 'none';
     battleBannerEl.classList.remove('lose');
 
-    renderCardsScreen();
-    renderEnemyList();
+    roundWins = { p1: 0, p2: 0 };
+    currentRound = 1;
+    renderRoundIndicator();
+
+    roundFirstPlayer = 1;
+    currentAttacker = 1;
+    renderFirstAttackerIndicator();
+
+    activePlayer = 1;
+    renderTurnIndicator();
+
     renderBattleScreen();
-    showScreen('cast');
+    showScreen('title');
   }
 
   function renderBattleCard(face, name, power, side) {
     const key = `${side}:${name}`;
     const result = battleResults[key];
+    const attacks = attackCounts[key] || 0;
+    const retired = attacks >= MAX_ATTACKS;
+    const attackingPlayer = side === 'ally' ? 1 : 2;
+    const isMyTurn = attackingPlayer === currentAttacker;
     const card = document.createElement('div');
     card.className = side === 'enemy' ? 'battle-card enemy-card' : 'battle-card';
+    if (retired) card.classList.add('retired');
     card.innerHTML = `
       <div class="battle-card-header">
         <span class="battle-card-face">${face}</span>
         <span class="battle-card-name">${name}</span>
         <span class="battle-card-power">Power ${power}</span>
       </div>
-      <button class="battle-attack-btn" data-name="${name}" data-power="${power}" data-side="${side}" ${battleOver ? 'disabled' : ''}>Attack</button>
+      ${retired
+        ? `<button class="battle-attack-btn" disabled>Retired</button>`
+        : `<button class="battle-attack-btn ${!isMyTurn ? 'waiting-turn' : ''}" data-name="${name}" data-power="${power}" data-side="${side}" ${(battleOver || !isMyTurn) ? 'disabled' : ''}>${isMyTurn ? `Attack (${attacks}/${MAX_ATTACKS})` : 'Waiting...'}</button>`
+      }
       <p class="battle-result ${result && result.hit ? 'hit' : ''}">${result ? result.detail : ''}</p>
     `;
     return card;
@@ -2057,22 +2245,43 @@
     }
 
     updateHpDisplay();
+    renderRoundIndicator();
+    renderFirstAttackerIndicator();
     if (!battleOver) battleBannerEl.style.display = 'none';
   }
 
   function waitForTapToContinue() {
     return new Promise(resolve => {
+      let taps = 0;
       function handler() {
-        battleRollOverlay.removeEventListener('click', handler);
-        battleRollHintEl.style.display = 'none';
-        resolve();
+        taps += 1;
+        if (taps < 2) {
+          battleRollHintEl.textContent = 'tap once more to continue';
+        } else {
+          battleRollOverlay.removeEventListener('click', handler);
+          battleRollHintEl.style.display = 'none';
+          resolve();
+        }
       }
       battleRollOverlay.addEventListener('click', handler);
     });
   }
 
+  function advanceTurn() {
+    const nextPlayer = currentAttacker === 1 ? 2 : 1;
+    const nextSide = nextPlayer === 1 ? 'ally' : 'enemy';
+    if (!isSideExhausted(nextSide)) {
+      currentAttacker = nextPlayer;
+    }
+    // otherwise the opponent has nothing left to attack with — same player keeps going
+  }
+
   async function handleAttack(side, name, power) {
     if (battleOver) return;
+    const attackingPlayer = side === 'ally' ? 1 : 2;
+    if (attackingPlayer !== currentAttacker) return; // not this player's turn
+    const key = `${side}:${name}`;
+    if ((attackCounts[key] || 0) >= MAX_ATTACKS) return; // retired — can't attack again
     setAllAttackButtonsDisabled(true);
 
     const result = resolveAttack(name, power);
@@ -2084,16 +2293,18 @@
     battleRollOverlay.classList.add('open');
     await playAttackAnimation(result.rolls);
 
-    // hold on the result — tap anywhere on the popup to advance
+    // hold on the result — tap twice on the popup to advance
     battleRollLabelEl.textContent = result.hit ? `${result.damage} points deployed!` : 'No attack landed';
     battleRollResultEl.textContent = result.detail;
     battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
+    battleRollHintEl.textContent = 'tap to continue';
     battleRollHintEl.style.display = '';
     await waitForTapToContinue();
 
     battleRollOverlay.classList.remove('open');
 
-    battleResults[`${side}:${name}`] = result;
+    battleResults[key] = result;
+    attackCounts[key] = (attackCounts[key] || 0) + 1;
     if (result.hit) {
       if (side === 'ally') {
         enemyHP = Math.max(0, enemyHP - result.damage);
@@ -2101,6 +2312,7 @@
         playerHP = Math.max(0, playerHP - result.damage);
       }
     }
+    advanceTurn();
     checkBattleEnd();
     renderBattleScreen();
   }
@@ -2122,24 +2334,83 @@
     enemyHP = MAX_HP;
     battleOver = false;
     Object.keys(battleResults).forEach(k => delete battleResults[k]);
+    Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
     battleBannerEl.style.display = 'none';
     battleBannerEl.classList.remove('lose');
     renderBattleScreen();
   });
 
+  // Testing helper: instantly plays out the round — Player 1's next creature attacks,
+  // then Player 2's next creature, back and forth, until every creature has attacked
+  // twice, or someone's KO'd, or no more attacks are possible. No per-attack animation;
+  // the round-end banner/linger (from checkBattleEnd) still plays normally at the end.
+  const fastForwardBattleBtn = document.getElementById('fast-forward-battle');
+  fastForwardBattleBtn.addEventListener('click', () => {
+    if (battleOver) return;
+
+    function instantAttack(side, name, power) {
+      const key = `${side}:${name}`;
+      const result = resolveAttack(name, power);
+      battleResults[key] = result;
+      attackCounts[key] = (attackCounts[key] || 0) + 1;
+      if (result.hit) {
+        if (side === 'ally') {
+          enemyHP = Math.max(0, enemyHP - result.damage);
+        } else {
+          playerHP = Math.max(0, playerHP - result.damage);
+        }
+      }
+    }
+
+    roundLoop:
+    for (let pass = 0; pass < MAX_ATTACKS; pass++) {
+      const maxLen = Math.max(cardCreatures.length, enemyCards.length);
+      for (let i = 0; i < maxLen; i++) {
+        const tryAlly = () => {
+          const allyCard = cardCreatures[i];
+          if (allyCard && (attackCounts[`ally:${allyCard.name}`] || 0) < MAX_ATTACKS) {
+            instantAttack('ally', allyCard.name, cardShadowPower[allyCard.name]);
+            return playerHP <= 0 || enemyHP <= 0;
+          }
+          return false;
+        };
+        const tryEnemy = () => {
+          const enemyCard = enemyCards[i];
+          if (enemyCard && (attackCounts[`enemy:${enemyCard.name}`] || 0) < MAX_ATTACKS) {
+            instantAttack('enemy', enemyCard.name, enemyPower[enemyCard.name]);
+            return playerHP <= 0 || enemyHP <= 0;
+          }
+          return false;
+        };
+
+        if (roundFirstPlayer === 1) {
+          if (tryAlly()) break roundLoop;
+          if (tryEnemy()) break roundLoop;
+        } else {
+          if (tryEnemy()) break roundLoop;
+          if (tryAlly()) break roundLoop;
+        }
+      }
+    }
+
+    checkBattleEnd(); // handles KO or standoff — still shows the round banner and lingers as usual
+    renderBattleScreen();
+  });
+
   function showScreen(which) {
+    if (which !== 'howto') {
+      screenBeforeHowto = which;
+    }
+    titleScreenEl.style.display = which === 'title' ? '' : 'none';
     castScreenEl.style.display = which === 'cast' ? '' : 'none';
-    cardsScreenEl.style.display = which === 'cards' ? '' : 'none';
     battleScreenEl.style.display = which === 'battle' ? '' : 'none';
-    tabCastBtn.classList.toggle('active', which === 'cast');
-    tabCardsBtn.classList.toggle('active', which === 'cards');
-    tabBattleBtn.classList.toggle('active', which === 'battle');
+    howtoScreenEl.style.display = which === 'howto' ? '' : 'none';
     if (which === 'battle') renderBattleScreen();
   }
 
-  tabCastBtn.addEventListener('click', () => showScreen('cast'));
-  tabCardsBtn.addEventListener('click', () => showScreen('cards'));
-  tabBattleBtn.addEventListener('click', () => showScreen('battle'));
+  titleBeginBtn.addEventListener('click', () => showScreen('cast'));
+  howtoBtn.addEventListener('click', () => showScreen('howto'));
+  howtoBackBtn.addEventListener('click', () => showScreen(screenBeforeHowto));
 </script>
 
 </body>
