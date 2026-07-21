@@ -2430,7 +2430,9 @@
   let activePlayer = 1;       // whose turn it is to roll RIGHT NOW
   let p1RollLog = [];         // Player 1's rolls this summoning phase: { face, name, power, isStone }
   let p2RollLog = [];         // Player 2's rolls this summoning phase
-  let summonTarget = { 1: null, 2: null }; // locked creature name per player, or null
+  let summonPending = { 1: [], 2: [] };    // creature names each player has a stone for, awaiting a shadow
+  let stoneEverRolled = { 1: false, 2: false }; // once true, non-matching shadows stop being recorded
+  let hasNewMatchThisPhase = { 1: false, 2: false }; // must summon something new before re-declaring
 
   function renderTurnIndicator() {
     targetValueEl.textContent = `Player ${activePlayer}`;
@@ -2438,9 +2440,9 @@
   }
 
   function renderTargetStatus() {
-    const t = summonTarget[activePlayer];
-    targetStatusEl.textContent = t
-      ? `Player ${activePlayer} is hunting the ${t} shadow`
+    const pending = summonPending[activePlayer];
+    targetStatusEl.textContent = pending.length
+      ? `Player ${activePlayer} is hunting: ${pending.join(', ')}`
       : `Player ${activePlayer} needs to roll a stone`;
   }
 
@@ -2512,27 +2514,41 @@
     }, 1900);
   }
 
+  // Returns true if this roll should be kept in the roll log/slots, false if
+  // it should be silently discarded (a non-matching shadow after the player's
+  // first stone — no point cluttering the record with it).
   function processRoll(player, entry) {
+    const pending = summonPending[player];
     if (entry.isStone) {
-      if (summonTarget[player] === null) {
-        summonTarget[player] = entry.name;
+      stoneEverRolled[player] = true;
+      if (!pending.includes(entry.name)) {
+        pending.push(entry.name);
       }
-    } else if (summonTarget[player] !== null && entry.name === summonTarget[player]) {
+      return true;
+    }
+
+    const idx = pending.indexOf(entry.name);
+    if (idx !== -1) {
+      pending.splice(idx, 1);
       const pair = { face: entry.face, name: entry.name, shadowPower: entry.power };
       if (player === 1) {
         addMatchedCreaturesToCards([pair]);
       } else {
         addEnemyMatchesToCards([{ face: pair.face, name: pair.name, power: pair.shadowPower }]);
       }
-      summonTarget[player] = null;
       showSummonToast(player, pair.face, pair.name);
+      hasNewMatchThisPhase[player] = true;
+      return true;
     }
+
+    // shadow didn't match anything pending — only worth recording before the
+    // player's ever rolled a stone at all
+    return !stoneEverRolled[player];
   }
 
   function canPlayerDeclare(player) {
     const list = player === 1 ? cardCreatures : enemyCards;
-    const side = player === 1 ? 'ally' : 'enemy';
-    return list.some(c => (attackCounts[`${side}:${c.name}`] || 0) < MAX_ATTACKS);
+    return list.length > 0 && hasNewMatchThisPhase[player];
   }
 
   function canDeclareBattle() {
@@ -2568,9 +2584,11 @@
       isStone: result.coin.isStone
     };
 
-    const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
-    activeLog.push(entry);
-    processRoll(activePlayer, entry);
+    const shouldRecord = processRoll(activePlayer, entry);
+    if (shouldRecord) {
+      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+      activeLog.push(entry);
+    }
     renderRiteSlots();
     updateDeclareButton();
     advanceRollTurn();
@@ -2586,18 +2604,22 @@
   // either player could legally declare battle, or both hit the 11-roll cap.
   const fastForwardBtn = document.getElementById('fast-forward');
   fastForwardBtn.addEventListener('click', () => {
-    while (!canDeclareBattle() && !(isCapped(1) && isCapped(2))) {
+    let safety = 0;
+    while (!canDeclareBattle() && !(isCapped(1) && isCapped(2)) && safety < 5000) {
+      safety++;
       if (isCapped(activePlayer) && !isCapped(activePlayer === 1 ? 2 : 1)) {
         activePlayer = activePlayer === 1 ? 2 : 1;
       }
       if (isCapped(1) && isCapped(2)) break;
-      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
       const creature = creatures[Math.floor(Math.random() * creatures.length)];
       const power = powerFaces[Math.floor(Math.random() * powerFaces.length)];
       const isStone = Math.random() < 0.5;
       const entry = { face: creature.face, name: creature.name, power, isStone };
-      activeLog.push(entry);
-      processRoll(activePlayer, entry);
+      const shouldRecord = processRoll(activePlayer, entry);
+      if (shouldRecord) {
+        const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+        activeLog.push(entry);
+      }
       advanceRollTurn();
     }
     renderRiteSlots();
@@ -2609,7 +2631,11 @@
   function declareBattle() {
     p1RollLog = [];
     p2RollLog = [];
-    summonTarget = { 1: null, 2: null };
+    summonPending = { 1: [], 2: [] };
+    stoneEverRolled = { 1: false, 2: false };
+    hasNewMatchThisPhase = { 1: false, 2: false };
+    Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
+    Object.keys(battleResults).forEach(k => delete battleResults[k]);
     renderRiteSlots();
     openCoinFlipOverlay('attack');
   }
@@ -2784,7 +2810,7 @@
       let defenseFace = null, counterDmg = 0;
       if (defenderHasCreature) {
         defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : defenseFace;
+        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : 0;
         counterDamage += counterDmg;
       }
 
@@ -2794,7 +2820,7 @@
     const detailLines = steps.map((s, i) => {
       const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
       if (s.defenseFace === null) return `#${i + 1}: P${attackerPlayer} attacks ${atk}`;
-      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}` : `defends ${s.defenseFace} (${s.counterDmg} back)`;
+      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}!` : `defends ${s.defenseFace} (no effect)`;
       return `#${i + 1}: P${attackerPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
     });
 
@@ -2875,7 +2901,9 @@
   function returnToSummoning() {
     p1RollLog = [];
     p2RollLog = [];
-    summonTarget = { 1: null, 2: null };
+    summonPending = { 1: [], 2: [] };
+    stoneEverRolled = { 1: false, 2: false };
+    hasNewMatchThisPhase = { 1: false, 2: false };
     renderRiteSlots();
     updateDeclareButton();
     openCoinFlipOverlay('summon');
@@ -2949,7 +2977,9 @@
 
     p1RollLog = [];
     p2RollLog = [];
-    summonTarget = { 1: null, 2: null };
+    summonPending = { 1: [], 2: [] };
+    stoneEverRolled = { 1: false, 2: false };
+    hasNewMatchThisPhase = { 1: false, 2: false };
     renderRiteSlots();
     updateDeclareButton();
 
@@ -3045,12 +3075,12 @@
         if (taps < 2) {
           battleRollHintEl.textContent = 'tap once more to continue';
         } else {
-          battleRollOverlay.removeEventListener('click', handler);
+          document.removeEventListener('click', handler);
           battleRollHintEl.style.display = 'none';
           resolve();
         }
       }
-      battleRollOverlay.addEventListener('click', handler);
+      document.addEventListener('click', handler);
     });
   }
 
@@ -3059,10 +3089,10 @@
   function waitForSingleTap() {
     return new Promise(resolve => {
       function handler() {
-        battleRollOverlay.removeEventListener('click', handler);
+        document.removeEventListener('click', handler);
         resolve();
       }
-      battleRollOverlay.addEventListener('click', handler);
+      document.addEventListener('click', handler);
     });
   }
 
@@ -3129,12 +3159,14 @@
         battleRollHintEl.style.display = 'none';
 
         defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : defenseFace;
+        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : 0;
         counterDamage += counterDmg;
 
         battleRollLabelEl.textContent = `Player ${defenderPlayer} rolls...`;
         if (peakInstance) await peakInstance.rollPowerDie(defenseFace);
-        battleRollLabelEl.textContent = `Player ${defenderPlayer} rolled ${faceLabel(defenseFace)}!`;
+        battleRollLabelEl.textContent = defenseFace === 'burst'
+          ? `Player ${defenderPlayer} rolled 🔆 — reflects ${counterDmg}!`
+          : `Player ${defenderPlayer} rolled ${faceLabel(defenseFace)} — no effect`;
         await sleep(700);
       }
 
@@ -3144,7 +3176,7 @@
     const detailLines = steps.map((s, i) => {
       const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
       if (s.defenseFace === null) return `#${i + 1}: P${attackingPlayer} attacks ${atk}`;
-      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}` : `defends ${s.defenseFace} (${s.counterDmg} back)`;
+      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}!` : `defends ${s.defenseFace} (no effect)`;
       return `#${i + 1}: P${attackingPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
     });
     const noDefenderNote = !defenderHasCreature && power > 0 ? ` (Player ${defenderPlayer} has no creature summoned — no defense)` : '';
@@ -3156,18 +3188,7 @@
       rolls: { type: 'attackDefense', steps }
     };
 
-    // hold on the final result — tap twice on the popup to advance
-    battleRollLabelEl.textContent = result.hit
-      ? `${result.damage} dmg dealt, ${result.counterDamage} returned!`
-      : 'Power 0 — no attack landed';
-    battleRollResultEl.textContent = result.detail;
-    battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
-    battleRollHintEl.textContent = 'tap to continue';
-    battleRollHintEl.style.display = '';
-    await waitForTapToContinue();
-
-    battleRollOverlay.classList.remove('open');
-
+    // apply damage now so the HP bars update while the caption is still open
     battleResults[key] = result;
     attackCounts[key] = (attackCounts[key] || 0) + 1;
     if (result.hit) {
@@ -3179,6 +3200,20 @@
         enemyHP = Math.max(0, enemyHP - result.counterDamage);
       }
     }
+    updateHpDisplay();
+
+    // hold on the final result — tap twice on the popup to see the life totals land
+    battleRollLabelEl.textContent = result.hit
+      ? `${result.damage} dmg dealt, ${result.counterDamage} returned!`
+      : 'Power 0 — no attack landed';
+    battleRollResultEl.textContent = result.detail;
+    battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
+    battleRollHintEl.textContent = 'tap to continue';
+    battleRollHintEl.style.display = '';
+    await waitForTapToContinue();
+
+    battleRollOverlay.classList.remove('open');
+
     advanceTurn();
     attackInProgress = false;
     checkBattleEnd();
