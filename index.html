@@ -861,6 +861,15 @@
     width: 100%;
   }
 
+  .cast-top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem 0.5rem;
+    width: 100%;
+  }
+
   .roll-all {
     font-family: 'MedievalSharp', serif;
     font-size: 0.78rem;
@@ -878,38 +887,30 @@
   .roll-all:hover { transform: translateY(-2px); box-shadow: 0 9px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.45); }
   .roll-all:active { transform: translateY(0); }
 
-  .hint {
-    font-size: 0.66rem;
-    color: rgba(232,223,196,0.4);
-    font-style: italic;
-    margin: 0;
-  }
-
   .roll-counter {
     font-family: 'MedievalSharp', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--moss);
-    margin: 0.15rem 0 0;
     cursor: pointer;
   }
   .roll-counter .n {
     color: var(--amber-bright);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   .roll-counter:active { opacity: 0.6; }
 
   .ff-btn {
-    margin-top: 0.4rem;
     font-family: 'EB Garamond', serif;
-    font-style: italic;
-    font-size: 0.68rem;
-    color: rgba(232,223,196,0.45);
+    font-size: 0.85rem;
+    color: rgba(232,223,196,0.5);
     background: none;
     border: 1px dashed rgba(232,223,196,0.25);
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
+    width: 1.9rem;
+    height: 1.9rem;
+    line-height: 1;
     cursor: pointer;
   }
   .ff-btn:active {
@@ -917,14 +918,13 @@
   }
 
   .target-indicator {
-    margin-top: 0.55rem;
-    padding: 0.4rem 0.8rem;
+    padding: 0.32rem 0.7rem;
     border: 1px solid var(--amber);
     background: rgba(217,154,62,0.08);
     border-radius: 999px;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     transition: border-color 300ms, background 300ms;
   }
   .target-indicator.player2 {
@@ -933,18 +933,63 @@
   }
   .target-label {
     font-family: 'MedievalSharp', serif;
-    font-size: 0.55rem;
-    letter-spacing: 0.16em;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--moss);
   }
   .target-value {
     font-family: 'MedievalSharp', serif;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--amber-bright);
   }
   .target-indicator.player2 .target-value {
     color: #e2777f;
+  }
+  .target-status {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.58rem;
+    font-style: italic;
+    color: var(--bone-dim);
+  }
+  .declare-btn {
+    font-size: 0.6rem;
+    padding: 0.42rem 0.8rem;
+  }
+  .declare-btn.enemy {
+    background: linear-gradient(180deg, #e2777f, var(--blood));
+  }
+  .declare-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .summon-toast {
+    position: fixed;
+    left: 50%;
+    top: max(1rem, env(safe-area-inset-top));
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 50;
+    background: rgba(10,13,8,0.92);
+    border: 1.5px solid var(--amber);
+    color: var(--amber-bright);
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease, transform 300ms ease;
+    white-space: nowrap;
+  }
+  .summon-toast.p2 {
+    border-color: var(--blood);
+    color: #e2777f;
+  }
+  .summon-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1233,18 +1278,14 @@
   /* Summary modal shown after the 11th roll */
   .battle-caption {
     display: none;
-    position: fixed;
-    left: 50%;
-    bottom: max(1.2rem, env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    z-index: 25;
-    width: min(92vw, 420px);
+    width: 100%;
+    margin-top: 0.5rem;
     background: rgba(10,8,6,0.85);
     border: 1px solid var(--rune-line);
     border-radius: 16px;
-    padding: 0.85rem 1.1rem;
+    padding: 0.7rem 0.9rem;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
   }
   .battle-caption.open {
     display: block;
@@ -1430,12 +1471,16 @@
 
   <div class="frame" id="cast-screen" style="display:none;">
     <div class="cast-top">
-      <p class="hint">tap the ground near the dice to roll</p>
-      <p class="roll-counter" id="roll-counter">P1: <span class="n" id="p1-roll-count">0</span>/11 · P2: <span class="n" id="p2-roll-count">0</span>/11</p>
-      <button class="ff-btn" id="fast-forward">⏩ Fast Forward (testing)</button>
-      <div class="target-indicator" id="target-indicator">
-        <span class="target-label">Now Rolling</span>
-        <span class="target-value" id="target-value">Player 1</span>
+      <div class="cast-top-bar">
+        <span class="target-indicator" id="target-indicator">
+          <span class="target-label">Rolling</span>
+          <span class="target-value" id="target-value">Player 1</span>
+        </span>
+        <span class="target-status" id="target-status">Roll a stone to lock in a creature</span>
+        <span class="roll-counter" id="roll-counter">P1: <span class="n" id="p1-roll-count">0</span>/11 · P2: <span class="n" id="p2-roll-count">0</span>/11</span>
+        <button class="roll-all declare-btn" id="declare-battle-p1" disabled>⚔️ P1</button>
+        <button class="ff-btn" id="fast-forward" title="Fast Forward (testing)">⏩</button>
+        <button class="roll-all declare-btn enemy" id="declare-battle-p2" disabled>⚔️ P2</button>
       </div>
     </div>
 
@@ -1457,12 +1502,13 @@
     <h1>How to Play</h1>
     <div class="divider"></div>
     <div class="howto-body">
-      <p class="howto-step"><strong>1. Roll, alternating.</strong> Pass the device back and forth — one roll each, tapping "Cast All Three" — until both players reach 11 rolls.</p>
-      <p class="howto-step"><strong>2. Match your creatures.</strong> Rolling both a stone <em>and</em> a shadow of the same creature during your 11 rolls claims that creature for your roster. The shadow's power (0–3) becomes that creature's power in battle.</p>
-      <p class="howto-step"><strong>3. Coin flip.</strong> Once both players finish rolling, a coin decides who attacks first this round.</p>
-      <p class="howto-step"><strong>4. Battle.</strong> Turns alternate. Each creature can attack twice before it retires. A creature's power (0–3) sets how many times it rolls the d8 for damage — power 0 rolls once, power 3 rolls four times, summed together.</p>
-      <p class="howto-step"><strong>5. Win the round.</strong> Knock the other player from 20 to 0, or — if both sides run out of attacks first — whoever has more points left wins the round.</p>
-      <p class="howto-step"><strong>6. Best of three.</strong> Every round starts from a blank slate — both rosters wipe clean and you roll a fresh 11 each before the next round begins. First to 2 round wins takes the game.</p>
+      <p class="howto-step"><strong>1. Flip for first roll.</strong> A coin decides who rolls first each summoning phase. Then pass the device back and forth — one roll each — tapping the ground near the dice.</p>
+      <p class="howto-step"><strong>2. Lock a target.</strong> The first stone creature you roll locks in as your target for that creature type. Keep rolling until you land its shadow — that's when the pair completes and joins your roster, with the shadow's power (0–3) attached. Then you're free to lock a new target on your next stone.</p>
+      <p class="howto-step"><strong>3. Declare battle.</strong> Once you've completed at least one pair, "Declare Battle" becomes available. There's no fixed roll count — declare whenever you're ready (rolls cap out at 11 each if you keep going). A coin flip then decides who attacks first.</p>
+      <p class="howto-step"><strong>4. Attack.</strong> Each creature attacks exactly once per battle. Its power (0–3) is literally how many times it rolls the attack d8 — power 0 can't deal damage, power 3 rolls three times, summed together. Rolling 🔆 on the attack die counts as 4 points.</p>
+      <p class="howto-step"><strong>5. Defend.</strong> If the defender has any creature summoned, they roll the same d8 back for every attack roll: a number sends that much damage right back at the attacker, and 🔆 reflects half the attacker's roll (rounded down). The defender still takes the attacker's full damage regardless.</p>
+      <p class="howto-step"><strong>6. Back and forth.</strong> Once every creature on both sides has attacked, if nobody's been knocked out, HP and rosters carry over and you return to summoning for more creatures before declaring again — same round.</p>
+      <p class="howto-step"><strong>7. Best of three.</strong> A round ends only on a KO. When it does, everything wipes for a fresh round — new rosters, HP back to 20. First to 2 round wins takes the game.</p>
     </div>
     <button class="modal-continue" id="howto-back-btn">Back</button>
   </div>
@@ -1485,6 +1531,11 @@
           <span class="hp-value" id="enemy-hp-value">20</span>
         </div>
       </div>
+      <div class="battle-caption" id="battle-roll-overlay">
+        <p class="modal-eyebrow" id="battle-roll-label">Rolling...</p>
+        <p class="battle-roll-result" id="battle-roll-result"></p>
+        <p class="battle-roll-hint" id="battle-roll-hint" style="display:none;">tap to continue</p>
+      </div>
       <p class="battle-banner" id="battle-banner" style="display:none;"></p>
     </div>
 
@@ -1502,12 +1553,6 @@
       <div id="modal-body"></div>
       <button class="modal-continue" id="modal-continue">Begin Anew</button>
     </div>
-  </div>
-
-  <div class="battle-caption" id="battle-roll-overlay">
-    <p class="modal-eyebrow" id="battle-roll-label">Rolling...</p>
-    <p class="battle-roll-result" id="battle-roll-result"></p>
-    <p class="battle-roll-hint" id="battle-roll-hint" style="display:none;">tap to continue</p>
   </div>
 
   <div class="modal-backdrop" id="coin-flip-overlay">
@@ -2176,6 +2221,15 @@
       ctx.fillText(String(num), 128, 138);
       return new THREE.CanvasTexture(c);
     }
+    function makeBurstTexture(bg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      ctx.font = '150px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🔆', 128, 138);
+      return new THREE.CanvasTexture(c);
+    }
     function buildOctahedronGeometry(size) {
       const top = new THREE.Vector3(0, size, 0);
       const bot = new THREE.Vector3(0, -size, 0);
@@ -2206,8 +2260,9 @@
       if (n.dot(centroid) < 0) n.negate();
       return n;
     });
-    const attackPowerMats = powerFaces.map(v => new THREE.MeshPhongMaterial({
-      map: makeNumberTexture(v, '#1a140e', '#f0be6c'), flatShading: true, shininess: 0, side: THREE.DoubleSide
+    const attackPowerMats = attackFaces.map(v => new THREE.MeshPhongMaterial({
+      map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
+      flatShading: true, shininess: 0, side: THREE.DoubleSide
     }));
     const attackDieMesh = new THREE.Mesh(attackOctGeo, attackPowerMats);
     const attackDieRestPos = new THREE.Vector3(0, 0.5 + attackDieSize * 0.9, 2.1);
@@ -2251,7 +2306,7 @@
     function rollPowerDie(resultValue) {
       return new Promise(resolve => {
         attackDieMesh.visible = true;
-        const faceIndex = powerFaces.indexOf(resultValue);
+        const faceIndex = attackFaces.indexOf(resultValue);
         const useIndex = faceIndex >= 0 ? faceIndex : 0;
         const ang = Math.random() * Math.PI * 2;
         const dist = 0.3 + Math.random() * 0.2;
@@ -2348,13 +2403,15 @@
     { face: '🧝🏻‍♀️', name: 'Elf' }
   ];
 
-  const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // d8 shape, values 0-3 (two faces each)
+  const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // summoning d4 (0-3), shown on the octahedron's 8 faces two-at-a-time
+  const attackFaces = ['burst', 0, 1, 2, 2, 3, 3, 3]; // battle d8 — burst = 4 dmg, used for both attack and defense rolls
 
   const rollCounterEl = document.getElementById('roll-counter');
   const p1RollCountEl = document.getElementById('p1-roll-count');
   const p2RollCountEl = document.getElementById('p2-roll-count');
   const targetValueEl = document.getElementById('target-value');
   const targetIndicatorEl = document.getElementById('target-indicator');
+  const targetStatusEl = document.getElementById('target-status');
 
   rollCounterEl.addEventListener('click', () => {
     p1RollLog = [];
@@ -2366,15 +2423,25 @@
     renderTurnIndicator();
   });
 
-  // --- Two-player turn state: rolls alternate one at a time, back and forth,
-  // until BOTH players have reached 11 rolls each ---
+  // --- Two-player turn state: rolls alternate one at a time, back and forth.
+  // Each player independently locks a target the moment they roll a stone,
+  // then hunts for that creature's shadow. Rolling stops at 11 per player,
+  // but the phase itself ends only when a player declares battle. ---
   let activePlayer = 1;       // whose turn it is to roll RIGHT NOW
-  let p1RollLog = [];         // Player 1's rolls this turn: { face, name, power, isStone }
-  let p2RollLog = [];         // Player 2's rolls this turn
+  let p1RollLog = [];         // Player 1's rolls this summoning phase: { face, name, power, isStone }
+  let p2RollLog = [];         // Player 2's rolls this summoning phase
+  let summonTarget = { 1: null, 2: null }; // locked creature name per player, or null
 
   function renderTurnIndicator() {
     targetValueEl.textContent = `Player ${activePlayer}`;
     targetIndicatorEl.classList.toggle('player2', activePlayer === 2);
+  }
+
+  function renderTargetStatus() {
+    const t = summonTarget[activePlayer];
+    targetStatusEl.textContent = t
+      ? `Player ${activePlayer} is hunting the ${t} shadow`
+      : `Player ${activePlayer} needs to roll a stone`;
   }
 
   // Build 11 empty roll slots for each player, once
@@ -2416,19 +2483,67 @@
     p2RollCountEl.textContent = p2RollLog.length;
   }
 
-  function bothPlayersDone() {
-    return p1RollLog.length >= 11 && p2RollLog.length >= 11;
+  // A player is capped once they've rolled 11 times this summoning phase.
+  function isCapped(player) {
+    return (player === 1 ? p1RollLog : p2RollLog).length >= 11;
   }
 
   // After a roll, hand the turn to the other player — unless they're already
-  // done, in which case the current player keeps going until they finish too.
+  // capped, in which case the current player keeps going.
   function advanceRollTurn() {
     const other = activePlayer === 1 ? 2 : 1;
-    const otherLog = other === 1 ? p1RollLog : p2RollLog;
-    if (otherLog.length < 11) {
+    if (!isCapped(other)) {
       activePlayer = other;
     }
-    // else: other player already has their 11 — same player rolls again
+  }
+
+  // A stone roll locks a fresh target (if not already hunting one). A shadow
+  // roll matching the locked target completes that creature and banks it
+  // immediately; the player is then free to lock a new target on their next stone.
+  function showSummonToast(player, face, name) {
+    const toast = document.createElement('div');
+    toast.className = `summon-toast ${player === 2 ? 'p2' : ''}`;
+    toast.innerHTML = `✅ Player ${player} summoned ${face} ${name}!`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('visible'));
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.remove(), 400);
+    }, 1900);
+  }
+
+  function processRoll(player, entry) {
+    if (entry.isStone) {
+      if (summonTarget[player] === null) {
+        summonTarget[player] = entry.name;
+      }
+    } else if (summonTarget[player] !== null && entry.name === summonTarget[player]) {
+      const pair = { face: entry.face, name: entry.name, shadowPower: entry.power };
+      if (player === 1) {
+        addMatchedCreaturesToCards([pair]);
+      } else {
+        addEnemyMatchesToCards([{ face: pair.face, name: pair.name, power: pair.shadowPower }]);
+      }
+      summonTarget[player] = null;
+      showSummonToast(player, pair.face, pair.name);
+    }
+  }
+
+  function canPlayerDeclare(player) {
+    const list = player === 1 ? cardCreatures : enemyCards;
+    const side = player === 1 ? 'ally' : 'enemy';
+    return list.some(c => (attackCounts[`${side}:${c.name}`] || 0) < MAX_ATTACKS);
+  }
+
+  function canDeclareBattle() {
+    return canPlayerDeclare(1) || canPlayerDeclare(2);
+  }
+
+  const declareBattleP1Btn = document.getElementById('declare-battle-p1');
+  const declareBattleP2Btn = document.getElementById('declare-battle-p2');
+  function updateDeclareButton() {
+    declareBattleP1Btn.disabled = !canPlayerDeclare(1);
+    declareBattleP2Btn.disabled = !canPlayerDeclare(2);
   }
 
   let isRolling = false;
@@ -2436,10 +2551,10 @@
   async function triggerRoll() {
     if (castScreenEl.style.display === 'none') return; // not on the Circle screen — ignore
     if (isRolling) return;
-    if (bothPlayersDone()) {
-      openSummaryModal();
-      return;
+    if (isCapped(activePlayer) && !isCapped(activePlayer === 1 ? 2 : 1)) {
+      activePlayer = activePlayer === 1 ? 2 : 1; // self-heal if somehow stuck on a capped player
     }
+    if (isCapped(1) && isCapped(2)) return; // both capped — nothing left to roll, must declare
     if (!groveInstance) return; // grove/dice not built yet
 
     isRolling = true;
@@ -2455,103 +2570,53 @@
 
     const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
     activeLog.push(entry);
+    processRoll(activePlayer, entry);
     renderRiteSlots();
+    updateDeclareButton();
     advanceRollTurn();
     renderTurnIndicator();
+    renderTargetStatus();
 
     isRolling = false;
   }
 
   sceneWrap.addEventListener('click', triggerRoll);
 
-  // Testing helper: instantly plays out the rest of both players' 11 rolls, alternating
-  // turn by turn just like real play would, then pops the summary immediately.
+  // Testing helper: instantly rolls (respecting target-lock + alternation) until
+  // either player could legally declare battle, or both hit the 11-roll cap.
   const fastForwardBtn = document.getElementById('fast-forward');
   fastForwardBtn.addEventListener('click', () => {
-    while (!bothPlayersDone()) {
-      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
-      if (activeLog.length < 11) {
-        const creature = creatures[Math.floor(Math.random() * creatures.length)];
-        const power = powerFaces[Math.floor(Math.random() * powerFaces.length)];
-        const isStone = Math.random() < 0.5;
-        activeLog.push({ face: creature.face, name: creature.name, power, isStone });
+    while (!canDeclareBattle() && !(isCapped(1) && isCapped(2))) {
+      if (isCapped(activePlayer) && !isCapped(activePlayer === 1 ? 2 : 1)) {
+        activePlayer = activePlayer === 1 ? 2 : 1;
       }
+      if (isCapped(1) && isCapped(2)) break;
+      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+      const creature = creatures[Math.floor(Math.random() * creatures.length)];
+      const power = powerFaces[Math.floor(Math.random() * powerFaces.length)];
+      const isStone = Math.random() < 0.5;
+      const entry = { face: creature.face, name: creature.name, power, isStone };
+      activeLog.push(entry);
+      processRoll(activePlayer, entry);
       advanceRollTurn();
     }
     renderRiteSlots();
     renderTurnIndicator();
-    openSummaryModal();
+    renderTargetStatus();
+    updateDeclareButton();
   });
 
-  // Any creature type with both a stone and a shadow rolled is a match.
-  function computeMatchesFor(rollLog) {
-    const groups = {}; // name -> { stones: [], shadows: [] }
-    rollLog.forEach(e => {
-      if (!groups[e.name]) groups[e.name] = { stones: [], shadows: [] };
-      (e.isStone ? groups[e.name].stones : groups[e.name].shadows).push(e);
-    });
-
-    const matches = [];
-    Object.keys(groups).forEach(name => {
-      const g = groups[name];
-      if (g.stones.length && g.shadows.length) {
-        matches.push({ face: g.stones[0].face, name, shadowPower: g.shadows[0].power });
-      }
-    });
-
-    return matches;
-  }
-
-  function chipsMarkup(entries, emptyText) {
-    if (entries.length === 0) {
-      return `<span class="prev-empty">${emptyText}</span>`;
-    }
-    return entries.map(e => `<span class="prev-chip">${e.face} ${e.name}</span>`).join('');
-  }
-
-  // --- End-of-turn summary modal (once both players have finished all 11 rolls) ---
-  const modalBackdrop = document.getElementById('modal-backdrop');
-  const modalBody = document.getElementById('modal-body');
-  const modalContinueBtn = document.getElementById('modal-continue');
-
-  function buildSummaryMarkup() {
-    const p1Matches = computeMatchesFor(p1RollLog);
-    const p2Matches = computeMatchesFor(p2RollLog);
-    const p1Block = `<p class="modal-count">Player 1's Matches</p>
-      ${p1Matches.length ? `<div class="modal-list">${chipsMarkup(p1Matches, '')}</div>` : `<p class="modal-empty-line">No matches for Player 1.</p>`}`;
-    const p2Block = `<p class="modal-count enemy-count">Player 2's Matches</p>
-      ${p2Matches.length ? `<div class="modal-list">${chipsMarkup(p2Matches, '')}</div>` : `<p class="modal-empty-line">No matches for Player 2.</p>`}`;
-    return `${p1Block}${p2Block}`;
-  }
-
-  function openSummaryModal() {
-    modalBody.innerHTML = buildSummaryMarkup();
-    modalBackdrop.classList.add('open');
-    isRolling = true; // block further ground taps while the summary is up
-  }
-
-  function closeSummaryAndReset() {
-    const p1Matches = computeMatchesFor(p1RollLog);
-    const p2Matches = computeMatchesFor(p2RollLog);
-
-    addMatchedCreaturesToCards(p1Matches);
-    addEnemyMatchesToCards(p2Matches.map(m => ({ face: m.face, name: m.name, power: m.shadowPower })));
-
-    modalBackdrop.classList.remove('open');
+  function declareBattle() {
     p1RollLog = [];
     p2RollLog = [];
-    activePlayer = 1;
+    summonTarget = { 1: null, 2: null };
     renderRiteSlots();
-    isRolling = false;
-
-    // both rosters are set — show the coin-flip popup for who attacks first
-    renderTurnIndicator();
-    openCoinFlipOverlay();
+    openCoinFlipOverlay('attack');
   }
+  declareBattleP1Btn.addEventListener('click', () => { if (canPlayerDeclare(1)) declareBattle(); });
+  declareBattleP2Btn.addEventListener('click', () => { if (canPlayerDeclare(2)) declareBattle(); });
 
-  modalContinueBtn.addEventListener('click', closeSummaryAndReset);
 
-  // --- Creature rosters (rendered live on the Battle screen only) ---
   const titleScreenEl = document.getElementById('title-screen');
   const titleBeginBtn = document.getElementById('title-begin-btn');
   const castScreenEl = document.getElementById('cast-screen');
@@ -2602,7 +2667,7 @@
   let battleOver = false;
   const battleResults = {}; // key `${side}:${name}` -> last result detail string + hit bool
   const attackCounts = {};  // key `${side}:${name}` -> number of attacks made this battle
-  const MAX_ATTACKS = 2;
+  const MAX_ATTACKS = 1;
 
   // --- Best of 3 rounds: keep rosters across rounds, only HP/attacks reset each round ---
   const BEST_OF = 3;
@@ -2613,10 +2678,12 @@
     roundIndicatorEl.textContent = `Round ${currentRound} of ${BEST_OF} · Score ${roundWins.p1} – ${roundWins.p2}`;
   }
 
-  // --- Coin flip decides who attacks first each round, then turns strictly alternate ---
+  // --- Coin flip decides who goes first — used both to open a summoning phase
+  // (who rolls first) and to open a battle (who attacks first) ---
   const firstAttackerIndicatorEl = document.getElementById('first-attacker-indicator');
   let roundFirstPlayer = 1; // 1 or 2 — decided fresh each round by a coin flip
   let currentAttacker = 1;  // whose turn it is to attack right now
+  let coinFlipPurpose = 'attack'; // 'summon' | 'attack'
 
   const coinFlipOverlay = document.getElementById('coin-flip-overlay');
   const coinFlipEyebrowEl = document.getElementById('coin-flip-eyebrow');
@@ -2626,8 +2693,11 @@
   const coinFlipBtn = document.getElementById('coin-flip-btn');
   const coinFlipContinueBtn = document.getElementById('coin-flip-continue-btn');
 
-  function openCoinFlipOverlay() {
-    coinFlipEyebrowEl.textContent = `Round ${currentRound} — Who Attacks First?`;
+  function openCoinFlipOverlay(purpose) {
+    coinFlipPurpose = purpose;
+    coinFlipEyebrowEl.textContent = purpose === 'summon'
+      ? 'Summoning Phase — Who Rolls First?'
+      : `Round ${currentRound} — Who Attacks First?`;
     coinFlipTitleEl.textContent = 'Flip the Coin';
     coinFlipResultEl.textContent = '';
     coinFlipCoinEl.classList.remove('spinning');
@@ -2660,15 +2730,21 @@
     const landsHeads = Math.random() < 0.5; // stone = Player 1, shadow = Player 2
     await animateCoinFlipCoin(landsHeads);
 
-    roundFirstPlayer = landsHeads ? 1 : 2;
-    currentAttacker = roundFirstPlayer;
-    const firstSide = currentAttacker === 1 ? 'ally' : 'enemy';
-    if (isSideExhausted(firstSide)) {
-      currentAttacker = currentAttacker === 1 ? 2 : 1; // that side can't act — give it to the other
+    if (coinFlipPurpose === 'summon') {
+      activePlayer = landsHeads ? 1 : 2;
+      renderTurnIndicator();
+      renderTargetStatus();
+      coinFlipTitleEl.textContent = `Player ${activePlayer} Rolls First!`;
+    } else {
+      roundFirstPlayer = landsHeads ? 1 : 2;
+      currentAttacker = roundFirstPlayer;
+      const firstSide = currentAttacker === 1 ? 'ally' : 'enemy';
+      if (isSideExhausted(firstSide)) {
+        currentAttacker = currentAttacker === 1 ? 2 : 1; // that side can't act — give it to the other
+      }
+      renderFirstAttackerIndicator();
+      coinFlipTitleEl.textContent = `Player ${currentAttacker} Attacks First!`;
     }
-    renderFirstAttackerIndicator();
-
-    coinFlipTitleEl.textContent = `Player ${currentAttacker} Attacks First!`;
     coinFlipResultEl.textContent = landsHeads ? 'The coin lands on the Stone.' : 'The coin lands on the Shadow.';
     coinFlipBtn.style.display = 'none';
     coinFlipContinueBtn.style.display = '';
@@ -2676,28 +2752,60 @@
 
   coinFlipContinueBtn.addEventListener('click', () => {
     coinFlipOverlay.classList.remove('open');
-    showScreen('battle');
+    showScreen(coinFlipPurpose === 'summon' ? 'cast' : 'battle');
   });
 
   function renderFirstAttackerIndicator() {
     firstAttackerIndicatorEl.textContent = `Coin says: Player ${roundFirstPlayer} attacks first`;
   }
 
-  // Resolves one creature's attack based on its bound power (0-3):
-  // rolls the d8 (power + 1) times and sums the results for total damage.
-  // power 0 -> 1 roll, power 1 -> 2 rolls, power 2 -> 3 rolls, power 3 -> 4 rolls.
-  function resolveAttack(cardName, power) {
-    const numRolls = power + 1;
-    const values = [];
+  // Resolves one creature's attack. Its bound power (0-3) IS the number of times
+  // it rolls the attack d8 (a power-0 creature deals no damage). For each of those
+  // rolls, the defender — if they have any creature summoned at all — rolls the
+  // same d8 in response: a numeral sends that much damage back at the attacker,
+  // and the burst symbol (🔆) reflects half the attacker's roll (rounded down)
+  // back at them. Either way the defender still takes the attacker's full roll.
+  function resolveAttack(cardName, power, side) {
+    const numRolls = power;
+    const attackerPlayer = side === 'ally' ? 1 : 2;
+    const defenderPlayer = attackerPlayer === 1 ? 2 : 1;
+    const defenderSide = side === 'ally' ? 'enemy' : 'ally';
+    const defenderHasCreature = (defenderSide === 'ally' ? cardCreatures.length : enemyCards.length) > 0;
+
+    const steps = [];
+    let damage = 0;        // total to the defender
+    let counterDamage = 0; // total back to the attacker
+
     for (let i = 0; i < numRolls; i++) {
-      values.push(powerFaces[Math.floor(Math.random() * powerFaces.length)]);
+      const attackFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+      const attackVal = attackFace === 'burst' ? 4 : attackFace;
+      damage += attackVal;
+
+      let defenseFace = null, counterDmg = 0;
+      if (defenderHasCreature) {
+        defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : defenseFace;
+        counterDamage += counterDmg;
+      }
+
+      steps.push({ attackFace, attackVal, defenseFace, counterDmg });
     }
-    const damage = values.reduce((sum, v) => sum + v, 0);
+
+    const detailLines = steps.map((s, i) => {
+      const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
+      if (s.defenseFace === null) return `#${i + 1}: P${attackerPlayer} attacks ${atk}`;
+      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}` : `defends ${s.defenseFace} (${s.counterDmg} back)`;
+      return `#${i + 1}: P${attackerPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
+    });
+
+    const noDefenderNote = !defenderHasCreature && numRolls > 0 ? ` (Player ${defenderPlayer} has no creature summoned — no defense)` : '';
+
     return {
-      hit: true,
+      hit: numRolls > 0,
       damage,
-      detail: `d8 ×${numRolls}: [${values.join(', ')}] — ${damage} dmg`,
-      rolls: { type: 'multiD8', values }
+      counterDamage,
+      detail: numRolls > 0 ? detailLines.join(' | ') + ` — ${damage} dmg dealt, ${counterDamage} dmg returned${noDefenderNote}` : 'Power 0 — no attack rolls',
+      rolls: { type: 'attackDefense', steps }
     };
   }
 
@@ -2707,13 +2815,8 @@
   const battleRollResultEl = document.getElementById('battle-roll-result');
   const battleRollHintEl = document.getElementById('battle-roll-hint');
 
-  async function playAttackAnimation(rolls) {
-    if (rolls.type === 'multiD8' && peakInstance) {
-      for (let i = 0; i < rolls.values.length; i++) {
-        battleRollLabelEl.textContent = `Rolling ${i + 1} of ${rolls.values.length}...`;
-        await peakInstance.rollPowerDie(rolls.values[i]);
-      }
-    }
+  function faceLabel(face) {
+    return face === 'burst' ? '🔆' : String(face);
   }
 
   function setAllAttackButtonsDisabled(disabled) {
@@ -2736,8 +2839,12 @@
   function checkBattleEnd() {
     if (battleOver) return;
     const koHappened = playerHP <= 0 || enemyHP <= 0;
-    const standoff = !koHappened && isSideExhausted('ally') && isSideExhausted('enemy');
-    if (!koHappened && !standoff) return; // round continues
+
+    if (!koHappened) {
+      const exhausted = isSideExhausted('ally') && isSideExhausted('enemy');
+      if (exhausted) returnToSummoning();
+      return; // no KO — round continues either in battle or back in summoning
+    }
 
     battleOver = true;
 
@@ -2761,6 +2868,17 @@
 
     const matchOver = roundWins.p1 >= 2 || roundWins.p2 >= 2 || currentRound >= BEST_OF;
     showRoundResultPopup(roundWinner, matchOver);
+  }
+
+  // No KO yet, but everyone's spent their one attack — HP and rosters persist,
+  // and both players head back to summon more creatures before declaring again.
+  function returnToSummoning() {
+    p1RollLog = [];
+    p2RollLog = [];
+    summonTarget = { 1: null, 2: null };
+    renderRiteSlots();
+    updateDeclareButton();
+    openCoinFlipOverlay('summon');
   }
 
   const roundResultOverlay = document.getElementById('round-result-overlay');
@@ -2829,8 +2947,14 @@
     activePlayer = 1;
     renderTurnIndicator();
 
+    p1RollLog = [];
+    p2RollLog = [];
+    summonTarget = { 1: null, 2: null };
+    renderRiteSlots();
+    updateDeclareButton();
+
     renderBattleScreen();
-    showScreen('cast');
+    openCoinFlipOverlay('summon');
   }
 
   function fullMatchReset() {
@@ -2930,6 +3054,22 @@
     });
   }
 
+  // Waits for a single tap — used to gate each individual attack/defense roll
+  // so both players have to actively tap to make their d8 roll happen.
+  function waitForSingleTap() {
+    return new Promise(resolve => {
+      function handler() {
+        battleRollOverlay.removeEventListener('click', handler);
+        resolve();
+      }
+      battleRollOverlay.addEventListener('click', handler);
+    });
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   function advanceTurn() {
     const nextPlayer = currentAttacker === 1 ? 2 : 1;
     const nextSide = nextPlayer === 1 ? 'ally' : 'enemy';
@@ -2946,21 +3086,80 @@
     const attackingPlayer = side === 'ally' ? 1 : 2;
     if (attackingPlayer !== currentAttacker) return; // not this player's turn
     const key = `${side}:${name}`;
-    if ((attackCounts[key] || 0) >= MAX_ATTACKS) return; // retired — can't attack again
+    if ((attackCounts[key] || 0) >= MAX_ATTACKS) return; // already attacked this round
     attackInProgress = true;
     setAllAttackButtonsDisabled(true);
 
-    const result = resolveAttack(name, power);
+    const defenderPlayer = attackingPlayer === 1 ? 2 : 1;
+    const defenderSide = side === 'ally' ? 'enemy' : 'ally';
+    const defenderHasCreature = (defenderSide === 'ally' ? cardCreatures.length : enemyCards.length) > 0;
 
-    battleRollLabelEl.textContent = `Rolling for ${name}...`;
+    const steps = [];
+    let damage = 0;
+    let counterDamage = 0;
+
     battleRollResultEl.textContent = '';
     battleRollResultEl.classList.remove('hit', 'miss');
-    battleRollHintEl.style.display = 'none';
     battleRollOverlay.classList.add('open');
-    await playAttackAnimation(result.rolls);
 
-    // hold on the result — tap twice on the popup to advance
-    battleRollLabelEl.textContent = result.hit ? `${result.damage} points deployed!` : 'No attack landed';
+    for (let i = 0; i < power; i++) {
+      // --- attacker taps to roll ---
+      battleRollLabelEl.textContent = `Player ${attackingPlayer}, tap to roll your attack (${i + 1} of ${power})`;
+      battleRollHintEl.textContent = 'tap to roll';
+      battleRollHintEl.style.display = '';
+      await waitForSingleTap();
+      battleRollHintEl.style.display = 'none';
+
+      const attackFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+      const attackVal = attackFace === 'burst' ? 4 : attackFace;
+      damage += attackVal;
+
+      battleRollLabelEl.textContent = `Player ${attackingPlayer} rolls...`;
+      if (peakInstance) await peakInstance.rollPowerDie(attackFace);
+      battleRollLabelEl.textContent = `Player ${attackingPlayer} rolled ${faceLabel(attackFace)}!`;
+      await sleep(700);
+
+      let defenseFace = null, counterDmg = 0;
+      if (defenderHasCreature) {
+        // --- defender taps to roll ---
+        battleRollLabelEl.textContent = `Player ${defenderPlayer}, tap to roll your defense`;
+        battleRollHintEl.textContent = 'tap to roll';
+        battleRollHintEl.style.display = '';
+        await waitForSingleTap();
+        battleRollHintEl.style.display = 'none';
+
+        defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : defenseFace;
+        counterDamage += counterDmg;
+
+        battleRollLabelEl.textContent = `Player ${defenderPlayer} rolls...`;
+        if (peakInstance) await peakInstance.rollPowerDie(defenseFace);
+        battleRollLabelEl.textContent = `Player ${defenderPlayer} rolled ${faceLabel(defenseFace)}!`;
+        await sleep(700);
+      }
+
+      steps.push({ attackFace, attackVal, defenseFace, counterDmg });
+    }
+
+    const detailLines = steps.map((s, i) => {
+      const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
+      if (s.defenseFace === null) return `#${i + 1}: P${attackingPlayer} attacks ${atk}`;
+      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}` : `defends ${s.defenseFace} (${s.counterDmg} back)`;
+      return `#${i + 1}: P${attackingPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
+    });
+    const noDefenderNote = !defenderHasCreature && power > 0 ? ` (Player ${defenderPlayer} has no creature summoned — no defense)` : '';
+    const result = {
+      hit: power > 0,
+      damage,
+      counterDamage,
+      detail: power > 0 ? detailLines.join(' | ') + ` — ${damage} dmg dealt, ${counterDamage} dmg returned${noDefenderNote}` : 'Power 0 — no attack rolls',
+      rolls: { type: 'attackDefense', steps }
+    };
+
+    // hold on the final result — tap twice on the popup to advance
+    battleRollLabelEl.textContent = result.hit
+      ? `${result.damage} dmg dealt, ${result.counterDamage} returned!`
+      : 'Power 0 — no attack landed';
     battleRollResultEl.textContent = result.detail;
     battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
     battleRollHintEl.textContent = 'tap to continue';
@@ -2974,8 +3173,10 @@
     if (result.hit) {
       if (side === 'ally') {
         enemyHP = Math.max(0, enemyHP - result.damage);
+        playerHP = Math.max(0, playerHP - result.counterDamage);
       } else {
         playerHP = Math.max(0, playerHP - result.damage);
+        enemyHP = Math.max(0, enemyHP - result.counterDamage);
       }
     }
     advanceTurn();
@@ -3005,14 +3206,16 @@
 
     function instantAttack(side, name, power) {
       const key = `${side}:${name}`;
-      const result = resolveAttack(name, power);
+      const result = resolveAttack(name, power, side);
       battleResults[key] = result;
       attackCounts[key] = (attackCounts[key] || 0) + 1;
       if (result.hit) {
         if (side === 'ally') {
           enemyHP = Math.max(0, enemyHP - result.damage);
+          playerHP = Math.max(0, playerHP - result.counterDamage);
         } else {
           playerHP = Math.max(0, playerHP - result.damage);
+          enemyHP = Math.max(0, enemyHP - result.counterDamage);
         }
       }
     }
@@ -3073,7 +3276,7 @@
     if (which === 'battle') renderBattleScreen();
   }
 
-  titleBeginBtn.addEventListener('click', () => showScreen('cast'));
+  titleBeginBtn.addEventListener('click', () => openCoinFlipOverlay('summon'));
   howtoBtn.addEventListener('click', () => showScreen('howto'));
   howtoBackBtn.addEventListener('click', () => showScreen(screenBeforeHowto));
 </script>
