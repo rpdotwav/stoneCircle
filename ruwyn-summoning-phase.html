@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Ruwyn — Dice Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night: #0c120d;
+    --night-deep: #060a07;
+    --moss: #5c7350;
+    --moss-dim: #3c4d34;
+    --bone: #e8dfc4;
+    --bone-dim: #b9ad8d;
+    --amber: #d99a3e;
+    --amber-bright: #f0be6c;
+    --witch: #7a4a8a;
+    --witch-bright: #a874bb;
+    --blood: #6b2b3a;
+    --line: rgba(217,154,62,0.3);
+    --rune-line: rgba(168,116,187,0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    overscroll-behavior: none;
+  }
+
+  #scene-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 900ms ease;
+    pointer-events: none;
+  }
+  #scene-wrap.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #scene-wrap canvas {
+    display: block;
+    cursor: pointer;
+  }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 8%, rgba(217,154,62,0.14), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 15% 95%, rgba(122,74,138,0.16), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 85% 95%, rgba(92,115,80,0.18), transparent 65%),
+      linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+    color: var(--bone);
+    height: 100dvh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left));
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .wisp {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--amber-bright);
+    box-shadow: 0 0 8px 3px rgba(240,190,108,0.7);
+    opacity: 0;
+    pointer-events: none;
+    animation: drift 7s ease-in-out infinite;
+    z-index: 0;
+  }
+  .wisp:nth-child(1){ left: 12%; top: 70%; animation-delay: 0s; }
+  .wisp:nth-child(2){ left: 85%; top: 60%; animation-delay: 1.6s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+  .wisp:nth-child(3){ left: 50%; top: 82%; animation-delay: 3.2s; }
+  .wisp:nth-child(4){ left: 25%; top: 55%; animation-delay: 4.8s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+
+  @keyframes drift {
+    0%   { opacity: 0; transform: translateY(0) translateX(0); }
+    15%  { opacity: 0.9; }
+    50%  { transform: translateY(-40px) translateX(8px); }
+    85%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(-85px) translateX(-6px); }
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    height: 100%;
+    max-height: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+    padding: 0.4rem 0;
+    pointer-events: none;
+  }
+  .frame > * {
+    pointer-events: auto;
+  }
+
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem 0.9rem;
+    width: 100%;
+  }
+
+  .roll-counter {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+  }
+  .roll-counter .n {
+    color: var(--amber-bright);
+    font-size: 0.85rem;
+  }
+
+  .ff-btn {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.78rem;
+    color: rgba(232,223,196,0.7);
+    background: none;
+    border: 1px dashed rgba(232,223,196,0.35);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+  }
+  .ff-btn:active {
+    opacity: 0.6;
+  }
+
+  .last-roll {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+    min-height: 1.4em;
+    margin: 0;
+  }
+  .last-roll .stone { color: var(--amber-bright); }
+  .last-roll .shadow { color: var(--witch-bright); }
+
+  .bottom-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .hint {
+    font-size: 0.62rem;
+    color: rgba(232,223,196,0.4);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .player-side-panel {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 3;
+    max-height: 78vh;
+    overflow-y: auto;
+    padding: 0.3rem;
+  }
+  .player-side-panel.p1-panel {
+    left: max(0.4rem, env(safe-area-inset-left));
+    align-items: flex-start;
+  }
+  .player-side-panel.p2-panel {
+    right: max(0.4rem, env(safe-area-inset-right));
+    align-items: flex-end;
+  }
+  .player-side-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+    margin: 0 0 0.15rem;
+  }
+  .player-side-panel.p2-panel .player-side-label {
+    color: #e2777f;
+  }
+
+  .creature-match-box {
+    width: min(13vw, 50px);
+    height: min(13vw, 50px);
+    border-radius: 12px;
+    border: 1.5px solid rgba(232,223,196,0.15);
+    background: rgba(20,18,14,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: min(7vw, 1.35rem);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    filter: grayscale(1) opacity(0.45);
+    transition: filter 300ms ease, border-color 300ms ease, background 300ms ease, box-shadow 300ms ease, transform 100ms ease;
+  }
+  .creature-match-box:active {
+    transform: scale(0.92);
+  }
+
+  .creature-match-box.pending {
+    filter: none;
+    border-color: var(--amber);
+    background: rgba(217,154,62,0.18);
+    box-shadow: 0 0 10px rgba(217,154,62,0.4);
+  }
+
+  .creature-match-box.matched {
+    filter: none;
+    border-color: var(--witch);
+    background: rgba(122,74,138,0.18);
+    animation: creatureMatchGlow 2.4s ease-in-out infinite;
+  }
+
+  @keyframes creatureMatchGlow {
+    0%, 100% { box-shadow: 0 0 5px rgba(168,116,187,0.25); }
+    50% { box-shadow: 0 0 16px rgba(168,116,187,0.9); }
+  }
+
+  .cmb-badge {
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--night-deep);
+    border: 1px solid var(--witch-bright);
+    color: var(--witch-bright);
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.42rem;
+    padding: 0.06rem 0.3rem;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .creature-match-box.pending .cmb-badge {
+    border-color: var(--amber-bright);
+    color: var(--amber-bright);
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <div id="scene-wrap"></div>
+
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+  <div class="wisp"></div>
+
+  <div class="player-side-panel p1-panel">
+    <p class="player-side-label">Player 1</p>
+    <div id="p1-boxes"></div>
+  </div>
+  <div class="player-side-panel p2-panel">
+    <p class="player-side-label">Player 2</p>
+    <div id="p2-boxes"></div>
+  </div>
+
+  <div class="frame" id="roller-screen">
+    <div class="top-bar">
+      <span class="roll-counter">Rolls: <span class="n" id="roll-count">0</span></span>
+      <button class="ff-btn" id="reset-btn">🔄 Reset</button>
+    </div>
+
+    <div class="bottom-panel">
+      <p class="last-roll" id="last-roll-readout">Tap the ground near the dice to roll</p>
+      <p class="hint">tap a creature — cycles stone, shadow, stone, shadow...</p>
+    </div>
+  </div>
+
+<script>
+  // Draws text (emoji or numerals) truly centered in a canvas, using the
+  // glyph's own measured bounding box rather than an assumed fixed offset —
+  // keeps dice-face symbols centered across different platforms' emoji fonts.
+  function drawCenteredGlyph(ctx, text, cx, cy, fontSize, font) {
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const m = ctx.measureText(text);
+    const ascent = m.actualBoundingBoxAscent || fontSize * 0.5;
+    const descent = m.actualBoundingBoxDescent || fontSize * 0.36;
+    ctx.fillText(text, cx, cy + (ascent - descent) / 2);
+  }
+
+  const creatures = [
+    { face: '🧌', name: 'Goblin' },
+    { face: '👺', name: 'Demon' },
+    { face: '🧛\u200d♂️', name: 'Vampire' },
+    { face: '🧚🏻', name: 'Fairy' },
+    { face: '🧞', name: 'Djinn' },
+    { face: '🧝🏻\u200d♀️', name: 'Elf' }
+  ];
+  const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // d4 (0-3), shown on the octahedron's 8 faces two-at-a-time
+
+  // =====================================================================
+  // THE GROVE — same low-poly 3D forest clearing and dice-rolling rig as
+  // the main game's summoning phase (coin, creature cube, power octahedron),
+  // just without any of the two-player/matching game logic wrapped around it.
+  // =====================================================================
+  const sceneWrap = document.getElementById('scene-wrap');
+  let groveInstance = null;
+
+  function buildGrove() {
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x1a1712, 9, 30);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+    sceneWrap.appendChild(renderer.domElement);
+
+    // ---------- lighting: flat, no dynamic shadows — blob shadows instead ----------
+    const hemi = new THREE.HemisphereLight(0x8f7fc0, 0x1c2414, 0.75);
+    scene.add(hemi);
+    const moon = new THREE.DirectionalLight(0xd9b877, 0.85);
+    moon.position.set(8, 10, -4);
+    scene.add(moon);
+    const fillCool = new THREE.DirectionalLight(0x6a4f8a, 0.35);
+    fillCool.position.set(-7, 4, 7);
+    scene.add(fillCool);
+
+    // ---------- blob shadow helper ----------
+    function makeBlobTexture() {
+      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(5,5,5,0.5)');
+      g.addColorStop(1, 'rgba(5,5,5,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+    const blobTex = makeBlobTexture();
+    const blobList = [];
+    function addBlob(x, z, scale) { blobList.push({ x, z, scale }); }
+    function flushBlobs() {
+      if (!blobList.length) return;
+      const dummy = new THREE.Object3D();
+      const geo = new THREE.PlaneGeometry(1, 1);
+      const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
+      const inst = new THREE.InstancedMesh(geo, mat, blobList.length);
+      blobList.forEach((b, i) => {
+        dummy.position.set(b.x, 0.012, b.z);
+        dummy.rotation.set(-Math.PI / 2, 0, 0);
+        dummy.scale.set(b.scale, b.scale, 1);
+        dummy.updateMatrix();
+        inst.setMatrixAt(i, dummy.matrix);
+      });
+      inst.instanceMatrix.needsUpdate = true;
+      scene.add(inst);
+    }
+
+    // ---------- mossy terrain ----------
+    function terrainHeight(x, z) {
+      const d = Math.sqrt(x * x + z * z);
+      const falloff = Math.min(1, Math.max(0, (d - 3.0) / 3.4));
+      return (Math.sin(x * 0.18) * 0.4 + Math.cos(z * 0.21) * 0.35 + Math.sin((x + z) * 0.1) * 0.5) * falloff;
+    }
+    const groundGeo = new THREE.PlaneGeometry(46, 46, 34, 34);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cLow = new THREE.Color(0x232f1a);
+    const cMid = new THREE.Color(0x3c4d2c);
+    const cHigh = new THREE.Color(0x5c7350);
+    for (let i = 0; i < posAttr.count; i++) {
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      const h = terrainHeight(x, y);
+      posAttr.setZ(i, h);
+      const t = Math.max(0, Math.min(1, (h + 0.15) / 1.1));
+      const col = t < 0.5 ? cLow.clone().lerp(cMid, t / 0.5) : cMid.clone().lerp(cHigh, (t - 0.5) / 0.5);
+      colors.push(col.r, col.g, col.b);
+    }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const groundMat = new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // ---------- ring of standing stones ----------
+    const stoneMat = new THREE.MeshPhongMaterial({ color: 0x6b6a70, flatShading: true, shininess: 0 });
+    const stoneMatDark = new THREE.MeshPhongMaterial({ color: 0x504f58, flatShading: true, shininess: 0 });
+    const stoneGeo = new THREE.BoxGeometry(0.4, 1.7, 0.4);
+    const stoneCount = 7;
+    for (let i = 0; i < stoneCount; i++) {
+      const ang = (i / stoneCount) * Math.PI * 2;
+      const r = 2.6;
+      const s = new THREE.Mesh(stoneGeo, i % 2 === 0 ? stoneMat : stoneMatDark);
+      s.position.set(Math.cos(ang) * r, 0.85, Math.sin(ang) * r);
+      s.rotation.y = ang + (Math.random() - 0.5) * 0.2;
+      s.rotation.z = (Math.random() - 0.5) * 0.1;
+      scene.add(s);
+      addBlob(Math.cos(ang) * r, Math.sin(ang) * r, 1.1);
+    }
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.05, 0.3, 8), stoneMatDark);
+    dais.position.y = 0.15;
+    scene.add(dais);
+
+    // ---------- trees ----------
+    const leafMats = [
+      new THREE.MeshPhongMaterial({ color: 0x3f6b34, flatShading: true, shininess: 0 }),
+      new THREE.MeshPhongMaterial({ color: 0x4f7d3a, flatShading: true, shininess: 0 }),
+      new THREE.MeshPhongMaterial({ color: 0x2f4f28, flatShading: true, shininess: 0 })
+    ];
+    const trunkMat = new THREE.MeshPhongMaterial({ color: 0x4a3a26, flatShading: true, shininess: 0 });
+    const leafGeo = new THREE.ConeGeometry(1, 2.1, 6);
+    const leafGeo2 = new THREE.ConeGeometry(0.72, 1.6, 6);
+    const trunkGeo = new THREE.CylinderGeometry(0.14, 0.19, 1.05, 6);
+
+    const treeDummy = new THREE.Object3D();
+    const trunkMatrices = [];
+    const leafMatricesByColor = leafMats.map(() => []);
+    const leaf2MatricesByColor = leafMats.map(() => []);
+
+    function placeTree(x, z) {
+      const h = terrainHeight(x, z);
+      const scale = 0.8 + Math.random() * 0.5;
+      const rotY = Math.random() * Math.PI * 2;
+      const colorIdx = Math.floor(Math.random() * leafMats.length);
+
+      treeDummy.position.set(x, h + 0.52 * scale, z);
+      treeDummy.rotation.set(0, rotY, 0);
+      treeDummy.scale.set(scale, scale, scale);
+      treeDummy.updateMatrix();
+      trunkMatrices.push(treeDummy.matrix.clone());
+
+      treeDummy.position.set(x, h + 1.6 * scale, z);
+      treeDummy.updateMatrix();
+      leafMatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
+      treeDummy.position.set(x, h + 2.35 * scale, z);
+      treeDummy.updateMatrix();
+      leaf2MatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
+      addBlob(x, z, 1.4 * scale);
+    }
+    let placed = 0, attempts = 0;
+    while (placed < 18 && attempts < 200) {
+      attempts++;
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 5.5 + Math.random() * 14;
+      placeTree(Math.cos(ang) * dist, Math.sin(ang) * dist);
+      placed++;
+    }
+    function instTier(geo, mats, matricesByColor) {
+      matricesByColor.forEach((list, i) => {
+        if (!list.length) return;
+        const inst = new THREE.InstancedMesh(geo, mats[i], list.length);
+        list.forEach((m, idx) => inst.setMatrixAt(idx, m));
+        inst.instanceMatrix.needsUpdate = true;
+        scene.add(inst);
+      });
+    }
+    if (trunkMatrices.length) {
+      const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, trunkMatrices.length);
+      trunkMatrices.forEach((m, i) => trunkInst.setMatrixAt(i, m));
+      trunkInst.instanceMatrix.needsUpdate = true;
+      scene.add(trunkInst);
+    }
+    instTier(leafGeo, leafMats, leafMatricesByColor);
+    instTier(leafGeo2, leafMats, leaf2MatricesByColor);
+
+    // ---------- torches ----------
+    const torchLights = [];
+    function makeTorch(x, z) {
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6), trunkMat);
+      pole.position.y = 0.625;
+      g.add(pole);
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.09, 0.16, 6), stoneMatDark);
+      bowl.position.y = 1.27;
+      g.add(bowl);
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0xf0be6c });
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.34, 6), flameMat);
+      flame.position.y = 1.5;
+      g.add(flame);
+      const light = new THREE.PointLight(0xd99a3e, 1.3, 6, 2);
+      light.position.y = 1.55;
+      g.add(light);
+      g.position.set(x, terrainHeight(x, z), z);
+      scene.add(g);
+      torchLights.push({ flame, light });
+    }
+    makeTorch(1.6, 3.3);
+    makeTorch(-1.6, 3.3);
+
+    flushBlobs();
+
+    // ---------- the dice: real 3D coin, creature cube, and power octahedron ----------
+    function makeEmojiTexture(emoji, bg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      drawCenteredGlyph(ctx, emoji, 128, 128, 150, '150px sans-serif');
+      return new THREE.CanvasTexture(c);
+    }
+    function makeNumberTexture(num, bg, fg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = fg;
+      drawCenteredGlyph(ctx, String(num), 128, 128, 150, 'bold 150px Georgia, serif');
+      return new THREE.CanvasTexture(c);
+    }
+    function makeSymbolTexture(symbolType, bg, fg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = fg; ctx.fillStyle = fg; ctx.lineWidth = 12;
+      ctx.translate(128, 128);
+      if (symbolType === 'stone') {
+        ctx.beginPath();
+        ctx.moveTo(0, -68); ctx.lineTo(68, 68); ctx.lineTo(-68, 68); ctx.closePath();
+        ctx.stroke();
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    const diceGroup = new THREE.Group();
+    diceGroup.position.set(0, 0, 0);
+    scene.add(diceGroup);
+
+    const daisTopY = 0.3;
+
+    // -- coin: a flat cylinder, top=stone, bottom=shadow --
+    const coinR = 0.34, coinH = 0.09;
+    const coinGeo = new THREE.CylinderGeometry(coinR, coinR, coinH, 28);
+    const coinSideMat = new THREE.MeshPhongMaterial({ color: 0x8a6b16, flatShading: true, shininess: 0 });
+    const coinTopMat = new THREE.MeshPhongMaterial({ map: makeSymbolTexture('stone', '#c9a227', '#3a2b06'), flatShading: true, shininess: 0 });
+    const coinBotMat = new THREE.MeshPhongMaterial({ color: 0x2a2033, flatShading: true, shininess: 0 });
+    const coinMesh = new THREE.Mesh(coinGeo, [coinSideMat, coinTopMat, coinBotMat]);
+    const coinRestPos = new THREE.Vector3(-0.75, daisTopY + coinH / 2, 0.2);
+    coinMesh.position.copy(coinRestPos);
+    diceGroup.add(coinMesh);
+    const COIN_NORMALS = [new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)]; // [stone, shadow]
+
+    // -- creature die: a cube, one emoji per face --
+    const dieSize = 0.5;
+    const cubeGeo = new THREE.BoxGeometry(dieSize, dieSize, dieSize);
+    const creatureMats = creatures.map(c => new THREE.MeshPhongMaterial({ map: makeEmojiTexture(c.face, '#1a140e'), flatShading: true, shininess: 0 }));
+    const creatureMesh = new THREE.Mesh(cubeGeo, creatureMats);
+    const creatureRestPos = new THREE.Vector3(0, daisTopY + dieSize / 2, -0.35);
+    creatureMesh.position.copy(creatureRestPos);
+    diceGroup.add(creatureMesh);
+    const CUBE_NORMALS = [
+      new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
+    ];
+
+    // -- power die: a hand-built octahedron, one number per triangular face --
+    function buildOctahedronGeometry(size) {
+      const top = new THREE.Vector3(0, size, 0);
+      const bot = new THREE.Vector3(0, -size, 0);
+      const eq = [
+        new THREE.Vector3(size, 0, 0), new THREE.Vector3(0, 0, size),
+        new THREE.Vector3(-size, 0, 0), new THREE.Vector3(0, 0, -size)
+      ];
+      const positions = [], uvs = [];
+      const tris = [];
+      for (let i = 0; i < 4; i++) tris.push([top, eq[i], eq[(i + 1) % 4]]);
+      for (let i = 0; i < 4; i++) tris.push([bot, eq[(i + 1) % 4], eq[i]]);
+      tris.forEach(([a, b, c]) => {
+        positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+        uvs.push(0.5, 1, 0, 0, 1, 0);
+      });
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.computeVertexNormals();
+      for (let i = 0; i < 8; i++) geo.addGroup(i * 3, 3, i);
+      return { geo, tris };
+    }
+    const octSize = 0.34;
+    const { geo: octGeo, tris: octTris } = buildOctahedronGeometry(octSize);
+    const OCT_NORMALS = octTris.map(([a, b, c]) => {
+      const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
+      const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
+      if (n.dot(centroid) < 0) n.negate();
+      return n;
+    });
+    const powerMats = powerFaces.map(v => new THREE.MeshPhongMaterial({
+      map: makeNumberTexture(v, '#1a140e', '#f0be6c'),
+      flatShading: true, shininess: 0
+    }));
+    const powerMesh = new THREE.Mesh(octGeo, powerMats);
+    const powerRestPos = new THREE.Vector3(0.75, daisTopY + octSize * 0.75, 0.2);
+    powerMesh.position.copy(powerRestPos);
+    diceGroup.add(powerMesh);
+
+    // shared toss/spin/bounce/settle animation state per die
+    function makeDieState(mesh, restPos, faceNormals, clearance) {
+      return {
+        mesh, restPos, faceNormals, clearance,
+        active: false, settled: true,
+        startPos: new THREE.Vector3(), targetPos: restPos.clone(),
+        spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+        targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1400
+      };
+    }
+    // clearance = how far a corner/rim can stick out below the center while
+    // tumbling at an arbitrary angle — coin is flat so its rim reaches
+    // furthest below center; cube/octahedron corners reach less.
+    const coinState = makeDieState(coinMesh, coinRestPos, COIN_NORMALS, coinR - coinH / 2);
+    const creatureState = makeDieState(creatureMesh, creatureRestPos, CUBE_NORMALS, (dieSize * Math.sqrt(3)) / 2 - dieSize / 2);
+    const powerState = makeDieState(powerMesh, powerRestPos, OCT_NORMALS, octSize * (1 - 1 / Math.sqrt(3)));
+    const allDice = [coinState, creatureState, powerState];
+
+    function launchDie(state, resultFaceIndex, delayMs) {
+      const now = performance.now() + delayMs;
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 0.5 + Math.random() * 0.3;
+      state.startPos.set(state.restPos.x + Math.cos(ang) * dist, state.restPos.y + 1.6 + Math.random() * 0.4, state.restPos.z + Math.sin(ang) * dist);
+      state.mesh.position.copy(state.startPos);
+      state.targetPos.copy(state.restPos);
+
+      const normal = state.faceNormals[resultFaceIndex].clone().normalize();
+      const align = new THREE.Quaternion().setFromUnitVectors(normal, new THREE.Vector3(0, 1, 0));
+      const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+      state.targetQuat.copy(spin).multiply(align);
+
+      state.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+      state.spinSpeed = 14 + Math.random() * 8;
+      state.startTime = now;
+      state.duration = 1200 + Math.random() * 300;
+      state.active = true;
+      state.settled = false;
+    }
+
+    function updateDice(dt) {
+      const now = performance.now();
+      allDice.forEach(state => {
+        if (!state.active) return;
+        const t = Math.min(1, (now - state.startTime) / state.duration);
+        if (t < 0) return;
+        const easedT = 1 - Math.pow(1 - t, 3);
+        state.mesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
+        state.mesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
+        const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-4.2 * t);
+
+        const settleT = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
+        const floorY = state.targetPos.y + state.clearance * (1 - settleT);
+
+        state.mesh.position.y = floorY + Math.abs(Math.cos(t * 15.5)) * amp;
+
+        if (t < 0.78) {
+          state.mesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.78) * dt);
+        } else {
+          state.mesh.quaternion.slerp(state.targetQuat, 0.2);
+        }
+
+        if (t >= 1) {
+          state.active = false;
+          state.settled = true;
+          state.mesh.position.copy(state.targetPos);
+          state.mesh.quaternion.copy(state.targetQuat);
+        }
+      });
+    }
+
+    function rollDice() {
+      return new Promise(resolve => {
+        const coinFaceIndex = Math.random() < 0.5 ? 0 : 1; // 0=stone,1=shadow
+        const creatureFaceIndex = Math.floor(Math.random() * creatures.length);
+        const powerFaceIndex = Math.floor(Math.random() * powerFaces.length);
+
+        launchDie(coinState, coinFaceIndex, 0);
+        launchDie(creatureState, creatureFaceIndex, 60);
+        launchDie(powerState, powerFaceIndex, 120);
+
+        const poll = setInterval(() => {
+          if (allDice.every(d => d.settled)) {
+            clearInterval(poll);
+            resolve({
+              coin: { isStone: coinFaceIndex === 0 },
+              creature: creatures[creatureFaceIndex],
+              power: { value: powerFaces[powerFaceIndex] }
+            });
+          }
+        }, 60);
+      });
+    }
+
+    // ---------- camera: slow ambient drift, no drag controls needed ----------
+    const target = new THREE.Vector3(0, 0.55, 0);
+    let theta = Math.PI * 0.22;
+    const phi = Math.PI * 0.22;
+    const radius = 3.3;
+    const baseFovDeg = 48;
+    const minHorizontalFovDeg = 55;
+    function fitFovToAspect() {
+      const aspect = window.innerWidth / window.innerHeight;
+      if (aspect < 1) {
+        const minHRad = THREE.MathUtils.degToRad(minHorizontalFovDeg);
+        const vRad = 2 * Math.atan(Math.tan(minHRad / 2) / aspect);
+        camera.fov = Math.max(baseFovDeg, THREE.MathUtils.radToDeg(vRad));
+      } else {
+        camera.fov = baseFovDeg;
+      }
+    }
+    function updateCamera() {
+      camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+      camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = target.y + radius * Math.cos(phi);
+      camera.lookAt(target);
+    }
+    fitFovToAspect();
+    camera.updateProjectionMatrix();
+    updateCamera();
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      fitFovToAspect();
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener('resize', onResize);
+
+    const clock = new THREE.Clock();
+    let rafId = null, running = false;
+    function frame() {
+      const dt = clock.getDelta();
+      theta += dt * 0.015; // slow drift around the circle
+      updateCamera();
+      torchLights.forEach((t, i) => {
+        const flicker = Math.sin(performance.now() * 0.01 + i * 3) * 0.25 + Math.random() * 0.15;
+        t.light.intensity = 1.2 + flicker;
+        t.flame.scale.y = 1 + flicker * 0.3;
+      });
+      updateDice(dt);
+      renderer.render(scene, camera);
+      rafId = requestAnimationFrame(frame);
+    }
+
+    return {
+      canvas: renderer.domElement,
+      start() { if (!running) { running = true; frame(); } diceGroup.visible = true; },
+      stop() { running = false; if (rafId) cancelAnimationFrame(rafId); },
+      rollDice
+    };
+  }
+
+  function showGrove() {
+    if (!groveInstance) groveInstance = buildGrove();
+    sceneWrap.classList.add('visible');
+    groveInstance.start();
+  }
+
+  // =====================================================================
+  // Tap-to-roll + manual match-counter UI
+  // =====================================================================
+  const rollCountEl = document.getElementById('roll-count');
+  const lastRollEl = document.getElementById('last-roll-readout');
+  const resetBtn = document.getElementById('reset-btn');
+
+  let rollCount = 0;
+  let isRolling = false;
+
+  // Each box cycles through: Stone, Shadow, Stone 2, Shadow 2, Stone 3, ...
+  // one step per tap. An odd click count means "stone rolled, awaiting its
+  // shadow" (gold); an even click count means that pair just completed (purple).
+  function stageLabel(clickCount) {
+    if (clickCount === 0) return '';
+    const pairIndex = Math.ceil(clickCount / 2);
+    const isStone = clickCount % 2 === 1;
+    const suffix = pairIndex > 1 ? ` ${pairIndex}` : '';
+    return (isStone ? 'Stone' : 'Shadow') + suffix;
+  }
+
+  function buildPlayerPanel(containerId) {
+    const container = document.getElementById(containerId);
+    const clickCounts = {};
+    const boxEls = {};
+    creatures.forEach(c => {
+      clickCounts[c.name] = 0;
+      const div = document.createElement('div');
+      div.className = 'creature-match-box';
+      div.dataset.name = c.name;
+      div.innerHTML = `<span class="cmb-face">${c.face}</span><span class="cmb-badge" style="display:none;"></span>`;
+      container.appendChild(div);
+      boxEls[c.name] = div;
+    });
+
+    function render() {
+      creatures.forEach(c => {
+        const el = boxEls[c.name];
+        const count = clickCounts[c.name];
+        const isStonePending = count > 0 && count % 2 === 1;
+        const isShadowComplete = count > 0 && count % 2 === 0;
+        el.classList.toggle('pending', isStonePending);
+        el.classList.toggle('matched', isShadowComplete);
+        const badge = el.querySelector('.cmb-badge');
+        const label = stageLabel(count);
+        if (label) {
+          badge.textContent = label;
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      });
+    }
+
+    container.addEventListener('click', (e) => {
+      const box = e.target.closest('.creature-match-box');
+      if (!box) return;
+      clickCounts[box.dataset.name] += 1;
+      render();
+    });
+
+    function reset() {
+      creatures.forEach(c => { clickCounts[c.name] = 0; });
+      render();
+    }
+
+    return { reset };
+  }
+
+  const p1Panel = buildPlayerPanel('p1-boxes');
+  const p2Panel = buildPlayerPanel('p2-boxes');
+
+  resetBtn.addEventListener('click', () => {
+    rollCount = 0;
+    rollCountEl.textContent = 0;
+    lastRollEl.innerHTML = 'Tap the ground near the dice to roll';
+    p1Panel.reset();
+    p2Panel.reset();
+  });
+
+  async function triggerRoll() {
+    if (isRolling || !groveInstance) return;
+    isRolling = true;
+
+    const result = await groveInstance.rollDice();
+
+    rollCount += 1;
+    rollCountEl.textContent = rollCount;
+    const stoneClass = result.coin.isStone ? 'stone' : 'shadow';
+    const stoneLabel = result.coin.isStone ? 'Stone' : 'Shadow';
+    lastRollEl.innerHTML = `<span class="${stoneClass}">${stoneLabel}</span> · ${result.creature.face} ${result.creature.name} · Power ${result.power.value}`;
+
+    isRolling = false;
+  }
+
+  sceneWrap.addEventListener('click', triggerRoll);
+
+  try { showGrove(); } catch (e) { console.error('Grove failed to load:', e); }
+</script>
+
+</body>
+</html>

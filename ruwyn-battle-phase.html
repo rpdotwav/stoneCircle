@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Ruwyn — Battle Dice Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night: #0c120d;
+    --night-deep: #060a07;
+    --moss: #5c7350;
+    --bone: #e8dfc4;
+    --bone-dim: #b9ad8d;
+    --amber: #d99a3e;
+    --amber-bright: #f0be6c;
+    --witch: #7a4a8a;
+    --witch-bright: #a874bb;
+    --blood: #6b2b3a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    overscroll-behavior: none;
+  }
+
+  #scene-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 900ms ease;
+    pointer-events: none;
+  }
+  #scene-wrap.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #scene-wrap canvas {
+    display: block;
+  }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 8%, rgba(217,154,62,0.14), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 15% 95%, rgba(122,74,138,0.16), transparent 65%),
+      radial-gradient(ellipse 60% 35% at 85% 95%, rgba(92,115,80,0.18), transparent 65%),
+      linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+    color: var(--bone);
+    height: 100dvh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left));
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    height: 100%;
+    max-height: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+    padding: 0.4rem 0;
+    pointer-events: none;
+  }
+  .frame > * {
+    pointer-events: auto;
+  }
+
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem 0.9rem;
+    width: 100%;
+  }
+  .roll-counter {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+  }
+  .roll-counter .n {
+    color: var(--amber-bright);
+    font-size: 0.85rem;
+  }
+  .ff-btn {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.78rem;
+    color: rgba(232,223,196,0.7);
+    background: none;
+    border: 1px dashed rgba(232,223,196,0.35);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+  }
+  .ff-btn:active { opacity: 0.6; }
+
+  .roll-caption {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: rgba(10,8,6,0.85);
+    border: 1px solid rgba(168,116,187,0.35);
+    border-radius: 16px;
+    padding: 0.7rem 0.9rem;
+    display: none;
+  }
+  .roll-caption.open { display: block; }
+  .roll-caption .label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.78rem;
+    color: var(--amber-bright);
+    margin: 0;
+  }
+  .roll-caption .detail {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+    margin: 0.5rem 0 0;
+    white-space: pre-line;
+  }
+
+  .bottom-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .hint {
+    font-size: 0.62rem;
+    color: rgba(232,223,196,0.4);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .player-side-panel {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 3;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 0.3rem;
+    width: min(34vw, 150px);
+  }
+  .player-side-panel.p1-panel {
+    left: max(0.4rem, env(safe-area-inset-left));
+    align-items: flex-start;
+  }
+  .player-side-panel.p2-panel {
+    right: max(0.4rem, env(safe-area-inset-right));
+    align-items: flex-end;
+  }
+  .player-side-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+    margin: 0;
+  }
+  .p2-panel .player-side-label { color: #e2777f; }
+
+  .add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+    background: rgba(10,8,6,0.6);
+    border: 1px solid rgba(232,223,196,0.15);
+    border-radius: 10px;
+    padding: 0.4rem;
+  }
+  .add-form select, .add-form input {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(232,223,196,0.2);
+    border-radius: 6px;
+    color: var(--bone);
+    padding: 0.25rem 0.3rem;
+    width: 100%;
+  }
+  .add-form label {
+    font-size: 0.55rem;
+    color: var(--bone-dim);
+    text-align: left;
+  }
+  .add-form button {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.65rem;
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    color: var(--night-deep);
+    border: none;
+    border-radius: 999px;
+    padding: 0.35rem;
+    cursor: pointer;
+  }
+  .p2-panel .add-form button {
+    background: linear-gradient(180deg, #e2777f, var(--blood));
+  }
+
+  .creature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 100%;
+  }
+  .creature-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    background: rgba(20,18,14,0.6);
+    border: 1.5px solid var(--amber);
+    border-radius: 10px;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: box-shadow 200ms ease, opacity 200ms ease;
+  }
+  .p2-panel .creature-box { border-color: var(--blood); }
+  .creature-box:active { transform: scale(0.96); }
+  .creature-box.rolling { opacity: 0.5; pointer-events: none; }
+  .creature-box .cb-face { font-size: 1.2rem; }
+  .creature-box .cb-power {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    color: var(--amber-bright);
+  }
+  .p2-panel .creature-box .cb-power { color: #e2777f; }
+  .creature-box .cb-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 999px;
+    background: var(--night-deep);
+    border: 1px solid rgba(232,223,196,0.4);
+    color: var(--bone-dim);
+    font-size: 0.6rem;
+    cursor: pointer;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <div id="scene-wrap"></div>
+
+  <div class="player-side-panel p1-panel">
+    <p class="player-side-label">Player 1</p>
+    <div class="add-form">
+      <label>Creature</label>
+      <select id="p1-select"></select>
+      <label>Power (0–3)</label>
+      <input type="number" id="p1-power" min="0" max="3" value="0">
+      <button id="p1-add">+ Add</button>
+    </div>
+    <div class="creature-list" id="p1-list"></div>
+  </div>
+
+  <div class="player-side-panel p2-panel">
+    <p class="player-side-label">Player 2</p>
+    <div class="add-form">
+      <label>Creature</label>
+      <select id="p2-select"></select>
+      <label>Power (0–3)</label>
+      <input type="number" id="p2-power" min="0" max="3" value="0">
+      <button id="p2-add">+ Add</button>
+    </div>
+    <div class="creature-list" id="p2-list"></div>
+  </div>
+
+  <div class="frame" id="roller-screen">
+    <div class="top-bar">
+      <span class="roll-counter">D8 rolls: <span class="n" id="roll-count">0</span></span>
+      <button class="ff-btn" id="reset-btn">🔄 Reset</button>
+    </div>
+
+    <div class="roll-caption" id="roll-caption">
+      <p class="label" id="roll-label">Rolling...</p>
+      <p class="detail" id="roll-detail"></p>
+    </div>
+
+    <div class="bottom-panel">
+      <p class="hint">add a creature on either side, then tap it to roll its attack (1 + power rolls of the d8)</p>
+    </div>
+  </div>
+
+<script>
+  // Draws text (emoji or numerals) truly centered in a canvas, using the
+  // glyph's own measured bounding box rather than an assumed fixed offset —
+  // keeps dice-face symbols centered across different platforms' emoji fonts.
+  function drawCenteredGlyph(ctx, text, cx, cy, fontSize, font) {
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const m = ctx.measureText(text);
+    const ascent = m.actualBoundingBoxAscent || fontSize * 0.5;
+    const descent = m.actualBoundingBoxDescent || fontSize * 0.36;
+    ctx.fillText(text, cx, cy + (ascent - descent) / 2);
+  }
+
+  const creatures = [
+    { face: '🧌', name: 'Goblin' },
+    { face: '👺', name: 'Demon' },
+    { face: '🧛\u200d♂️', name: 'Vampire' },
+    { face: '🧚🏻', name: 'Fairy' },
+    { face: '🧞', name: 'Djinn' },
+    { face: '🧝🏻\u200d♀️', name: 'Elf' }
+  ];
+  const attackFaces = ['burst', 'burst', 0, 1, 2, 2, 2, 3]; // battle d8 — burst = 4 dmg
+
+  function faceLabel(face) {
+    return face === 'burst' ? '🔆' : String(face);
+  }
+
+  const sceneWrap = document.getElementById('scene-wrap');
+  let peakInstance = null;
+
+  function buildPeak() {
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x3a2c40, 10, 42);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
+    scene.add(camera); // needed so the attack die, parented to the camera, gets traversed for rendering
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+    sceneWrap.appendChild(renderer.domElement);
+
+    // ---------- dusk sky dome ----------
+    const skyGeo = new THREE.SphereGeometry(60, 24, 16);
+    const skyPos = skyGeo.attributes.position;
+    const skyColors = [];
+    const skyTop = new THREE.Color(0x2a1f3d);
+    const skyHorizon = new THREE.Color(0xd97a4a);
+    for (let i = 0; i < skyPos.count; i++) {
+      const y = skyPos.getY(i);
+      const t = Math.max(0, Math.min(1, (y + 10) / 45));
+      const col = skyHorizon.clone().lerp(skyTop, t);
+      skyColors.push(col.r, col.g, col.b);
+    }
+    skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(skyColors, 3));
+    const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
+    scene.add(sky);
+
+    // ---------- lighting: warm dusk sun, cool violet fill ----------
+    const hemi = new THREE.HemisphereLight(0x8a6a9a, 0x2a2018, 0.7);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xe08a4f, 1.0);
+    sun.position.set(-10, 3, -6);
+    scene.add(sun);
+    const fillCool = new THREE.DirectionalLight(0x5a4a8a, 0.4);
+    fillCool.position.set(7, 5, 8);
+    scene.add(fillCool);
+
+    // ---------- blob shadow helper ----------
+    function makeBlobTexture() {
+      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(5,5,5,0.45)');
+      g.addColorStop(1, 'rgba(5,5,5,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+    const blobTex = makeBlobTexture();
+    const blobList = [];
+    function addBlob(x, z, scale) { blobList.push({ x, z, scale }); }
+    function flushBlobs() {
+      if (!blobList.length) return;
+      const dummy = new THREE.Object3D();
+      const geo = new THREE.PlaneGeometry(1, 1);
+      const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
+      const inst = new THREE.InstancedMesh(geo, mat, blobList.length);
+      blobList.forEach((b, i) => {
+        dummy.position.set(b.x, 0.012, b.z);
+        dummy.rotation.set(-Math.PI / 2, 0, 0);
+        dummy.scale.set(b.scale, b.scale, 1);
+        dummy.updateMatrix();
+        inst.setMatrixAt(i, dummy.matrix);
+      });
+      inst.instanceMatrix.needsUpdate = true;
+      scene.add(inst);
+    }
+
+    // ---------- rocky plateau terrain ----------
+    function terrainHeight(x, z) {
+      const d = Math.sqrt(x * x + z * z);
+      const falloff = Math.min(1, Math.max(0, (d - 5.5) / 5));
+      return (Math.sin(x * 0.22) * 0.5 + Math.cos(z * 0.26) * 0.45 + Math.sin((x + z) * 0.14) * 0.6) * falloff;
+    }
+    const groundGeo = new THREE.PlaneGeometry(52, 52, 30, 30);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cLow = new THREE.Color(0x3a3238);
+    const cMid = new THREE.Color(0x574c4a);
+    const cHigh = new THREE.Color(0x8a6f5c);
+    for (let i = 0; i < posAttr.count; i++) {
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      const h = terrainHeight(x, y);
+      posAttr.setZ(i, h);
+      const t = Math.max(0, Math.min(1, (h + 0.2) / 1.3));
+      const col = t < 0.5 ? cLow.clone().lerp(cMid, t / 0.5) : cMid.clone().lerp(cHigh, (t - 0.5) / 0.5);
+      colors.push(col.r, col.g, col.b);
+    }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0 }));
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // ---------- distant mountain silhouettes ----------
+    const mountainMat = new THREE.MeshBasicMaterial({ color: 0x3a2e4a, fog: true });
+    const mountainMat2 = new THREE.MeshBasicMaterial({ color: 0x2e2438, fog: true });
+    const mountainGeo = new THREE.ConeGeometry(1, 1, 5);
+    for (let i = 0; i < 16; i++) {
+      const ang = (i / 16) * Math.PI * 2 + Math.random() * 0.15;
+      const dist = 24 + Math.random() * 10;
+      const h = 8 + Math.random() * 10;
+      const r = 5 + Math.random() * 5;
+      const m = new THREE.Mesh(mountainGeo, Math.random() > 0.5 ? mountainMat : mountainMat2);
+      m.position.set(Math.cos(ang) * dist, h / 2 - 1, Math.sin(ang) * dist);
+      m.rotation.y = Math.random() * Math.PI;
+      m.scale.set(r, h, r);
+      scene.add(m);
+    }
+
+    // ---------- a few wind-bent dead trees and rocks ----------
+    const deadMat = new THREE.MeshPhongMaterial({ color: 0x2a2220, flatShading: true, shininess: 0 });
+    const deadTrunkGeo = new THREE.CylinderGeometry(0.05, 0.09, 1.3, 5);
+    for (let i = 0; i < 6; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 6 + Math.random() * 4;
+      const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
+      const t = new THREE.Mesh(deadTrunkGeo, deadMat);
+      t.position.set(x, terrainHeight(x, z) + 0.65, z);
+      t.rotation.z = 0.3 + Math.random() * 0.2;
+      t.rotation.y = Math.random() * Math.PI;
+      scene.add(t);
+      addBlob(x, z, 0.8);
+    }
+    const rockMat = new THREE.MeshPhongMaterial({ color: 0x5c5458, flatShading: true, shininess: 0 });
+    const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+    for (let i = 0; i < 10; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 4 + Math.random() * 6;
+      const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
+      const s = 0.25 + Math.random() * 0.35;
+      const r = new THREE.Mesh(rockGeo, rockMat);
+      r.position.set(x, terrainHeight(x, z) + s * 0.4, z);
+      r.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      r.scale.set(s, s, s);
+      scene.add(r);
+      addBlob(x, z, s * 2.2);
+    }
+
+    flushBlobs();
+
+    // ---------- the attack power die: same octahedron as the main game, rolled on demand ----------
+    function makeNumberTexture(num, bg, fg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = fg;
+      drawCenteredGlyph(ctx, String(num), 128, 128, 150, 'bold 150px Georgia, serif');
+      return new THREE.CanvasTexture(c);
+    }
+    function makeBurstTexture(bg) {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
+      drawCenteredGlyph(ctx, '🔆', 128, 128, 150, '150px sans-serif');
+      return new THREE.CanvasTexture(c);
+    }
+    function buildOctahedronGeometry(size) {
+      const top = new THREE.Vector3(0, size, 0);
+      const bot = new THREE.Vector3(0, -size, 0);
+      const eq = [
+        new THREE.Vector3(size, 0, 0), new THREE.Vector3(0, 0, size),
+        new THREE.Vector3(-size, 0, 0), new THREE.Vector3(0, 0, -size)
+      ];
+      const positions = [], uvs = [];
+      const tris = [];
+      for (let i = 0; i < 4; i++) tris.push([top, eq[i], eq[(i + 1) % 4]]);
+      for (let i = 0; i < 4; i++) tris.push([bot, eq[(i + 1) % 4], eq[i]]);
+      tris.forEach(([a, b, c]) => {
+        positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+        uvs.push(0.5, 1, 0, 0, 1, 0);
+      });
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.computeVertexNormals();
+      for (let i = 0; i < 8; i++) geo.addGroup(i * 3, 3, i);
+      return { geo, tris };
+    }
+    const attackDieSize = 0.4;
+    const { geo: attackOctGeo, tris: attackOctTris } = buildOctahedronGeometry(attackDieSize);
+    const ATTACK_OCT_NORMALS = attackOctTris.map(([a, b, c]) => {
+      const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
+      const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
+      if (n.dot(centroid) < 0) n.negate();
+      return n;
+    });
+    // vertex `a` of every triangle here is always the octahedron's pole (top or
+    // bottom apex) — a consistent reference direction we can use to keep the
+    // rolled face's texture upright instead of at a random in-plane rotation.
+    const ATTACK_OCT_UPRIGHT_HINTS = attackOctTris.map(([a]) => a.clone().normalize());
+
+    function computeUprightQuat(normal, upHint) {
+      const n = normal.clone().normalize();
+      let up = upHint.clone().sub(n.clone().multiplyScalar(upHint.dot(n)));
+      if (up.lengthSq() < 1e-6) {
+        up = Math.abs(n.x) < 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+        up.sub(n.clone().multiplyScalar(up.dot(n)));
+      }
+      up.normalize();
+      const right = new THREE.Vector3().crossVectors(up, n).normalize();
+      const srcBasis = new THREE.Matrix4().makeBasis(right, up, n);
+
+      // Same "looking down at a die on a table" angle as the summoning scene —
+      // tilted by the camera's own pitch (phi) instead of pointing dead-on at
+      // the lens, so the top face reads the way an actual d8 lands.
+      const targetN = new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
+      let targetUp = new THREE.Vector3(0, 1, 0).sub(targetN.clone().multiplyScalar(new THREE.Vector3(0, 1, 0).dot(targetN)));
+      targetUp.normalize();
+      const targetRight = new THREE.Vector3().crossVectors(targetUp, targetN).normalize();
+      const targetBasis = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetN);
+
+      const rotMatrix = new THREE.Matrix4().multiplyMatrices(targetBasis, srcBasis.clone().invert());
+      return new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
+    }
+
+    const attackPowerMats = attackFaces.map(v => new THREE.MeshPhongMaterial({
+      map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
+      flatShading: true, shininess: 0, side: THREE.DoubleSide, depthTest: false
+    }));
+    const attackDieMesh = new THREE.Mesh(attackOctGeo, attackPowerMats);
+    // camera-local coordinates (camera looks down its own -Z) — this keeps
+    // the die anchored to the same spot on screen even as the camera orbits.
+    const attackDieRestPos = new THREE.Vector3(0, -0.45, -2.3);
+    attackDieMesh.position.copy(attackDieRestPos);
+    attackDieMesh.visible = true;
+    attackDieMesh.renderOrder = 999; // always draw on top — otherwise the nearby terrain can occlude it
+    camera.add(attackDieMesh);
+    const attackDieClearance = attackDieSize * (1 - 1 / Math.sqrt(3));
+
+    const attackDieState = {
+      active: false, settled: true,
+      startPos: new THREE.Vector3(), targetPos: attackDieRestPos.clone(),
+      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1200
+    };
+
+    function updateAttackDie(dt) {
+      if (!attackDieState.active) return;
+      const now = performance.now();
+      const t = Math.min(1, (now - attackDieState.startTime) / attackDieState.duration);
+      if (t < 0) return;
+      const easedT = 1 - Math.pow(1 - t, 3);
+      attackDieMesh.position.x = THREE.MathUtils.lerp(attackDieState.startPos.x, attackDieState.targetPos.x, easedT);
+      attackDieMesh.position.z = THREE.MathUtils.lerp(attackDieState.startPos.z, attackDieState.targetPos.z, easedT);
+      const amp = (attackDieState.startPos.y - attackDieState.targetPos.y) * Math.exp(-4.2 * t);
+      const settleT = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
+      const floorY = attackDieState.targetPos.y + attackDieClearance * (1 - settleT);
+      attackDieMesh.position.y = floorY + Math.abs(Math.cos(t * 15.5)) * amp;
+      if (t < 0.78) {
+        attackDieMesh.rotateOnAxis(attackDieState.spinAxis, attackDieState.spinSpeed * (1 - t / 0.78) * dt);
+      } else {
+        attackDieMesh.quaternion.slerp(attackDieState.targetQuat, 0.2);
+      }
+      if (t >= 1) {
+        attackDieState.active = false;
+        attackDieState.settled = true;
+        attackDieMesh.position.copy(attackDieState.targetPos);
+        attackDieMesh.quaternion.copy(attackDieState.targetQuat);
+      }
+    }
+
+    function rollPowerDie(resultValue) {
+      return new Promise(resolve => {
+        attackDieMesh.visible = true;
+        const faceIndex = attackFaces.indexOf(resultValue);
+        const useIndex = faceIndex >= 0 ? faceIndex : 0;
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 0.3 + Math.random() * 0.2;
+        attackDieState.startPos.set(attackDieRestPos.x + Math.cos(ang) * dist, attackDieRestPos.y + 1.4 + Math.random() * 0.3, attackDieRestPos.z + Math.sin(ang) * dist);
+        attackDieMesh.position.copy(attackDieState.startPos);
+        attackDieState.targetPos.copy(attackDieRestPos);
+
+        const normal = ATTACK_OCT_NORMALS[useIndex].clone().normalize();
+        attackDieState.targetQuat.copy(computeUprightQuat(normal, ATTACK_OCT_UPRIGHT_HINTS[useIndex]));
+
+        attackDieState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        attackDieState.spinSpeed = 14 + Math.random() * 8;
+        attackDieState.startTime = performance.now();
+        attackDieState.duration = 1000 + Math.random() * 250;
+        attackDieState.active = true;
+        attackDieState.settled = false;
+
+        const poll = setInterval(() => {
+          if (attackDieState.settled) {
+            clearInterval(poll);
+            resolve();
+          }
+        }, 60);
+      });
+    }
+
+    // ---------- camera: slow ambient drift around the plateau ----------
+    const target = new THREE.Vector3(0, 0.5, 0);
+    let theta = 0;
+    const phi = 1.0876;
+    const radius = 4.518;
+
+    // now that phi exists, give the die a proper upright resting pose
+    // instead of the default (unrotated, possibly edge-on) orientation
+    attackDieMesh.quaternion.copy(computeUprightQuat(ATTACK_OCT_NORMALS[0], ATTACK_OCT_UPRIGHT_HINTS[0]));
+
+    const baseFovDeg = 50;
+    const minHorizontalFovDeg = 62;
+    function fitFovToAspect() {
+      const aspect = window.innerWidth / window.innerHeight;
+      if (aspect < 1) {
+        const minHRad = THREE.MathUtils.degToRad(minHorizontalFovDeg);
+        const vRad = 2 * Math.atan(Math.tan(minHRad / 2) / aspect);
+        camera.fov = Math.max(baseFovDeg, THREE.MathUtils.radToDeg(vRad));
+      } else {
+        camera.fov = baseFovDeg;
+      }
+    }
+    function updateCamera() {
+      camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+      camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = target.y + radius * Math.cos(phi);
+      camera.lookAt(target);
+    }
+    fitFovToAspect();
+    camera.updateProjectionMatrix();
+    updateCamera();
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      fitFovToAspect();
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener('resize', onResize);
+
+    let peakRafId = null, peakRunning = false;
+    const peakClock = new THREE.Clock();
+    function frame() {
+      const dt = peakClock.getDelta();
+      theta += dt * 0.015;
+      updateCamera();
+      updateAttackDie(dt);
+      renderer.render(scene, camera);
+      peakRafId = requestAnimationFrame(frame);
+    }
+
+    return {
+      canvas: renderer.domElement,
+      rollPowerDie,
+      start() { if (!peakRunning) { peakRunning = true; frame(); } },
+      stop() { peakRunning = false; if (peakRafId) cancelAnimationFrame(peakRafId); }
+    };
+  }
+
+  function showPeak() {
+    if (!peakInstance) peakInstance = buildPeak();
+    sceneWrap.classList.add('visible');
+    peakInstance.start();
+  }
+
+  // =====================================================================
+  // Add-your-own-creature UI + tap-to-roll attack sequence
+  // =====================================================================
+  const rollCountEl = document.getElementById('roll-count');
+  const resetBtn = document.getElementById('reset-btn');
+  const rollCaption = document.getElementById('roll-caption');
+  const rollLabelEl = document.getElementById('roll-label');
+  const rollDetailEl = document.getElementById('roll-detail');
+
+  let rollCount = 0;
+  let isRolling = false;
+
+  function sleepOrTap(ms) {
+    return new Promise(resolve => {
+      let done = false;
+      const timer = setTimeout(finish, ms);
+      function finish() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        document.removeEventListener('click', finish);
+        resolve();
+      }
+      // Wait a tick before listening — otherwise the very click that
+      // triggered this roll can bubble into the listener and immediately
+      // skip the pause it was meant to gate.
+      setTimeout(() => { if (!done) document.addEventListener('click', finish); }, 0);
+    });
+  }
+
+  function buildPlayerPanel(prefix) {
+    const selectEl = document.getElementById(`${prefix}-select`);
+    const powerEl = document.getElementById(`${prefix}-power`);
+    const addBtn = document.getElementById(`${prefix}-add`);
+    const listEl = document.getElementById(`${prefix}-list`);
+
+    creatures.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name;
+      opt.textContent = `${c.face} ${c.name}`;
+      selectEl.appendChild(opt);
+    });
+
+    let nextId = 1;
+    const roster = []; // { id, face, name, power }
+
+    function render() {
+      listEl.innerHTML = '';
+      roster.forEach(entry => {
+        const box = document.createElement('div');
+        box.className = 'creature-box';
+        box.dataset.id = entry.id;
+        box.innerHTML = `
+          <span class="cb-face">${entry.face}</span>
+          <span class="cb-power">${entry.name} · Pwr ${entry.power}</span>
+          <span class="cb-remove" data-remove="${entry.id}">✕</span>
+        `;
+        listEl.appendChild(box);
+      });
+    }
+
+    addBtn.addEventListener('click', () => {
+      const name = selectEl.value;
+      const face = creatures.find(c => c.name === name).face;
+      let power = parseInt(powerEl.value, 10);
+      if (isNaN(power)) power = 0;
+      power = Math.max(0, Math.min(3, power));
+      roster.push({ id: nextId++, face, name, power });
+      render();
+    });
+
+    listEl.addEventListener('click', async (e) => {
+      const removeId = e.target.dataset.remove;
+      if (removeId) {
+        const idx = roster.findIndex(r => String(r.id) === removeId);
+        if (idx !== -1) roster.splice(idx, 1);
+        render();
+        return;
+      }
+      const box = e.target.closest('.creature-box');
+      if (!box || isRolling) return;
+      const entry = roster.find(r => String(r.id) === box.dataset.id);
+      if (!entry) return;
+      isRolling = true;
+      box.classList.add('rolling');
+      await rollCreatureAttack(entry);
+      box.classList.remove('rolling');
+      isRolling = false;
+    });
+
+    function reset() {
+      roster.length = 0;
+      render();
+    }
+
+    return { reset };
+  }
+
+  async function rollCreatureAttack(entry) {
+    const numRolls = entry.power + 1; // guaranteed base roll + power bonus rolls
+    const values = [];
+    rollCaption.classList.add('open');
+
+    for (let i = 0; i < numRolls; i++) {
+      rollLabelEl.textContent = `${entry.face} ${entry.name} — rolling ${i + 1} of ${numRolls}...`;
+      rollDetailEl.textContent = values.length ? values.map(faceLabel).join(', ') : '';
+      const face = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+      if (peakInstance) await peakInstance.rollPowerDie(face);
+      values.push(face);
+      rollCount += 1;
+      rollCountEl.textContent = rollCount;
+
+      const val = face === 'burst' ? 4 : face;
+      rollLabelEl.textContent = `${entry.face} ${entry.name} rolled ${faceLabel(face)}!`;
+      const runningTotal = values.reduce((s, f) => s + (f === 'burst' ? 4 : f), 0);
+      rollDetailEl.textContent = `${values.map(faceLabel).join(', ')}  =  ${runningTotal} points so far`;
+      await sleepOrTap(1400);
+    }
+
+    const total = values.reduce((s, f) => s + (f === 'burst' ? 4 : f), 0);
+    rollLabelEl.textContent = `${entry.face} ${entry.name} (Power ${entry.power}) — done`;
+    rollDetailEl.textContent = `${values.map(faceLabel).join(', ')}  =  ${total} points total`;
+    await sleepOrTap(1600);
+    rollCaption.classList.remove('open');
+  }
+
+  const p1Panel = buildPlayerPanel('p1');
+  const p2Panel = buildPlayerPanel('p2');
+
+  resetBtn.addEventListener('click', () => {
+    rollCount = 0;
+    rollCountEl.textContent = 0;
+    rollCaption.classList.remove('open');
+    p1Panel.reset();
+    p2Panel.reset();
+  });
+
+  try { showPeak(); } catch (e) { console.error('Peak failed to load:', e); }
+</script>
+
+</body>
+</html>
