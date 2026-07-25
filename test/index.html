@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Ruwyn — Battle Dice Tester</title>
+<title>Ruwyn — Dice Tester</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -11,6 +11,7 @@
     --night: #0c120d;
     --night-deep: #060a07;
     --moss: #5c7350;
+    --moss-dim: #3c4d34;
     --bone: #e8dfc4;
     --bone-dim: #b9ad8d;
     --amber: #d99a3e;
@@ -18,6 +19,8 @@
     --witch: #7a4a8a;
     --witch-bright: #a874bb;
     --blood: #6b2b3a;
+    --line: rgba(217,154,62,0.3);
+    --rune-line: rgba(168,116,187,0.35);
   }
 
   * { box-sizing: border-box; }
@@ -26,22 +29,6 @@
     height: 100%;
     margin: 0;
     overscroll-behavior: none;
-  }
-
-  #scene-wrap {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 900ms ease;
-    pointer-events: none;
-  }
-  #scene-wrap.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  #scene-wrap canvas {
-    display: block;
   }
 
   body {
@@ -54,16 +41,79 @@
     color: var(--bone);
     height: 100dvh;
     width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ---------- phase tab switcher ---------- */
+  .phase-tabs {
+    position: fixed;
+    top: max(0.55rem, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
     display: flex;
+    gap: 0.25rem;
+    background: rgba(10,8,6,0.8);
+    border: 1px solid rgba(232,223,196,0.2);
+    border-radius: 999px;
+    padding: 0.22rem;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+  }
+  .phase-tab-btn {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    color: rgba(232,223,196,0.55);
+    background: none;
+    border: none;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    white-space: nowrap;
+    transition: background 200ms ease, color 200ms ease;
+  }
+  .phase-tab-btn:active { transform: scale(0.96); }
+  .phase-tab-btn.active {
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    color: var(--night-deep);
+  }
+
+  /* ---------- shared phase shell (each phase is a full-screen layer) ---------- */
+  .phase {
+    position: fixed;
+    inset: 0;
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: max(0.75rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left));
     overflow-y: auto;
     overflow-x: hidden;
-    position: relative;
   }
+  .phase.active { display: flex; }
 
+  .scene-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 900ms ease;
+    pointer-events: none;
+  }
+  .scene-wrap.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .scene-wrap canvas {
+    display: block;
+  }
+  #scene-wrap-summon canvas { cursor: pointer; }
+
+  /* ---------- shared frame / top-bar / bottom-panel ---------- */
   .frame {
     width: 100%;
     max-width: 720px;
@@ -76,7 +126,7 @@
     justify-content: space-between;
     position: relative;
     z-index: 1;
-    padding: 0.4rem 0;
+    padding: 2.6rem 0 0.4rem;
     pointer-events: none;
   }
   .frame > * {
@@ -114,31 +164,6 @@
   }
   .ff-btn:active { opacity: 0.6; }
 
-  .roll-caption {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-    background: rgba(10,8,6,0.85);
-    border: 1px solid rgba(168,116,187,0.35);
-    border-radius: 16px;
-    padding: 0.7rem 0.9rem;
-    display: none;
-  }
-  .roll-caption.open { display: block; }
-  .roll-caption .label {
-    font-family: 'MedievalSharp', serif;
-    font-size: 0.78rem;
-    color: var(--amber-bright);
-    margin: 0;
-  }
-  .roll-caption .detail {
-    font-family: 'MedievalSharp', serif;
-    font-size: 0.72rem;
-    color: var(--bone-dim);
-    margin: 0.5rem 0 0;
-    white-space: pre-line;
-  }
-
   .bottom-panel {
     display: flex;
     flex-direction: column;
@@ -161,10 +186,9 @@
     flex-direction: column;
     gap: 0.5rem;
     z-index: 3;
-    max-height: 82vh;
+    max-height: 78vh;
     overflow-y: auto;
     padding: 0.3rem;
-    width: min(34vw, 150px);
   }
   .player-side-panel.p1-panel {
     left: max(0.4rem, env(safe-area-inset-left));
@@ -184,7 +208,37 @@
   }
   .p2-panel .player-side-label { color: #e2777f; }
 
-  .add-form {
+  /* =====================================================================
+     BATTLE PHASE — creature roster + tap-to-roll attack
+     ===================================================================== */
+  #phase-battle .player-side-panel { width: min(34vw, 150px); }
+
+  #phase-battle .roll-caption {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: rgba(10,8,6,0.85);
+    border: 1px solid rgba(168,116,187,0.35);
+    border-radius: 16px;
+    padding: 0.7rem 0.9rem;
+    display: none;
+  }
+  #phase-battle .roll-caption.open { display: block; }
+  #phase-battle .roll-caption .label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.78rem;
+    color: var(--amber-bright);
+    margin: 0;
+  }
+  #phase-battle .roll-caption .detail {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+    margin: 0.5rem 0 0;
+    white-space: pre-line;
+  }
+
+  #phase-battle .add-form {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
@@ -194,7 +248,7 @@
     border-radius: 10px;
     padding: 0.4rem;
   }
-  .add-form select, .add-form input {
+  #phase-battle .add-form select, #phase-battle .add-form input {
     font-family: 'EB Garamond', serif;
     font-size: 0.7rem;
     background: rgba(255,255,255,0.06);
@@ -204,12 +258,12 @@
     padding: 0.25rem 0.3rem;
     width: 100%;
   }
-  .add-form label {
+  #phase-battle .add-form label {
     font-size: 0.55rem;
     color: var(--bone-dim);
     text-align: left;
   }
-  .add-form button {
+  #phase-battle .add-form button {
     font-family: 'MedievalSharp', serif;
     font-size: 0.65rem;
     background: linear-gradient(180deg, var(--amber-bright), var(--amber));
@@ -219,17 +273,17 @@
     padding: 0.35rem;
     cursor: pointer;
   }
-  .p2-panel .add-form button {
+  #phase-battle .p2-panel .add-form button {
     background: linear-gradient(180deg, #e2777f, var(--blood));
   }
 
-  .creature-list {
+  #phase-battle .creature-list {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     width: 100%;
   }
-  .creature-box {
+  #phase-battle .creature-box {
     position: relative;
     display: flex;
     align-items: center;
@@ -244,17 +298,17 @@
     user-select: none;
     transition: box-shadow 200ms ease, opacity 200ms ease;
   }
-  .p2-panel .creature-box { border-color: var(--blood); }
-  .creature-box:active { transform: scale(0.96); }
-  .creature-box.rolling { opacity: 0.5; pointer-events: none; }
-  .creature-box .cb-face { font-size: 1.2rem; }
-  .creature-box .cb-power {
+  #phase-battle .p2-panel .creature-box { border-color: var(--blood); }
+  #phase-battle .creature-box:active { transform: scale(0.96); }
+  #phase-battle .creature-box.rolling { opacity: 0.5; pointer-events: none; }
+  #phase-battle .creature-box .cb-face { font-size: 1.2rem; }
+  #phase-battle .creature-box .cb-power {
     font-family: 'MedievalSharp', serif;
     font-size: 0.62rem;
     color: var(--amber-bright);
   }
-  .p2-panel .creature-box .cb-power { color: #e2777f; }
-  .creature-box .cb-remove {
+  #phase-battle .p2-panel .creature-box .cb-power { color: #e2777f; }
+  #phase-battle .creature-box .cb-remove {
     position: absolute;
     top: -6px;
     right: -6px;
@@ -269,54 +323,417 @@
     font-size: 0.6rem;
     cursor: pointer;
   }
+
+  #phase-battle .opposed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.6rem;
+    color: var(--bone-dim);
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #phase-battle .opposed-toggle input {
+    accent-color: var(--amber-bright);
+    cursor: pointer;
+  }
+
+  #phase-battle .defender-prompt {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: rgba(10,8,6,0.85);
+    border: 1px solid rgba(217,154,62,0.45);
+    border-radius: 16px;
+    padding: 0.6rem 0.8rem;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  #phase-battle .defender-prompt.open { display: flex; }
+  #phase-battle .dp-text {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.68rem;
+    color: var(--amber-bright);
+    margin: 0;
+  }
+  #phase-battle .dp-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  #phase-battle .creature-box.selectable-defender {
+    border-color: var(--amber-bright) !important;
+    animation: defenderPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes defenderPulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(240,190,108,0.35); }
+    50% { box-shadow: 0 0 16px rgba(240,190,108,0.85); }
+  }
+  #phase-battle .creature-box.attacking-selected {
+    box-shadow: 0 0 12px rgba(240,190,108,0.75);
+    opacity: 0.88;
+  }
+
+  /* =====================================================================
+     SUMMONING PHASE — dice grove + match counter + turn indicator
+     ===================================================================== */
+  .wisp {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--amber-bright);
+    box-shadow: 0 0 8px 3px rgba(240,190,108,0.7);
+    opacity: 0;
+    pointer-events: none;
+    animation: drift 7s ease-in-out infinite;
+    z-index: 0;
+  }
+  .wisp:nth-child(1){ left: 12%; top: 70%; animation-delay: 0s; }
+  .wisp:nth-child(2){ left: 85%; top: 60%; animation-delay: 1.6s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+  .wisp:nth-child(3){ left: 50%; top: 82%; animation-delay: 3.2s; }
+  .wisp:nth-child(4){ left: 25%; top: 55%; animation-delay: 4.8s; background: var(--witch-bright); box-shadow: 0 0 8px 3px rgba(168,116,187,0.65); }
+
+  @keyframes drift {
+    0%   { opacity: 0; transform: translateY(0) translateX(0); }
+    15%  { opacity: 0.9; }
+    50%  { transform: translateY(-40px) translateX(8px); }
+    85%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(-85px) translateX(-6px); }
+  }
+
+  #phase-summon .last-roll {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+    min-height: 1.4em;
+    margin: 0;
+  }
+  #phase-summon .last-roll .stone { color: var(--amber-bright); }
+  #phase-summon .last-roll .shadow { color: var(--witch-bright); }
+
+  #phase-summon .player-side-panel {
+    opacity: 0.5;
+    transition: opacity 350ms ease;
+  }
+  #phase-summon .player-side-panel.active {
+    opacity: 1;
+  }
+  #phase-summon .player-side-label {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: border-color 250ms ease, background 250ms ease, box-shadow 250ms ease;
+  }
+  #phase-summon .player-side-label:active {
+    transform: scale(0.95);
+  }
+  #phase-summon .player-side-panel.active .player-side-label {
+    border-color: var(--amber-bright);
+    background: rgba(217,154,62,0.16);
+    box-shadow: 0 0 10px rgba(217,154,62,0.45);
+  }
+  #phase-summon .player-side-panel.p2-panel.active .player-side-label {
+    border-color: #e2777f;
+    background: rgba(226,119,127,0.16);
+    box-shadow: 0 0 10px rgba(226,119,127,0.45);
+  }
+
+  #phase-summon .creature-match-box {
+    width: min(13vw, 50px);
+    height: min(13vw, 50px);
+    border-radius: 12px;
+    border: 1.5px solid rgba(232,223,196,0.15);
+    background: rgba(20,18,14,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: min(7vw, 1.35rem);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    filter: grayscale(1) opacity(0.45);
+    transition: filter 300ms ease, border-color 300ms ease, background 300ms ease, box-shadow 300ms ease, transform 100ms ease;
+  }
+  #phase-summon .creature-match-box:active {
+    transform: scale(0.92);
+  }
+  #phase-summon .creature-match-box.pending {
+    filter: none;
+    border-color: var(--amber);
+    background: rgba(217,154,62,0.18);
+    box-shadow: 0 0 10px rgba(217,154,62,0.4);
+  }
+  #phase-summon .creature-match-box.matched {
+    filter: none;
+    border-color: var(--witch);
+    background: rgba(122,74,138,0.18);
+    animation: creatureMatchGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes creatureMatchGlow {
+    0%, 100% { box-shadow: 0 0 5px rgba(168,116,187,0.25); }
+    50% { box-shadow: 0 0 16px rgba(168,116,187,0.9); }
+  }
+  #phase-summon .cmb-badge {
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--night-deep);
+    border: 1px solid var(--witch-bright);
+    color: var(--witch-bright);
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.42rem;
+    padding: 0.06rem 0.3rem;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  #phase-summon .creature-match-box.pending .cmb-badge {
+    border-color: var(--amber-bright);
+    color: var(--amber-bright);
+  }
+
+  /* =====================================================================
+     LIFE POINTS — persistent overlay, sits above both phases so it's
+     always visible and always the same shared state.
+     ===================================================================== */
+  .life-bar {
+    position: fixed;
+    top: calc(max(0.55rem, env(safe-area-inset-top)) + 2.55rem);
+    z-index: 15;
+    width: min(30vw, 116px);
+    background: rgba(10,8,6,0.85);
+    border: 1px solid rgba(232,223,196,0.2);
+    border-radius: 12px;
+    padding: 0.4rem 0.45rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  }
+  .life-p1 { left: max(0.4rem, env(safe-area-inset-left)); border-color: rgba(217,154,62,0.4); }
+  .life-p2 { right: max(0.4rem, env(safe-area-inset-right)); border-color: rgba(226,119,127,0.4); }
+
+  .life-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.3rem;
+  }
+  .life-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.54rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+  }
+  .life-p2 .life-label { color: #e2777f; }
+  .life-value {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.95rem;
+    color: var(--bone);
+    font-variant-numeric: tabular-nums;
+  }
+  .life-bar.critical .life-value {
+    color: #ff6b6b;
+    animation: lifeCriticalPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes lifeCriticalPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .life-track {
+    width: 100%;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .life-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--amber), var(--amber-bright));
+    transition: width 400ms ease;
+  }
+  .life-p2 .life-fill { background: linear-gradient(90deg, var(--blood), #e2777f); }
+
+  .life-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    align-items: center;
+  }
+  .life-btn, .life-set-btn, .life-reset-btn {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.56rem;
+    color: var(--bone);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(232,223,196,0.25);
+    border-radius: 6px;
+    padding: 0.15rem 0.3rem;
+    cursor: pointer;
+    line-height: 1.3;
+  }
+  .life-btn:active, .life-set-btn:active, .life-reset-btn:active { opacity: 0.6; }
+  .life-reset-btn { color: var(--bone-dim); border-style: dashed; }
+  .life-input {
+    width: 2.5rem;
+    font-family: 'EB Garamond', serif;
+    font-size: 0.6rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(232,223,196,0.2);
+    border-radius: 6px;
+    color: var(--bone);
+    padding: 0.15rem 0.25rem;
+  }
+  .life-input::-webkit-outer-spin-button, .life-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-  <div id="scene-wrap"></div>
-
-  <div class="player-side-panel p1-panel">
-    <p class="player-side-label">Player 1</p>
-    <div class="add-form">
-      <label>Creature</label>
-      <select id="p1-select"></select>
-      <label>Power (0–3)</label>
-      <input type="number" id="p1-power" min="0" max="3" value="0">
-      <button id="p1-add">+ Add</button>
-    </div>
-    <div class="creature-list" id="p1-list"></div>
+  <div class="phase-tabs">
+    <button class="phase-tab-btn active" id="tab-summon" type="button">🔮 Summoning</button>
+    <button class="phase-tab-btn" id="tab-battle" type="button">⚔️ Battle</button>
   </div>
 
-  <div class="player-side-panel p2-panel">
-    <p class="player-side-label">Player 2</p>
-    <div class="add-form">
-      <label>Creature</label>
-      <select id="p2-select"></select>
-      <label>Power (0–3)</label>
-      <input type="number" id="p2-power" min="0" max="3" value="0">
-      <button id="p2-add">+ Add</button>
+  <!-- Life points — outside both .phase containers so it stays put and
+       keeps the same state no matter which tab is active. -->
+  <div class="life-bar life-p1" id="life-p1">
+    <div class="life-head">
+      <span class="life-label">❤️ P1</span>
+      <span class="life-value" id="life-p1-value">20</span>
     </div>
-    <div class="creature-list" id="p2-list"></div>
+    <div class="life-track"><div class="life-fill" id="life-p1-fill"></div></div>
+    <div class="life-controls">
+      <button class="life-btn" data-life-minus="p1" type="button">−1</button>
+      <button class="life-btn" data-life-plus="p1" type="button">+1</button>
+      <input class="life-input" id="life-p1-input" type="number" inputmode="numeric" value="20">
+      <button class="life-set-btn" data-life-set="p1" type="button">Set</button>
+      <button class="life-reset-btn" data-life-reset="p1" type="button">Reset</button>
+    </div>
+  </div>
+  <div class="life-bar life-p2" id="life-p2">
+    <div class="life-head">
+      <span class="life-label">❤️ P2</span>
+      <span class="life-value" id="life-p2-value">20</span>
+    </div>
+    <div class="life-track"><div class="life-fill" id="life-p2-fill"></div></div>
+    <div class="life-controls">
+      <button class="life-btn" data-life-minus="p2" type="button">−1</button>
+      <button class="life-btn" data-life-plus="p2" type="button">+1</button>
+      <input class="life-input" id="life-p2-input" type="number" inputmode="numeric" value="20">
+      <button class="life-set-btn" data-life-set="p2" type="button">Set</button>
+      <button class="life-reset-btn" data-life-reset="p2" type="button">Reset</button>
+    </div>
   </div>
 
-  <div class="frame" id="roller-screen">
-    <div class="top-bar">
-      <span class="roll-counter">D8 rolls: <span class="n" id="roll-count">0</span></span>
-      <button class="ff-btn" id="reset-btn">🔄 Reset</button>
+  <!-- ===================== SUMMONING PHASE ===================== -->
+  <div class="phase active" id="phase-summon">
+    <div class="scene-wrap" id="scene-wrap-summon"></div>
+
+    <div class="wisp"></div>
+    <div class="wisp"></div>
+    <div class="wisp"></div>
+    <div class="wisp"></div>
+
+    <div class="player-side-panel p1-panel" id="summon-p1-panel">
+      <p class="player-side-label" id="summon-p1-label">Player 1</p>
+      <div id="summon-p1-boxes"></div>
+    </div>
+    <div class="player-side-panel p2-panel" id="summon-p2-panel">
+      <p class="player-side-label" id="summon-p2-label">Player 2</p>
+      <div id="summon-p2-boxes"></div>
     </div>
 
-    <div class="roll-caption" id="roll-caption">
-      <p class="label" id="roll-label">Rolling...</p>
-      <p class="detail" id="roll-detail"></p>
+    <div class="frame">
+      <div class="top-bar">
+        <span class="roll-counter">Rolls: <span class="n" id="summon-roll-count">0</span></span>
+        <button class="ff-btn" id="summon-reset-btn">🔄 Reset</button>
+      </div>
+
+      <div class="bottom-panel">
+        <p class="last-roll" id="summon-last-roll-readout">Tap a die to roll it alone, or open ground to roll all three</p>
+        <p class="hint">tap the coin, creature, or power die alone — tap open ground to roll all three · tap a creature box to log a match — cycles stone, shadow, stone, shadow...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BATTLE PHASE ===================== -->
+  <div class="phase" id="phase-battle">
+    <div class="scene-wrap" id="scene-wrap-battle"></div>
+
+    <div class="player-side-panel p1-panel">
+      <p class="player-side-label">Player 1</p>
+      <div class="add-form">
+        <label>Creature</label>
+        <select id="p1-select"></select>
+        <label>Power (0–3)</label>
+        <input type="number" id="p1-power" min="0" max="3" value="0">
+        <button id="p1-add">+ Add</button>
+      </div>
+      <div class="creature-list" id="p1-list"></div>
     </div>
 
-    <div class="bottom-panel">
-      <p class="hint">add a creature on either side, then tap it to roll its attack (1 + power rolls of the d8)</p>
+    <div class="player-side-panel p2-panel">
+      <p class="player-side-label">Player 2</p>
+      <div class="add-form">
+        <label>Creature</label>
+        <select id="p2-select"></select>
+        <label>Power (0–3)</label>
+        <input type="number" id="p2-power" min="0" max="3" value="0">
+        <button id="p2-add">+ Add</button>
+      </div>
+      <div class="creature-list" id="p2-list"></div>
+    </div>
+
+    <div class="frame">
+      <div class="top-bar">
+        <span class="roll-counter">D8 rolls: <span class="n" id="battle-roll-count">0</span></span>
+        <label class="opposed-toggle" for="battle-opposed-toggle">
+          <input type="checkbox" id="battle-opposed-toggle" checked>
+          <span>⚔️ vs 🛡️ Opposed</span>
+        </label>
+        <button class="ff-btn" id="battle-reset-btn">🔄 Reset</button>
+      </div>
+
+      <div class="defender-prompt" id="battle-defender-prompt">
+        <p class="dp-text" id="battle-defender-prompt-text">Choose a defender...</p>
+        <div class="dp-actions">
+          <button class="ff-btn" id="battle-direct-hit-btn" type="button">⚡ Direct Hit</button>
+          <button class="ff-btn" id="battle-cancel-attack-btn" type="button">✕ Cancel</button>
+        </div>
+      </div>
+
+      <div class="roll-caption" id="battle-roll-caption">
+        <p class="label" id="battle-roll-label">Rolling...</p>
+        <p class="detail" id="battle-roll-detail"></p>
+      </div>
+
+      <div class="bottom-panel">
+        <p class="hint">tap your creature, then tap an enemy creature to roll attack vs defense — or tap ⚡ Direct Hit to skip defense. Turn off "Opposed" to always roll unopposed.</p>
+      </div>
     </div>
   </div>
 
 <script>
+  // =====================================================================
+  // Shared helpers used by both phases
+  // =====================================================================
+
   // Draws text (emoji or numerals) truly centered in a canvas, using the
   // glyph's own measured bounding box rather than an assumed fixed offset —
   // keeps dice-face symbols centered across different platforms' emoji fonts.
@@ -338,511 +755,1535 @@
     { face: '🧞', name: 'Djinn' },
     { face: '🧝🏻\u200d♀️', name: 'Elf' }
   ];
-  const attackFaces = ['burst', 'burst', 0, 1, 2, 2, 2, 3]; // battle d8 — burst = 4 dmg
 
-  function faceLabel(face) {
-    return face === 'burst' ? '🔆' : String(face);
-  }
-
-  const sceneWrap = document.getElementById('scene-wrap');
-  let peakInstance = null;
-
-  function buildPeak() {
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x3a2c40, 10, 42);
-
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
-    scene.add(camera); // needed so the attack die, parented to the camera, gets traversed for rendering
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  // Renderer settings shared by both scenes — tuned for low-end GPUs:
+  // no MSAA, capped device pixel ratio, low-power context hint.
+  function makeEfficientRenderer(container) {
+    const renderer = new THREE.WebGLRenderer({
+      antialias: false,
+      alpha: true,
+      powerPreference: 'low-power',
+      precision: 'mediump'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
-    sceneWrap.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
+    return renderer;
+  }
 
-    // ---------- dusk sky dome ----------
-    const skyGeo = new THREE.SphereGeometry(60, 24, 16);
-    const skyPos = skyGeo.attributes.position;
-    const skyColors = [];
-    const skyTop = new THREE.Color(0x2a1f3d);
-    const skyHorizon = new THREE.Color(0xd97a4a);
-    for (let i = 0; i < skyPos.count; i++) {
-      const y = skyPos.getY(i);
-      const t = Math.max(0, Math.min(1, (y + 10) / 45));
-      const col = skyHorizon.clone().lerp(skyTop, t);
-      skyColors.push(col.r, col.g, col.b);
-    }
-    skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(skyColors, 3));
-    const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
-    scene.add(sky);
+  // Pause all rendering when the browser tab itself isn't visible, no
+  // matter which in-page phase is active.
+  const visibilityListeners = [];
+  document.addEventListener('visibilitychange', () => {
+    visibilityListeners.forEach(fn => fn(!document.hidden));
+  });
+</script>
 
-    // ---------- lighting: warm dusk sun, cool violet fill ----------
-    const hemi = new THREE.HemisphereLight(0x8a6a9a, 0x2a2018, 0.7);
-    scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xe08a4f, 1.0);
-    sun.position.set(-10, 3, -6);
-    scene.add(sun);
-    const fillCool = new THREE.DirectionalLight(0x5a4a8a, 0.4);
-    fillCool.position.set(7, 5, 8);
-    scene.add(fillCool);
+<script>
+  // =====================================================================
+  // LIFE POINTS — shared state, persists across both phase tabs (the
+  // widgets live outside the .phase containers so they never get torn
+  // down or hidden). Supports manual +1/-1, typing an exact value,
+  // resetting each player individually, and Battle phase calling
+  // LifePoints.damage() automatically when an attack roll lands.
+  // =====================================================================
+  const LifePoints = (function () {
+    const MAX_LIFE = 20;
+    const life = { p1: MAX_LIFE, p2: MAX_LIFE };
 
-    // ---------- blob shadow helper ----------
-    function makeBlobTexture() {
-      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
-      const ctx = c.getContext('2d');
-      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-      g.addColorStop(0, 'rgba(5,5,5,0.45)');
-      g.addColorStop(1, 'rgba(5,5,5,0)');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-      return new THREE.CanvasTexture(c);
-    }
-    const blobTex = makeBlobTexture();
-    const blobList = [];
-    function addBlob(x, z, scale) { blobList.push({ x, z, scale }); }
-    function flushBlobs() {
-      if (!blobList.length) return;
-      const dummy = new THREE.Object3D();
-      const geo = new THREE.PlaneGeometry(1, 1);
-      const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
-      const inst = new THREE.InstancedMesh(geo, mat, blobList.length);
-      blobList.forEach((b, i) => {
-        dummy.position.set(b.x, 0.012, b.z);
-        dummy.rotation.set(-Math.PI / 2, 0, 0);
-        dummy.scale.set(b.scale, b.scale, 1);
-        dummy.updateMatrix();
-        inst.setMatrixAt(i, dummy.matrix);
-      });
-      inst.instanceMatrix.needsUpdate = true;
-      scene.add(inst);
-    }
-
-    // ---------- rocky plateau terrain ----------
-    function terrainHeight(x, z) {
-      const d = Math.sqrt(x * x + z * z);
-      const falloff = Math.min(1, Math.max(0, (d - 5.5) / 5));
-      return (Math.sin(x * 0.22) * 0.5 + Math.cos(z * 0.26) * 0.45 + Math.sin((x + z) * 0.14) * 0.6) * falloff;
-    }
-    const groundGeo = new THREE.PlaneGeometry(52, 52, 30, 30);
-    const posAttr = groundGeo.attributes.position;
-    const colors = [];
-    const cLow = new THREE.Color(0x3a3238);
-    const cMid = new THREE.Color(0x574c4a);
-    const cHigh = new THREE.Color(0x8a6f5c);
-    for (let i = 0; i < posAttr.count; i++) {
-      const x = posAttr.getX(i), y = posAttr.getY(i);
-      const h = terrainHeight(x, y);
-      posAttr.setZ(i, h);
-      const t = Math.max(0, Math.min(1, (h + 0.2) / 1.3));
-      const col = t < 0.5 ? cLow.clone().lerp(cMid, t / 0.5) : cMid.clone().lerp(cHigh, (t - 0.5) / 0.5);
-      colors.push(col.r, col.g, col.b);
-    }
-    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    groundGeo.computeVertexNormals();
-    const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0 }));
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
-
-    // ---------- distant mountain silhouettes ----------
-    const mountainMat = new THREE.MeshBasicMaterial({ color: 0x3a2e4a, fog: true });
-    const mountainMat2 = new THREE.MeshBasicMaterial({ color: 0x2e2438, fog: true });
-    const mountainGeo = new THREE.ConeGeometry(1, 1, 5);
-    for (let i = 0; i < 16; i++) {
-      const ang = (i / 16) * Math.PI * 2 + Math.random() * 0.15;
-      const dist = 24 + Math.random() * 10;
-      const h = 8 + Math.random() * 10;
-      const r = 5 + Math.random() * 5;
-      const m = new THREE.Mesh(mountainGeo, Math.random() > 0.5 ? mountainMat : mountainMat2);
-      m.position.set(Math.cos(ang) * dist, h / 2 - 1, Math.sin(ang) * dist);
-      m.rotation.y = Math.random() * Math.PI;
-      m.scale.set(r, h, r);
-      scene.add(m);
-    }
-
-    // ---------- a few wind-bent dead trees and rocks ----------
-    const deadMat = new THREE.MeshPhongMaterial({ color: 0x2a2220, flatShading: true, shininess: 0 });
-    const deadTrunkGeo = new THREE.CylinderGeometry(0.05, 0.09, 1.3, 5);
-    for (let i = 0; i < 6; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const dist = 6 + Math.random() * 4;
-      const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
-      const t = new THREE.Mesh(deadTrunkGeo, deadMat);
-      t.position.set(x, terrainHeight(x, z) + 0.65, z);
-      t.rotation.z = 0.3 + Math.random() * 0.2;
-      t.rotation.y = Math.random() * Math.PI;
-      scene.add(t);
-      addBlob(x, z, 0.8);
-    }
-    const rockMat = new THREE.MeshPhongMaterial({ color: 0x5c5458, flatShading: true, shininess: 0 });
-    const rockGeo = new THREE.DodecahedronGeometry(1, 0);
-    for (let i = 0; i < 10; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const dist = 4 + Math.random() * 6;
-      const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
-      const s = 0.25 + Math.random() * 0.35;
-      const r = new THREE.Mesh(rockGeo, rockMat);
-      r.position.set(x, terrainHeight(x, z) + s * 0.4, z);
-      r.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-      r.scale.set(s, s, s);
-      scene.add(r);
-      addBlob(x, z, s * 2.2);
-    }
-
-    flushBlobs();
-
-    // ---------- the attack power die: same octahedron as the main game, rolled on demand ----------
-    function makeNumberTexture(num, bg, fg) {
-      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
-      ctx.fillStyle = fg;
-      drawCenteredGlyph(ctx, String(num), 128, 128, 150, 'bold 150px Georgia, serif');
-      return new THREE.CanvasTexture(c);
-    }
-    function makeBurstTexture(bg) {
-      const c = document.createElement('canvas'); c.width = 256; c.height = 256;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
-      drawCenteredGlyph(ctx, '🔆', 128, 128, 150, '150px sans-serif');
-      return new THREE.CanvasTexture(c);
-    }
-    function buildOctahedronGeometry(size) {
-      const top = new THREE.Vector3(0, size, 0);
-      const bot = new THREE.Vector3(0, -size, 0);
-      const eq = [
-        new THREE.Vector3(size, 0, 0), new THREE.Vector3(0, 0, size),
-        new THREE.Vector3(-size, 0, 0), new THREE.Vector3(0, 0, -size)
-      ];
-      const positions = [], uvs = [];
-      const tris = [];
-      for (let i = 0; i < 4; i++) tris.push([top, eq[i], eq[(i + 1) % 4]]);
-      for (let i = 0; i < 4; i++) tris.push([bot, eq[(i + 1) % 4], eq[i]]);
-      tris.forEach(([a, b, c]) => {
-        positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-        uvs.push(0.5, 1, 0, 0, 1, 0);
-      });
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-      geo.computeVertexNormals();
-      for (let i = 0; i < 8; i++) geo.addGroup(i * 3, 3, i);
-      return { geo, tris };
-    }
-    const attackDieSize = 0.4;
-    const { geo: attackOctGeo, tris: attackOctTris } = buildOctahedronGeometry(attackDieSize);
-    const ATTACK_OCT_NORMALS = attackOctTris.map(([a, b, c]) => {
-      const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
-      const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
-      if (n.dot(centroid) < 0) n.negate();
-      return n;
-    });
-    // vertex `a` of every triangle here is always the octahedron's pole (top or
-    // bottom apex) — a consistent reference direction we can use to keep the
-    // rolled face's texture upright instead of at a random in-plane rotation.
-    const ATTACK_OCT_UPRIGHT_HINTS = attackOctTris.map(([a]) => a.clone().normalize());
-
-    function computeUprightQuat(normal, upHint) {
-      const n = normal.clone().normalize();
-      let up = upHint.clone().sub(n.clone().multiplyScalar(upHint.dot(n)));
-      if (up.lengthSq() < 1e-6) {
-        up = Math.abs(n.x) < 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
-        up.sub(n.clone().multiplyScalar(up.dot(n)));
+    const els = {
+      p1: {
+        bar: document.getElementById('life-p1'),
+        value: document.getElementById('life-p1-value'),
+        fill: document.getElementById('life-p1-fill'),
+        input: document.getElementById('life-p1-input')
+      },
+      p2: {
+        bar: document.getElementById('life-p2'),
+        value: document.getElementById('life-p2-value'),
+        fill: document.getElementById('life-p2-fill'),
+        input: document.getElementById('life-p2-input')
       }
-      up.normalize();
-      const right = new THREE.Vector3().crossVectors(up, n).normalize();
-      const srcBasis = new THREE.Matrix4().makeBasis(right, up, n);
-
-      // Same "looking down at a die on a table" angle as the summoning scene —
-      // tilted by the camera's own pitch (phi) instead of pointing dead-on at
-      // the lens, so the top face reads the way an actual d8 lands.
-      const targetN = new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
-      let targetUp = new THREE.Vector3(0, 1, 0).sub(targetN.clone().multiplyScalar(new THREE.Vector3(0, 1, 0).dot(targetN)));
-      targetUp.normalize();
-      const targetRight = new THREE.Vector3().crossVectors(targetUp, targetN).normalize();
-      const targetBasis = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetN);
-
-      const rotMatrix = new THREE.Matrix4().multiplyMatrices(targetBasis, srcBasis.clone().invert());
-      return new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
-    }
-
-    const attackPowerMats = attackFaces.map(v => new THREE.MeshPhongMaterial({
-      map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
-      flatShading: true, shininess: 0, side: THREE.DoubleSide, depthTest: false
-    }));
-    const attackDieMesh = new THREE.Mesh(attackOctGeo, attackPowerMats);
-    // camera-local coordinates (camera looks down its own -Z) — this keeps
-    // the die anchored to the same spot on screen even as the camera orbits.
-    const attackDieRestPos = new THREE.Vector3(0, -0.45, -2.3);
-    attackDieMesh.position.copy(attackDieRestPos);
-    attackDieMesh.visible = true;
-    attackDieMesh.renderOrder = 999; // always draw on top — otherwise the nearby terrain can occlude it
-    camera.add(attackDieMesh);
-    const attackDieClearance = attackDieSize * (1 - 1 / Math.sqrt(3));
-
-    const attackDieState = {
-      active: false, settled: true,
-      startPos: new THREE.Vector3(), targetPos: attackDieRestPos.clone(),
-      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
-      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1200
     };
 
-    function updateAttackDie(dt) {
-      if (!attackDieState.active) return;
-      const now = performance.now();
-      const t = Math.min(1, (now - attackDieState.startTime) / attackDieState.duration);
-      if (t < 0) return;
-      const easedT = 1 - Math.pow(1 - t, 3);
-      attackDieMesh.position.x = THREE.MathUtils.lerp(attackDieState.startPos.x, attackDieState.targetPos.x, easedT);
-      attackDieMesh.position.z = THREE.MathUtils.lerp(attackDieState.startPos.z, attackDieState.targetPos.z, easedT);
-      const amp = (attackDieState.startPos.y - attackDieState.targetPos.y) * Math.exp(-4.2 * t);
-      const settleT = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
-      const floorY = attackDieState.targetPos.y + attackDieClearance * (1 - settleT);
-      attackDieMesh.position.y = floorY + Math.abs(Math.cos(t * 15.5)) * amp;
-      if (t < 0.78) {
-        attackDieMesh.rotateOnAxis(attackDieState.spinAxis, attackDieState.spinSpeed * (1 - t / 0.78) * dt);
-      } else {
-        attackDieMesh.quaternion.slerp(attackDieState.targetQuat, 0.2);
-      }
-      if (t >= 1) {
-        attackDieState.active = false;
-        attackDieState.settled = true;
-        attackDieMesh.position.copy(attackDieState.targetPos);
-        attackDieMesh.quaternion.copy(attackDieState.targetQuat);
-      }
+    function clampLife(v) {
+      if (isNaN(v)) return 0;
+      return Math.max(0, Math.min(999, Math.round(v)));
     }
 
-    function rollPowerDie(resultValue) {
-      return new Promise(resolve => {
-        attackDieMesh.visible = true;
-        const faceIndex = attackFaces.indexOf(resultValue);
-        const useIndex = faceIndex >= 0 ? faceIndex : 0;
-        const ang = Math.random() * Math.PI * 2;
-        const dist = 0.3 + Math.random() * 0.2;
-        attackDieState.startPos.set(attackDieRestPos.x + Math.cos(ang) * dist, attackDieRestPos.y + 1.4 + Math.random() * 0.3, attackDieRestPos.z + Math.sin(ang) * dist);
-        attackDieMesh.position.copy(attackDieState.startPos);
-        attackDieState.targetPos.copy(attackDieRestPos);
+    function render(p) {
+      const e = els[p];
+      const v = life[p];
+      e.value.textContent = v;
+      const pct = Math.max(0, Math.min(100, (v / MAX_LIFE) * 100));
+      e.fill.style.width = `${pct}%`;
+      e.bar.classList.toggle('critical', v > 0 && v <= MAX_LIFE * 0.25);
+      // don't stomp on a value the player is actively typing
+      if (document.activeElement !== e.input) e.input.value = v;
+    }
 
-        const normal = ATTACK_OCT_NORMALS[useIndex].clone().normalize();
-        attackDieState.targetQuat.copy(computeUprightQuat(normal, ATTACK_OCT_UPRIGHT_HINTS[useIndex]));
+    function setLife(p, v) {
+      life[p] = clampLife(v);
+      render(p);
+    }
 
-        attackDieState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-        attackDieState.spinSpeed = 14 + Math.random() * 8;
-        attackDieState.startTime = performance.now();
-        attackDieState.duration = 1000 + Math.random() * 250;
-        attackDieState.active = true;
-        attackDieState.settled = false;
+    function damage(p, amount) {
+      if (!amount || amount <= 0) return;
+      setLife(p, life[p] - amount);
+    }
 
-        const poll = setInterval(() => {
-          if (attackDieState.settled) {
-            clearInterval(poll);
-            resolve();
-          }
-        }, 60);
+    function resetPlayer(p) {
+      setLife(p, MAX_LIFE);
+    }
+
+    function opponentOf(p) {
+      return p === 'p1' ? 'p2' : 'p1';
+    }
+
+    ['p1', 'p2'].forEach(p => {
+      const e = els[p];
+      document.querySelector(`[data-life-minus="${p}"]`).addEventListener('click', () => setLife(p, life[p] - 1));
+      document.querySelector(`[data-life-plus="${p}"]`).addEventListener('click', () => setLife(p, life[p] + 1));
+      document.querySelector(`[data-life-set="${p}"]`).addEventListener('click', () => setLife(p, parseInt(e.input.value, 10)));
+      document.querySelector(`[data-life-reset="${p}"]`).addEventListener('click', () => resetPlayer(p));
+      e.input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { setLife(p, parseInt(e.input.value, 10)); e.input.blur(); }
       });
-    }
+      e.input.addEventListener('blur', () => { if (e.input.value !== '') setLife(p, parseInt(e.input.value, 10)); });
+      render(p);
+    });
 
-    // ---------- camera: slow ambient drift around the plateau ----------
-    const target = new THREE.Vector3(0, 0.5, 0);
-    let theta = 0;
-    const phi = 1.0876;
-    const radius = 4.518;
+    return { damage, setLife, resetPlayer, opponentOf, get: p => life[p] };
+  })();
+</script>
 
-    // now that phi exists, give the die a proper upright resting pose
-    // instead of the default (unrotated, possibly edge-on) orientation
-    attackDieMesh.quaternion.copy(computeUprightQuat(ATTACK_OCT_NORMALS[0], ATTACK_OCT_UPRIGHT_HINTS[0]));
+<script>
+  // =====================================================================
+  // SUMMONING PHASE MODULE — the grove: coin, creature cube, power
+  // octahedron. Camera is a fixed static shot framing all three dice.
+  // =====================================================================
+  const SummonPhase = (function () {
+    const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // d4 (0-3), shown on the octahedron's 8 faces two-at-a-time
 
-    const baseFovDeg = 50;
-    const minHorizontalFovDeg = 62;
-    function fitFovToAspect() {
-      const aspect = window.innerWidth / window.innerHeight;
-      if (aspect < 1) {
-        const minHRad = THREE.MathUtils.degToRad(minHorizontalFovDeg);
-        const vRad = 2 * Math.atan(Math.tan(minHRad / 2) / aspect);
-        camera.fov = Math.max(baseFovDeg, THREE.MathUtils.radToDeg(vRad));
-      } else {
-        camera.fov = baseFovDeg;
+    const sceneWrap = document.getElementById('scene-wrap-summon');
+    let groveInstance = null;
+
+    function buildGrove() {
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x1a1712, 9, 30);
+
+      const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
+      const renderer = makeEfficientRenderer(sceneWrap);
+
+      // ---------- lighting: flat, no dynamic shadows — blob shadows instead ----------
+      const hemi = new THREE.HemisphereLight(0x8f7fc0, 0x1c2414, 0.75);
+      scene.add(hemi);
+      const moon = new THREE.DirectionalLight(0xd9b877, 0.85);
+      moon.position.set(8, 10, -4);
+      scene.add(moon);
+      const fillCool = new THREE.DirectionalLight(0x6a4f8a, 0.35);
+      fillCool.position.set(-7, 4, 7);
+      scene.add(fillCool);
+
+      // ---------- blob shadow helper ----------
+      function makeBlobTexture() {
+        const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, 'rgba(5,5,5,0.5)');
+        g.addColorStop(1, 'rgba(5,5,5,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
       }
-    }
-    function updateCamera() {
-      camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
-      camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
-      camera.position.y = target.y + radius * Math.cos(phi);
-      camera.lookAt(target);
-    }
-    fitFovToAspect();
-    camera.updateProjectionMatrix();
-    updateCamera();
+      const blobTex = makeBlobTexture();
+      const blobList = [];
+      function addBlob(x, z, scale) { blobList.push({ x, z, scale }); }
+      function flushBlobs() {
+        if (!blobList.length) return;
+        const dummy = new THREE.Object3D();
+        const geo = new THREE.PlaneGeometry(1, 1);
+        const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
+        const inst = new THREE.InstancedMesh(geo, mat, blobList.length);
+        blobList.forEach((b, i) => {
+          dummy.position.set(b.x, 0.012, b.z);
+          dummy.rotation.set(-Math.PI / 2, 0, 0);
+          dummy.scale.set(b.scale, b.scale, 1);
+          dummy.updateMatrix();
+          inst.setMatrixAt(i, dummy.matrix);
+        });
+        inst.instanceMatrix.needsUpdate = true;
+        scene.add(inst);
+      }
 
-    function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      // ---------- mossy terrain (lighter mesh: fewer subdivisions) ----------
+      function terrainHeight(x, z) {
+        const d = Math.sqrt(x * x + z * z);
+        const falloff = Math.min(1, Math.max(0, (d - 3.0) / 3.4));
+        return (Math.sin(x * 0.18) * 0.4 + Math.cos(z * 0.21) * 0.35 + Math.sin((x + z) * 0.1) * 0.5) * falloff;
+      }
+      const groundGeo = new THREE.PlaneGeometry(46, 46, 20, 20);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cLow = new THREE.Color(0x232f1a);
+      const cMid = new THREE.Color(0x3c4d2c);
+      const cHigh = new THREE.Color(0x5c7350);
+      for (let i = 0; i < posAttr.count; i++) {
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        const h = terrainHeight(x, y);
+        posAttr.setZ(i, h);
+        const t = Math.max(0, Math.min(1, (h + 0.15) / 1.1));
+        const col = t < 0.5 ? cLow.clone().lerp(cMid, t / 0.5) : cMid.clone().lerp(cHigh, (t - 0.5) / 0.5);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const groundMat = new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      scene.add(ground);
+
+      // ---------- ring of standing stones (instanced — 2 draw calls instead of 7) ----------
+      const stoneMat = new THREE.MeshPhongMaterial({ color: 0x6b6a70, flatShading: true, shininess: 0 });
+      const stoneMatDark = new THREE.MeshPhongMaterial({ color: 0x504f58, flatShading: true, shininess: 0 });
+      const stoneGeo = new THREE.BoxGeometry(0.4, 1.7, 0.4);
+      const stoneCount = 7;
+      const stoneDummy = new THREE.Object3D();
+      const stoneMatrices = [[], []];
+      for (let i = 0; i < stoneCount; i++) {
+        const ang = (i / stoneCount) * Math.PI * 2;
+        const r = 2.6;
+        stoneDummy.position.set(Math.cos(ang) * r, 0.85, Math.sin(ang) * r);
+        stoneDummy.rotation.set(0, ang + (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.1);
+        stoneDummy.updateMatrix();
+        stoneMatrices[i % 2 === 0 ? 0 : 1].push(stoneDummy.matrix.clone());
+        addBlob(Math.cos(ang) * r, Math.sin(ang) * r, 1.1);
+      }
+      [stoneMat, stoneMatDark].forEach((mat, i) => {
+        if (!stoneMatrices[i].length) return;
+        const inst = new THREE.InstancedMesh(stoneGeo, mat, stoneMatrices[i].length);
+        stoneMatrices[i].forEach((m, idx) => inst.setMatrixAt(idx, m));
+        inst.instanceMatrix.needsUpdate = true;
+        scene.add(inst);
+      });
+      const dais = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.05, 0.3, 8), stoneMatDark);
+      dais.position.y = 0.15;
+      scene.add(dais);
+
+      // ---------- trees (already instanced) ----------
+      const leafMats = [
+        new THREE.MeshPhongMaterial({ color: 0x3f6b34, flatShading: true, shininess: 0 }),
+        new THREE.MeshPhongMaterial({ color: 0x4f7d3a, flatShading: true, shininess: 0 }),
+        new THREE.MeshPhongMaterial({ color: 0x2f4f28, flatShading: true, shininess: 0 })
+      ];
+      const trunkMat = new THREE.MeshPhongMaterial({ color: 0x4a3a26, flatShading: true, shininess: 0 });
+      const leafGeo = new THREE.ConeGeometry(1, 2.1, 6);
+      const leafGeo2 = new THREE.ConeGeometry(0.72, 1.6, 6);
+      const trunkGeo = new THREE.CylinderGeometry(0.14, 0.19, 1.05, 6);
+
+      const treeDummy = new THREE.Object3D();
+      const trunkMatrices = [];
+      const leafMatricesByColor = leafMats.map(() => []);
+      const leaf2MatricesByColor = leafMats.map(() => []);
+
+      function placeTree(x, z) {
+        const h = terrainHeight(x, z);
+        const scale = 0.8 + Math.random() * 0.5;
+        const rotY = Math.random() * Math.PI * 2;
+        const colorIdx = Math.floor(Math.random() * leafMats.length);
+
+        treeDummy.position.set(x, h + 0.52 * scale, z);
+        treeDummy.rotation.set(0, rotY, 0);
+        treeDummy.scale.set(scale, scale, scale);
+        treeDummy.updateMatrix();
+        trunkMatrices.push(treeDummy.matrix.clone());
+
+        treeDummy.position.set(x, h + 1.6 * scale, z);
+        treeDummy.updateMatrix();
+        leafMatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
+        treeDummy.position.set(x, h + 2.35 * scale, z);
+        treeDummy.updateMatrix();
+        leaf2MatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
+        addBlob(x, z, 1.4 * scale);
+      }
+      let placed = 0, attempts = 0;
+      while (placed < 14 && attempts < 200) {
+        attempts++;
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 5.5 + Math.random() * 14;
+        placeTree(Math.cos(ang) * dist, Math.sin(ang) * dist);
+        placed++;
+      }
+      function instTier(geo, mats, matricesByColor) {
+        matricesByColor.forEach((list, i) => {
+          if (!list.length) return;
+          const inst = new THREE.InstancedMesh(geo, mats[i], list.length);
+          list.forEach((m, idx) => inst.setMatrixAt(idx, m));
+          inst.instanceMatrix.needsUpdate = true;
+          scene.add(inst);
+        });
+      }
+      if (trunkMatrices.length) {
+        const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, trunkMatrices.length);
+        trunkMatrices.forEach((m, i) => trunkInst.setMatrixAt(i, m));
+        trunkInst.instanceMatrix.needsUpdate = true;
+        scene.add(trunkInst);
+      }
+      instTier(leafGeo, leafMats, leafMatricesByColor);
+      instTier(leafGeo2, leafMats, leaf2MatricesByColor);
+
+      // ---------- torches ----------
+      const torchLights = [];
+      function makeTorch(x, z) {
+        const g = new THREE.Group();
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6), trunkMat);
+        pole.position.y = 0.625;
+        g.add(pole);
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.09, 0.16, 6), stoneMatDark);
+        bowl.position.y = 1.27;
+        g.add(bowl);
+        const flameMat = new THREE.MeshBasicMaterial({ color: 0xf0be6c });
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.34, 6), flameMat);
+        flame.position.y = 1.5;
+        g.add(flame);
+        const light = new THREE.PointLight(0xd99a3e, 1.3, 6, 2);
+        light.position.y = 1.55;
+        g.add(light);
+        g.position.set(x, terrainHeight(x, z), z);
+        scene.add(g);
+        torchLights.push({ flame, light });
+      }
+      makeTorch(1.6, 3.3);
+      makeTorch(-1.6, 3.3);
+
+      flushBlobs();
+
+      // ---------- the dice: real 3D coin, creature cube, and power octahedron ----------
+      function makeEmojiTexture(emoji, bg) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 128);
+        drawCenteredGlyph(ctx, emoji, 64, 64, 75, '75px sans-serif');
+        return new THREE.CanvasTexture(c);
+      }
+      function makeNumberTexture(num, bg, fg) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 128);
+        ctx.fillStyle = fg;
+        drawCenteredGlyph(ctx, String(num), 64, 64, 75, 'bold 75px Georgia, serif');
+        return new THREE.CanvasTexture(c);
+      }
+      function makeSymbolTexture(symbolType, bg, fg) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 128);
+        ctx.strokeStyle = fg; ctx.fillStyle = fg; ctx.lineWidth = 6;
+        ctx.translate(64, 64);
+        if (symbolType === 'stone') {
+          ctx.beginPath();
+          ctx.moveTo(0, -34); ctx.lineTo(34, 34); ctx.lineTo(-34, 34); ctx.closePath();
+          ctx.stroke();
+        }
+        return new THREE.CanvasTexture(c);
+      }
+
+      const diceGroup = new THREE.Group();
+      diceGroup.position.set(0, 0, 0);
+      scene.add(diceGroup);
+
+      const daisTopY = 0.3;
+
+      // -- coin: a flat cylinder, top=stone, bottom=shadow --
+      const coinR = 0.34, coinH = 0.09;
+      const coinGeo = new THREE.CylinderGeometry(coinR, coinR, coinH, 20);
+      const coinSideMat = new THREE.MeshPhongMaterial({ color: 0x8a6b16, flatShading: true, shininess: 0 });
+      const coinTopMat = new THREE.MeshPhongMaterial({ map: makeSymbolTexture('stone', '#c9a227', '#3a2b06'), flatShading: true, shininess: 0 });
+      const coinBotMat = new THREE.MeshPhongMaterial({ color: 0x2a2033, flatShading: true, shininess: 0 });
+      const coinMesh = new THREE.Mesh(coinGeo, [coinSideMat, coinTopMat, coinBotMat]);
+      const coinRestPos = new THREE.Vector3(-0.75, daisTopY + coinH / 2, 0.2);
+      coinMesh.position.copy(coinRestPos);
+      diceGroup.add(coinMesh);
+      const COIN_NORMALS = [new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)]; // [stone, shadow]
+
+      // -- creature die: a cube, one emoji per face --
+      const dieSize = 0.5;
+      const cubeGeo = new THREE.BoxGeometry(dieSize, dieSize, dieSize);
+      const creatureMats = creatures.map(c => new THREE.MeshPhongMaterial({ map: makeEmojiTexture(c.face, '#1a140e'), flatShading: true, shininess: 0 }));
+      const creatureMesh = new THREE.Mesh(cubeGeo, creatureMats);
+      const creatureRestPos = new THREE.Vector3(0, daisTopY + dieSize / 2, -0.35);
+      creatureMesh.position.copy(creatureRestPos);
+      diceGroup.add(creatureMesh);
+      const CUBE_NORMALS = [
+        new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0),
+        new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
+      ];
+
+      // -- power die: a hand-built octahedron, one number per triangular face --
+      function buildOctahedronGeometry(size) {
+        const top = new THREE.Vector3(0, size, 0);
+        const bot = new THREE.Vector3(0, -size, 0);
+        const eq = [
+          new THREE.Vector3(size, 0, 0), new THREE.Vector3(0, 0, size),
+          new THREE.Vector3(-size, 0, 0), new THREE.Vector3(0, 0, -size)
+        ];
+        const positions = [], uvs = [];
+        const tris = [];
+        for (let i = 0; i < 4; i++) tris.push([top, eq[i], eq[(i + 1) % 4]]);
+        for (let i = 0; i < 4; i++) tris.push([bot, eq[(i + 1) % 4], eq[i]]);
+        tris.forEach(([a, b, c]) => {
+          positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+          uvs.push(0.5, 1, 0, 0, 1, 0);
+        });
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.computeVertexNormals();
+        for (let i = 0; i < 8; i++) geo.addGroup(i * 3, 3, i);
+        return { geo, tris };
+      }
+      const octSize = 0.34;
+      const { geo: octGeo, tris: octTris } = buildOctahedronGeometry(octSize);
+      const OCT_NORMALS = octTris.map(([a, b, c]) => {
+        const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
+        const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
+        if (n.dot(centroid) < 0) n.negate();
+        return n;
+      });
+      const powerMats = powerFaces.map(v => new THREE.MeshPhongMaterial({
+        map: makeNumberTexture(v, '#1a140e', '#f0be6c'),
+        flatShading: true, shininess: 0
+      }));
+      const powerMesh = new THREE.Mesh(octGeo, powerMats);
+      const powerRestPos = new THREE.Vector3(0.75, daisTopY + octSize * 0.75, 0.2);
+      powerMesh.position.copy(powerRestPos);
+      diceGroup.add(powerMesh);
+
+      // -- invisible, oversized "hit proxy" spheres so each die is easy to tap
+      // on mobile even though the visible dice themselves are small. Material
+      // visibility is off (so nothing renders) but the mesh still raycasts. --
+      const raycaster = new THREE.Raycaster();
+      function makeHitProxy(radius) {
+        const mat = new THREE.MeshBasicMaterial({ visible: false });
+        const proxy = new THREE.Mesh(new THREE.SphereGeometry(radius, 6, 6), mat);
+        scene.add(proxy);
+        return proxy;
+      }
+      const coinProxy = makeHitProxy(0.55);
+      const creatureProxy = makeHitProxy(0.68);
+      const powerProxy = makeHitProxy(0.55);
+      coinProxy.position.copy(coinRestPos);
+      creatureProxy.position.copy(creatureRestPos);
+      powerProxy.position.copy(powerRestPos);
+
+      // shared toss/spin/bounce/settle animation state per die
+      function makeDieState(mesh, restPos, faceNormals, clearance) {
+        return {
+          mesh, restPos, faceNormals, clearance,
+          active: false, settled: true,
+          startPos: new THREE.Vector3(), targetPos: restPos.clone(),
+          spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+          targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1400
+        };
+      }
+      const coinState = makeDieState(coinMesh, coinRestPos, COIN_NORMALS, coinR - coinH / 2);
+      const creatureState = makeDieState(creatureMesh, creatureRestPos, CUBE_NORMALS, (dieSize * Math.sqrt(3)) / 2 - dieSize / 2);
+      const powerState = makeDieState(powerMesh, powerRestPos, OCT_NORMALS, octSize * (1 - 1 / Math.sqrt(3)));
+      const allDice = [coinState, creatureState, powerState];
+
+      function launchDie(state, resultFaceIndex, delayMs) {
+        const now = performance.now() + delayMs;
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 0.5 + Math.random() * 0.3;
+        state.startPos.set(state.restPos.x + Math.cos(ang) * dist, state.restPos.y + 1.6 + Math.random() * 0.4, state.restPos.z + Math.sin(ang) * dist);
+        state.mesh.position.copy(state.startPos);
+        state.targetPos.copy(state.restPos);
+
+        const normal = state.faceNormals[resultFaceIndex].clone().normalize();
+        const align = new THREE.Quaternion().setFromUnitVectors(normal, new THREE.Vector3(0, 1, 0));
+        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+        state.targetQuat.copy(spin).multiply(align);
+
+        state.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        state.spinSpeed = 14 + Math.random() * 8;
+        state.startTime = now;
+        state.duration = 1200 + Math.random() * 300;
+        state.active = true;
+        state.settled = false;
+      }
+
+      function updateDice(dt) {
+        const now = performance.now();
+        allDice.forEach(state => {
+          if (!state.active) return;
+          const t = Math.min(1, (now - state.startTime) / state.duration);
+          if (t < 0) return;
+          const easedT = 1 - Math.pow(1 - t, 3);
+          state.mesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
+          state.mesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
+          const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-4.2 * t);
+
+          const settleT = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
+          const floorY = state.targetPos.y + state.clearance * (1 - settleT);
+
+          state.mesh.position.y = floorY + Math.abs(Math.cos(t * 15.5)) * amp;
+
+          if (t < 0.78) {
+            state.mesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.78) * dt);
+          } else {
+            state.mesh.quaternion.slerp(state.targetQuat, 0.2);
+          }
+
+          if (t >= 1) {
+            state.active = false;
+            state.settled = true;
+            state.mesh.position.copy(state.targetPos);
+            state.mesh.quaternion.copy(state.targetQuat);
+          }
+        });
+      }
+
+      // roll a single die on its own and resolve once it has settled
+      function rollSingleDie(state, delayMs, resultBuilder) {
+        return new Promise(resolve => {
+          launchDie(state, resultBuilder.faceIndex, delayMs);
+          const poll = setInterval(() => {
+            if (state.settled) {
+              clearInterval(poll);
+              resolve(resultBuilder.build());
+            }
+          }, 60);
+        });
+      }
+
+      function rollCoin() {
+        const faceIndex = Math.random() < 0.5 ? 0 : 1; // 0=stone,1=shadow
+        return rollSingleDie(coinState, 0, { faceIndex, build: () => ({ isStone: faceIndex === 0 }) });
+      }
+      function rollCreatureDie() {
+        const faceIndex = Math.floor(Math.random() * creatures.length);
+        return rollSingleDie(creatureState, 0, { faceIndex, build: () => creatures[faceIndex] });
+      }
+      function rollPowerDie() {
+        const faceIndex = Math.floor(Math.random() * powerFaces.length);
+        return rollSingleDie(powerState, 0, { faceIndex, build: () => ({ value: powerFaces[faceIndex] }) });
+      }
+
+      // roll all three together (tap-the-ground behavior), staggering their
+      // launches slightly so they don't look perfectly synced
+      function rollDice() {
+        return Promise.all([
+          rollCoin(),
+          new Promise(r => setTimeout(() => rollCreatureDie().then(r), 60)),
+          new Promise(r => setTimeout(() => rollPowerDie().then(r), 120))
+        ]).then(([coin, creature, power]) => ({ coin, creature, power }));
+      }
+
+      // which die (if any) sits under a given screen point
+      function hitTestDie(clientX, clientY) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const ndc = new THREE.Vector2(
+          ((clientX - rect.left) / rect.width) * 2 - 1,
+          -((clientY - rect.top) / rect.height) * 2 + 1
+        );
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects([coinProxy, creatureProxy, powerProxy]);
+        if (!hits.length) return null;
+        const obj = hits[0].object;
+        if (obj === coinProxy) return 'coin';
+        if (obj === creatureProxy) return 'creature';
+        if (obj === powerProxy) return 'power';
+        return null;
+      }
+
+      // ---------- camera: fixed static shot framing the dais and all three dice ----------
+      const target = new THREE.Vector3(0, 0.55, 0);
+      const theta = Math.PI * 0.22;
+      const phi = Math.PI * 0.22;
+      const radius = 3.3;
+      const baseFovDeg = 48;
+      const minHorizontalFovDeg = 55;
+      function fitFovToAspect() {
+        const aspect = window.innerWidth / window.innerHeight;
+        if (aspect < 1) {
+          const minHRad = THREE.MathUtils.degToRad(minHorizontalFovDeg);
+          const vRad = 2 * Math.atan(Math.tan(minHRad / 2) / aspect);
+          camera.fov = Math.max(baseFovDeg, THREE.MathUtils.radToDeg(vRad));
+        } else {
+          camera.fov = baseFovDeg;
+        }
+      }
+      function updateCamera() {
+        camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+        camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+        camera.position.y = target.y + radius * Math.cos(phi);
+        camera.lookAt(target);
+      }
       fitFovToAspect();
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-    window.addEventListener('resize', onResize);
+      updateCamera(); // camera position is set once — no orbiting drift
 
-    let peakRafId = null, peakRunning = false;
-    const peakClock = new THREE.Clock();
-    function frame() {
-      const dt = peakClock.getDelta();
-      theta += dt * 0.015;
-      updateCamera();
-      updateAttackDie(dt);
-      renderer.render(scene, camera);
-      peakRafId = requestAnimationFrame(frame);
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        fitFovToAspect();
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      window.addEventListener('resize', onResize);
+
+      // Render loop capped at ~30fps (instead of an uncapped 60fps) to cut
+      // GPU work roughly in half — the torch flicker still reads as lively
+      // at this rate. Loop only runs while this phase tab is active.
+      const clock = new THREE.Clock();
+      const frameInterval = 1000 / 30;
+      let lastFrameTime = 0;
+      let rafId = null, running = false;
+      function frame(now) {
+        rafId = requestAnimationFrame(frame);
+        if (now - lastFrameTime < frameInterval) return;
+        lastFrameTime = now;
+        const dt = clock.getDelta();
+        torchLights.forEach((t, i) => {
+          const flicker = Math.sin(performance.now() * 0.01 + i * 3) * 0.25 + Math.random() * 0.15;
+          t.light.intensity = 1.2 + flicker;
+          t.flame.scale.y = 1 + flicker * 0.3;
+        });
+        updateDice(dt);
+        coinProxy.position.copy(coinMesh.position);
+        creatureProxy.position.copy(creatureMesh.position);
+        powerProxy.position.copy(powerMesh.position);
+        renderer.render(scene, camera);
+      }
+
+      return {
+        canvas: renderer.domElement,
+        start() {
+          if (!running) {
+            running = true;
+            lastFrameTime = 0;
+            clock.getDelta();
+            frame(performance.now());
+          }
+          diceGroup.visible = true;
+        },
+        stop() { running = false; if (rafId) cancelAnimationFrame(rafId); rafId = null; },
+        rollDice, rollCoin, rollCreatureDie, rollPowerDie, hitTestDie
+      };
     }
+
+    function showGrove() {
+      if (!groveInstance) groveInstance = buildGrove();
+      sceneWrap.classList.add('visible');
+      groveInstance.start();
+    }
+
+    // =====================================================================
+    // Tap-to-roll + manual match-counter UI
+    // =====================================================================
+    const rollCountEl = document.getElementById('summon-roll-count');
+    const lastRollEl = document.getElementById('summon-last-roll-readout');
+    const resetBtn = document.getElementById('summon-reset-btn');
+
+    let rollCount = 0;
+    let isRolling = false;
+
+    // Each box cycles through: Stone, Shadow, Stone 2, Shadow 2, Stone 3, ...
+    // one step per tap. An odd click count means "stone rolled, awaiting its
+    // shadow" (gold); an even click count means that pair just completed (purple).
+    function stageLabel(clickCount) {
+      if (clickCount === 0) return '';
+      const pairIndex = Math.ceil(clickCount / 2);
+      const isStone = clickCount % 2 === 1;
+      const suffix = pairIndex > 1 ? ` ${pairIndex}` : '';
+      return (isStone ? 'Stone' : 'Shadow') + suffix;
+    }
+
+    function buildPlayerPanel(containerId) {
+      const container = document.getElementById(containerId);
+      const clickCounts = {};
+      const boxEls = {};
+      creatures.forEach(c => {
+        clickCounts[c.name] = 0;
+        const div = document.createElement('div');
+        div.className = 'creature-match-box';
+        div.dataset.name = c.name;
+        div.innerHTML = `<span class="cmb-face">${c.face}</span><span class="cmb-badge" style="display:none;"></span>`;
+        container.appendChild(div);
+        boxEls[c.name] = div;
+      });
+
+      function render() {
+        creatures.forEach(c => {
+          const el = boxEls[c.name];
+          const count = clickCounts[c.name];
+          const isStonePending = count > 0 && count % 2 === 1;
+          const isShadowComplete = count > 0 && count % 2 === 0;
+          el.classList.toggle('pending', isStonePending);
+          el.classList.toggle('matched', isShadowComplete);
+          const badge = el.querySelector('.cmb-badge');
+          const label = stageLabel(count);
+          if (label) {
+            badge.textContent = label;
+            badge.style.display = '';
+          } else {
+            badge.style.display = 'none';
+          }
+        });
+      }
+
+      container.addEventListener('click', (e) => {
+        const box = e.target.closest('.creature-match-box');
+        if (!box) return;
+        clickCounts[box.dataset.name] += 1;
+        render();
+      });
+
+      function reset() {
+        creatures.forEach(c => { clickCounts[c.name] = 0; });
+        render();
+      }
+
+      return { reset };
+    }
+
+    const p1Panel = buildPlayerPanel('summon-p1-boxes');
+    const p2Panel = buildPlayerPanel('summon-p2-boxes');
+
+    // =====================================================================
+    // Turn indicator — auto-advances once all three dice have a value for
+    // the current turn, but either player can be tapped to force it manually
+    // =====================================================================
+    const p1PanelEl = document.getElementById('summon-p1-panel');
+    const p2PanelEl = document.getElementById('summon-p2-panel');
+    const p1Label = document.getElementById('summon-p1-label');
+    const p2Label = document.getElementById('summon-p2-label');
+
+    let activePlayer = 1;
+    let turnRolled = { coin: false, creature: false, power: false };
+
+    function setActivePlayer(n) {
+      activePlayer = n;
+      p1PanelEl.classList.toggle('active', n === 1);
+      p2PanelEl.classList.toggle('active', n === 2);
+      turnRolled = { coin: false, creature: false, power: false };
+    }
+
+    function markRolled(which) {
+      turnRolled[which] = true;
+      if (turnRolled.coin && turnRolled.creature && turnRolled.power) {
+        setActivePlayer(activePlayer === 1 ? 2 : 1);
+      }
+    }
+
+    p1Label.addEventListener('click', () => setActivePlayer(1));
+    p2Label.addEventListener('click', () => setActivePlayer(2));
+    setActivePlayer(1);
+
+    // last known value for each die individually, so rolling just one die
+    // doesn't blank out the other two in the readout
+    let currentResult = { coin: null, creature: null, power: null };
+
+    function renderResult() {
+      const coinPart = currentResult.coin
+        ? `<span class="${currentResult.coin.isStone ? 'stone' : 'shadow'}">${currentResult.coin.isStone ? 'Stone' : 'Shadow'}</span>`
+        : '<span class="stone">—</span>';
+      const creaturePart = currentResult.creature ? `${currentResult.creature.face} ${currentResult.creature.name}` : '—';
+      const powerPart = currentResult.power ? `Power ${currentResult.power.value}` : 'Power —';
+      lastRollEl.innerHTML = `${coinPart} · ${creaturePart} · ${powerPart}`;
+    }
+
+    async function triggerRoll() {
+      if (isRolling || !groveInstance) return;
+      isRolling = true;
+      currentResult = await groveInstance.rollDice();
+      rollCount += 1;
+      rollCountEl.textContent = rollCount;
+      renderResult();
+      markRolled('coin');
+      markRolled('creature');
+      markRolled('power');
+      isRolling = false;
+    }
+
+    async function triggerSingleRoll(which) {
+      if (isRolling || !groveInstance) return;
+      isRolling = true;
+      if (which === 'coin') currentResult.coin = await groveInstance.rollCoin();
+      else if (which === 'creature') currentResult.creature = await groveInstance.rollCreatureDie();
+      else if (which === 'power') currentResult.power = await groveInstance.rollPowerDie();
+      rollCount += 1;
+      rollCountEl.textContent = rollCount;
+      renderResult();
+      markRolled(which);
+      isRolling = false;
+    }
+
+    sceneWrap.addEventListener('click', (e) => {
+      if (isRolling || !groveInstance) return;
+      const hit = groveInstance.hitTestDie(e.clientX, e.clientY);
+      if (hit) triggerSingleRoll(hit);
+      else triggerRoll();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      rollCount = 0;
+      rollCountEl.textContent = 0;
+      currentResult = { coin: null, creature: null, power: null };
+      lastRollEl.innerHTML = 'Tap a die to roll it alone, or open ground to roll all three';
+      p1Panel.reset();
+      p2Panel.reset();
+      setActivePlayer(1);
+    });
+
+    visibilityListeners.push(visible => {
+      if (!groveInstance) return;
+      if (visible && document.getElementById('phase-summon').classList.contains('active')) groveInstance.start();
+      else groveInstance.stop();
+    });
 
     return {
-      canvas: renderer.domElement,
-      rollPowerDie,
-      start() { if (!peakRunning) { peakRunning = true; frame(); } },
-      stop() { peakRunning = false; if (peakRafId) cancelAnimationFrame(peakRafId); }
+      activate() { try { showGrove(); } catch (e) { console.error('Grove failed to load:', e); } },
+      deactivate() { if (groveInstance) groveInstance.stop(); }
     };
-  }
+  })();
+</script>
 
-  function showPeak() {
-    if (!peakInstance) peakInstance = buildPeak();
-    sceneWrap.classList.add('visible');
-    peakInstance.start();
-  }
-
+<script>
   // =====================================================================
-  // Add-your-own-creature UI + tap-to-roll attack sequence
+  // BATTLE PHASE MODULE — the peak: a single power die rolled on demand,
+  // anchored to the camera. Camera is a fixed static shot; the render
+  // loop idles (stops entirely) whenever no die is mid-roll.
   // =====================================================================
-  const rollCountEl = document.getElementById('roll-count');
-  const resetBtn = document.getElementById('reset-btn');
-  const rollCaption = document.getElementById('roll-caption');
-  const rollLabelEl = document.getElementById('roll-label');
-  const rollDetailEl = document.getElementById('roll-detail');
+  const BattlePhase = (function () {
+    const attackFaces = ['burst', 'burst', 0, 1, 2, 2, 2, 3]; // battle d8 — burst = 4 dmg
 
-  let rollCount = 0;
-  let isRolling = false;
+    function faceLabel(face) {
+      return face === 'burst' ? '🔆' : String(face);
+    }
 
-  function sleepOrTap(ms) {
-    return new Promise(resolve => {
-      let done = false;
-      const timer = setTimeout(finish, ms);
-      function finish() {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        document.removeEventListener('click', finish);
-        resolve();
+    const sceneWrap = document.getElementById('scene-wrap-battle');
+    let peakInstance = null;
+
+    function buildPeak() {
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x3a2c40, 10, 42);
+
+      const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
+      scene.add(camera); // needed so the attack die, parented to the camera, gets traversed for rendering
+
+      const renderer = makeEfficientRenderer(sceneWrap);
+
+      // ---------- dusk sky dome (fewer segments) ----------
+      const skyGeo = new THREE.SphereGeometry(60, 16, 10);
+      const skyPos = skyGeo.attributes.position;
+      const skyColors = [];
+      const skyTop = new THREE.Color(0x2a1f3d);
+      const skyHorizon = new THREE.Color(0xd97a4a);
+      for (let i = 0; i < skyPos.count; i++) {
+        const y = skyPos.getY(i);
+        const t = Math.max(0, Math.min(1, (y + 10) / 45));
+        const col = skyHorizon.clone().lerp(skyTop, t);
+        skyColors.push(col.r, col.g, col.b);
       }
-      // Wait a tick before listening — otherwise the very click that
-      // triggered this roll can bubble into the listener and immediately
-      // skip the pause it was meant to gate.
-      setTimeout(() => { if (!done) document.addEventListener('click', finish); }, 0);
-    });
-  }
+      skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(skyColors, 3));
+      const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
+      scene.add(sky);
 
-  function buildPlayerPanel(prefix) {
-    const selectEl = document.getElementById(`${prefix}-select`);
-    const powerEl = document.getElementById(`${prefix}-power`);
-    const addBtn = document.getElementById(`${prefix}-add`);
-    const listEl = document.getElementById(`${prefix}-list`);
+      // ---------- lighting: warm dusk sun, cool violet fill ----------
+      const hemi = new THREE.HemisphereLight(0x8a6a9a, 0x2a2018, 0.7);
+      scene.add(hemi);
+      const sun = new THREE.DirectionalLight(0xe08a4f, 1.0);
+      sun.position.set(-10, 3, -6);
+      scene.add(sun);
+      const fillCool = new THREE.DirectionalLight(0x5a4a8a, 0.4);
+      fillCool.position.set(7, 5, 8);
+      scene.add(fillCool);
 
-    creatures.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.name;
-      opt.textContent = `${c.face} ${c.name}`;
-      selectEl.appendChild(opt);
-    });
+      // ---------- blob shadow helper ----------
+      function makeBlobTexture() {
+        const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, 'rgba(5,5,5,0.45)');
+        g.addColorStop(1, 'rgba(5,5,5,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+      const blobTex = makeBlobTexture();
+      const blobList = [];
+      function addBlob(x, z, scale) { blobList.push({ x, z, scale }); }
+      function flushBlobs() {
+        if (!blobList.length) return;
+        const dummy = new THREE.Object3D();
+        const geo = new THREE.PlaneGeometry(1, 1);
+        const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
+        const inst = new THREE.InstancedMesh(geo, mat, blobList.length);
+        blobList.forEach((b, i) => {
+          dummy.position.set(b.x, 0.012, b.z);
+          dummy.rotation.set(-Math.PI / 2, 0, 0);
+          dummy.scale.set(b.scale, b.scale, 1);
+          dummy.updateMatrix();
+          inst.setMatrixAt(i, dummy.matrix);
+        });
+        inst.instanceMatrix.needsUpdate = true;
+        scene.add(inst);
+      }
 
-    let nextId = 1;
-    const roster = []; // { id, face, name, power }
+      // ---------- rocky plateau terrain (fewer subdivisions) ----------
+      function terrainHeight(x, z) {
+        const d = Math.sqrt(x * x + z * z);
+        const falloff = Math.min(1, Math.max(0, (d - 5.5) / 5));
+        return (Math.sin(x * 0.22) * 0.5 + Math.cos(z * 0.26) * 0.45 + Math.sin((x + z) * 0.14) * 0.6) * falloff;
+      }
+      const groundGeo = new THREE.PlaneGeometry(52, 52, 18, 18);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cLow = new THREE.Color(0x3a3238);
+      const cMid = new THREE.Color(0x574c4a);
+      const cHigh = new THREE.Color(0x8a6f5c);
+      for (let i = 0; i < posAttr.count; i++) {
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        const h = terrainHeight(x, y);
+        posAttr.setZ(i, h);
+        const t = Math.max(0, Math.min(1, (h + 0.2) / 1.3));
+        const col = t < 0.5 ? cLow.clone().lerp(cMid, t / 0.5) : cMid.clone().lerp(cHigh, (t - 0.5) / 0.5);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0 }));
+      ground.rotation.x = -Math.PI / 2;
+      scene.add(ground);
 
-    function render() {
-      listEl.innerHTML = '';
-      roster.forEach(entry => {
-        const box = document.createElement('div');
-        box.className = 'creature-box';
-        box.dataset.id = entry.id;
-        box.innerHTML = `
-          <span class="cb-face">${entry.face}</span>
-          <span class="cb-power">${entry.name} · Pwr ${entry.power}</span>
-          <span class="cb-remove" data-remove="${entry.id}">✕</span>
-        `;
-        listEl.appendChild(box);
+      // ---------- distant mountain silhouettes (instanced — 2 draw calls instead of 16) ----------
+      const mountainMat = new THREE.MeshBasicMaterial({ color: 0x3a2e4a, fog: true });
+      const mountainMat2 = new THREE.MeshBasicMaterial({ color: 0x2e2438, fog: true });
+      const mountainGeo = new THREE.ConeGeometry(1, 1, 5);
+      const MOUNTAIN_COUNT = 10;
+      const mountainDummy = new THREE.Object3D();
+      const mountainMatrices = [[], []];
+      for (let i = 0; i < MOUNTAIN_COUNT; i++) {
+        const ang = (i / MOUNTAIN_COUNT) * Math.PI * 2 + Math.random() * 0.15;
+        const dist = 24 + Math.random() * 10;
+        const h = 8 + Math.random() * 10;
+        const r = 5 + Math.random() * 5;
+        mountainDummy.position.set(Math.cos(ang) * dist, h / 2 - 1, Math.sin(ang) * dist);
+        mountainDummy.rotation.set(0, Math.random() * Math.PI, 0);
+        mountainDummy.scale.set(r, h, r);
+        mountainDummy.updateMatrix();
+        mountainMatrices[Math.random() > 0.5 ? 0 : 1].push(mountainDummy.matrix.clone());
+      }
+      [mountainMat, mountainMat2].forEach((mat, i) => {
+        if (!mountainMatrices[i].length) return;
+        const inst = new THREE.InstancedMesh(mountainGeo, mat, mountainMatrices[i].length);
+        mountainMatrices[i].forEach((m, idx) => inst.setMatrixAt(idx, m));
+        inst.instanceMatrix.needsUpdate = true;
+        scene.add(inst);
+      });
+
+      // ---------- a few wind-bent dead trees (instanced) and rocks (instanced) ----------
+      const deadMat = new THREE.MeshPhongMaterial({ color: 0x2a2220, flatShading: true, shininess: 0 });
+      const deadTrunkGeo = new THREE.CylinderGeometry(0.05, 0.09, 1.3, 5);
+      const DEAD_TREE_COUNT = 5;
+      const deadDummy = new THREE.Object3D();
+      const deadMatrices = [];
+      for (let i = 0; i < DEAD_TREE_COUNT; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 6 + Math.random() * 4;
+        const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
+        deadDummy.position.set(x, terrainHeight(x, z) + 0.65, z);
+        deadDummy.rotation.set(0, Math.random() * Math.PI, 0.3 + Math.random() * 0.2);
+        deadDummy.updateMatrix();
+        deadMatrices.push(deadDummy.matrix.clone());
+        addBlob(x, z, 0.8);
+      }
+      if (deadMatrices.length) {
+        const deadInst = new THREE.InstancedMesh(deadTrunkGeo, deadMat, deadMatrices.length);
+        deadMatrices.forEach((m, i) => deadInst.setMatrixAt(i, m));
+        deadInst.instanceMatrix.needsUpdate = true;
+        scene.add(deadInst);
+      }
+
+      const rockMat = new THREE.MeshPhongMaterial({ color: 0x5c5458, flatShading: true, shininess: 0 });
+      const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+      const ROCK_COUNT = 8;
+      const rockDummy = new THREE.Object3D();
+      const rockMatrices = [];
+      for (let i = 0; i < ROCK_COUNT; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 4 + Math.random() * 6;
+        const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist;
+        const s = 0.25 + Math.random() * 0.35;
+        rockDummy.position.set(x, terrainHeight(x, z) + s * 0.4, z);
+        rockDummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+        rockDummy.scale.set(s, s, s);
+        rockDummy.updateMatrix();
+        rockMatrices.push(rockDummy.matrix.clone());
+        addBlob(x, z, s * 2.2);
+      }
+      if (rockMatrices.length) {
+        const rockInst = new THREE.InstancedMesh(rockGeo, rockMat, rockMatrices.length);
+        rockMatrices.forEach((m, i) => rockInst.setMatrixAt(i, m));
+        rockInst.instanceMatrix.needsUpdate = true;
+        scene.add(rockInst);
+      }
+
+      flushBlobs();
+
+      // ---------- the attack power die: same octahedron as the main game, rolled on demand ----------
+      function makeNumberTexture(num, bg, fg) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 128);
+        ctx.fillStyle = fg;
+        drawCenteredGlyph(ctx, String(num), 64, 64, 75, 'bold 75px Georgia, serif');
+        return new THREE.CanvasTexture(c);
+      }
+      function makeBurstTexture(bg) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 128);
+        drawCenteredGlyph(ctx, '🔆', 64, 64, 75, '75px sans-serif');
+        return new THREE.CanvasTexture(c);
+      }
+      function buildOctahedronGeometry(size) {
+        const top = new THREE.Vector3(0, size, 0);
+        const bot = new THREE.Vector3(0, -size, 0);
+        const eq = [
+          new THREE.Vector3(size, 0, 0), new THREE.Vector3(0, 0, size),
+          new THREE.Vector3(-size, 0, 0), new THREE.Vector3(0, 0, -size)
+        ];
+        const positions = [], uvs = [];
+        const tris = [];
+        for (let i = 0; i < 4; i++) tris.push([top, eq[i], eq[(i + 1) % 4]]);
+        for (let i = 0; i < 4; i++) tris.push([bot, eq[(i + 1) % 4], eq[i]]);
+        tris.forEach(([a, b, c]) => {
+          positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+          uvs.push(0.5, 1, 0, 0, 1, 0);
+        });
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.computeVertexNormals();
+        for (let i = 0; i < 8; i++) geo.addGroup(i * 3, 3, i);
+        return { geo, tris };
+      }
+      const attackDieSize = 0.4;
+      const { geo: attackOctGeo, tris: attackOctTris } = buildOctahedronGeometry(attackDieSize);
+      const ATTACK_OCT_NORMALS = attackOctTris.map(([a, b, c]) => {
+        const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
+        const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
+        if (n.dot(centroid) < 0) n.negate();
+        return n;
+      });
+      // vertex `a` of every triangle here is always the octahedron's pole (top or
+      // bottom apex) — a consistent reference direction we can use to keep the
+      // rolled face's texture upright instead of at a random in-plane rotation.
+      const ATTACK_OCT_UPRIGHT_HINTS = attackOctTris.map(([a]) => a.clone().normalize());
+
+      function computeUprightQuat(normal, upHint) {
+        const n = normal.clone().normalize();
+        let up = upHint.clone().sub(n.clone().multiplyScalar(upHint.dot(n)));
+        if (up.lengthSq() < 1e-6) {
+          up = Math.abs(n.x) < 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+          up.sub(n.clone().multiplyScalar(up.dot(n)));
+        }
+        up.normalize();
+        const right = new THREE.Vector3().crossVectors(up, n).normalize();
+        const srcBasis = new THREE.Matrix4().makeBasis(right, up, n);
+
+        // Same "looking down at a die on a table" angle as the summoning scene —
+        // tilted by the camera's own pitch (phi) instead of pointing dead-on at
+        // the lens, so the top face reads the way an actual d8 lands.
+        const targetN = new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
+        let targetUp = new THREE.Vector3(0, 1, 0).sub(targetN.clone().multiplyScalar(new THREE.Vector3(0, 1, 0).dot(targetN)));
+        targetUp.normalize();
+        const targetRight = new THREE.Vector3().crossVectors(targetUp, targetN).normalize();
+        const targetBasis = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetN);
+
+        const rotMatrix = new THREE.Matrix4().multiplyMatrices(targetBasis, srcBasis.clone().invert());
+        return new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
+      }
+
+      const attackPowerMats = attackFaces.map(v => new THREE.MeshPhongMaterial({
+        map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
+        flatShading: true, shininess: 0, side: THREE.DoubleSide, depthTest: false
+      }));
+      const attackDieMesh = new THREE.Mesh(attackOctGeo, attackPowerMats);
+      // camera-local coordinates (camera looks down its own -Z) — this keeps
+      // the die anchored to the same spot on screen even though the camera is static.
+      const attackDieRestPos = new THREE.Vector3(0, -0.45, -2.3);
+      attackDieMesh.position.copy(attackDieRestPos);
+      attackDieMesh.visible = true;
+      attackDieMesh.renderOrder = 999; // always draw on top — otherwise the nearby terrain can occlude it
+      camera.add(attackDieMesh);
+      const attackDieClearance = attackDieSize * (1 - 1 / Math.sqrt(3));
+
+      const attackDieState = {
+        active: false, settled: true,
+        startPos: new THREE.Vector3(), targetPos: attackDieRestPos.clone(),
+        spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+        targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1200
+      };
+
+      function updateAttackDie(dt) {
+        if (!attackDieState.active) return;
+        const now = performance.now();
+        const t = Math.min(1, (now - attackDieState.startTime) / attackDieState.duration);
+        if (t < 0) return;
+        const easedT = 1 - Math.pow(1 - t, 3);
+        attackDieMesh.position.x = THREE.MathUtils.lerp(attackDieState.startPos.x, attackDieState.targetPos.x, easedT);
+        attackDieMesh.position.z = THREE.MathUtils.lerp(attackDieState.startPos.z, attackDieState.targetPos.z, easedT);
+        const amp = (attackDieState.startPos.y - attackDieState.targetPos.y) * Math.exp(-4.2 * t);
+        const settleT = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
+        const floorY = attackDieState.targetPos.y + attackDieClearance * (1 - settleT);
+        attackDieMesh.position.y = floorY + Math.abs(Math.cos(t * 15.5)) * amp;
+        if (t < 0.78) {
+          attackDieMesh.rotateOnAxis(attackDieState.spinAxis, attackDieState.spinSpeed * (1 - t / 0.78) * dt);
+        } else {
+          attackDieMesh.quaternion.slerp(attackDieState.targetQuat, 0.2);
+        }
+        if (t >= 1) {
+          attackDieState.active = false;
+          attackDieState.settled = true;
+          attackDieMesh.position.copy(attackDieState.targetPos);
+          attackDieMesh.quaternion.copy(attackDieState.targetQuat);
+        }
+      }
+
+      function rollPowerDie(resultValue) {
+        ensureLoopRunning();
+        return new Promise(resolve => {
+          attackDieMesh.visible = true;
+          const faceIndex = attackFaces.indexOf(resultValue);
+          const useIndex = faceIndex >= 0 ? faceIndex : 0;
+          const ang = Math.random() * Math.PI * 2;
+          const dist = 0.3 + Math.random() * 0.2;
+          attackDieState.startPos.set(attackDieRestPos.x + Math.cos(ang) * dist, attackDieRestPos.y + 1.4 + Math.random() * 0.3, attackDieRestPos.z + Math.sin(ang) * dist);
+          attackDieMesh.position.copy(attackDieState.startPos);
+          attackDieState.targetPos.copy(attackDieRestPos);
+
+          const normal = ATTACK_OCT_NORMALS[useIndex].clone().normalize();
+          attackDieState.targetQuat.copy(computeUprightQuat(normal, ATTACK_OCT_UPRIGHT_HINTS[useIndex]));
+
+          attackDieState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+          attackDieState.spinSpeed = 14 + Math.random() * 8;
+          attackDieState.startTime = performance.now();
+          attackDieState.duration = 1000 + Math.random() * 250;
+          attackDieState.active = true;
+          attackDieState.settled = false;
+
+          const poll = setInterval(() => {
+            if (attackDieState.settled) {
+              clearInterval(poll);
+              resolve();
+            }
+          }, 60);
+        });
+      }
+
+      // ---------- camera: fixed static shot over the plateau ----------
+      const target = new THREE.Vector3(0, 0.5, 0);
+      const theta = 0;
+      const phi = 1.0876;
+      const radius = 4.518;
+
+      // now that phi exists, give the die a proper upright resting pose
+      // instead of the default (unrotated, possibly edge-on) orientation
+      attackDieMesh.quaternion.copy(computeUprightQuat(ATTACK_OCT_NORMALS[0], ATTACK_OCT_UPRIGHT_HINTS[0]));
+
+      const baseFovDeg = 50;
+      const minHorizontalFovDeg = 62;
+      function fitFovToAspect() {
+        const aspect = window.innerWidth / window.innerHeight;
+        if (aspect < 1) {
+          const minHRad = THREE.MathUtils.degToRad(minHorizontalFovDeg);
+          const vRad = 2 * Math.atan(Math.tan(minHRad / 2) / aspect);
+          camera.fov = Math.max(baseFovDeg, THREE.MathUtils.radToDeg(vRad));
+        } else {
+          camera.fov = baseFovDeg;
+        }
+      }
+      function updateCamera() {
+        camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+        camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+        camera.position.y = target.y + radius * Math.cos(phi);
+        camera.lookAt(target);
+      }
+      fitFovToAspect();
+      camera.updateProjectionMatrix();
+      updateCamera(); // camera position is set once — no orbiting drift
+
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        fitFovToAspect();
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        ensureLoopRunning(); // repaint at the new size even if the scene was idling
+      }
+      window.addEventListener('resize', onResize);
+
+      // Render-on-demand: the plateau itself never changes, so once the
+      // attack die finishes settling we stop the render loop entirely and
+      // only wake it back up when a roll starts (or the window resizes).
+      // This means an idle Battle tab uses effectively zero GPU/CPU.
+      const clock = new THREE.Clock();
+      const frameInterval = 1000 / 30;
+      let lastFrameTime = 0;
+      let rafId = null, running = false;
+      function frame(now) {
+        rafId = requestAnimationFrame(frame);
+        if (now - lastFrameTime < frameInterval) return;
+        lastFrameTime = now;
+        const dt = clock.getDelta();
+        updateAttackDie(dt);
+        renderer.render(scene, camera);
+        if (!attackDieState.active && attackDieState.settled) stopLoop();
+      }
+      function ensureLoopRunning() {
+        if (running) return;
+        running = true;
+        lastFrameTime = 0;
+        clock.getDelta();
+        rafId = requestAnimationFrame(frame);
+      }
+      function stopLoop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      return {
+        canvas: renderer.domElement,
+        rollPowerDie,
+        start() { ensureLoopRunning(); },
+        stop() { stopLoop(); }
+      };
+    }
+
+    function showPeak() {
+      if (!peakInstance) peakInstance = buildPeak();
+      sceneWrap.classList.add('visible');
+      peakInstance.start();
+    }
+
+    // =====================================================================
+    // Add-your-own-creature UI + tap-to-roll attack sequence
+    // =====================================================================
+    const rollCountEl = document.getElementById('battle-roll-count');
+    const resetBtn = document.getElementById('battle-reset-btn');
+    const rollCaption = document.getElementById('battle-roll-caption');
+    const rollLabelEl = document.getElementById('battle-roll-label');
+    const rollDetailEl = document.getElementById('battle-roll-detail');
+
+    let rollCount = 0;
+    let isRolling = false;
+
+    function sleepOrTap(ms) {
+      return new Promise(resolve => {
+        let done = false;
+        const timer = setTimeout(finish, ms);
+        function finish() {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          document.removeEventListener('click', finish);
+          resolve();
+        }
+        // Wait a tick before listening — otherwise the very click that
+        // triggered this roll can bubble into the listener and immediately
+        // skip the pause it was meant to gate.
+        setTimeout(() => { if (!done) document.addEventListener('click', finish); }, 0);
       });
     }
 
-    addBtn.addEventListener('click', () => {
-      const name = selectEl.value;
-      const face = creatures.find(c => c.name === name).face;
-      let power = parseInt(powerEl.value, 10);
-      if (isNaN(power)) power = 0;
-      power = Math.max(0, Math.min(3, power));
-      roster.push({ id: nextId++, face, name, power });
-      render();
-    });
+    function buildPlayerPanel(prefix) {
+      const selectEl = document.getElementById(`${prefix}-select`);
+      const powerEl = document.getElementById(`${prefix}-power`);
+      const addBtn = document.getElementById(`${prefix}-add`);
+      const listEl = document.getElementById(`${prefix}-list`);
 
-    listEl.addEventListener('click', async (e) => {
-      const removeId = e.target.dataset.remove;
-      if (removeId) {
-        const idx = roster.findIndex(r => String(r.id) === removeId);
-        if (idx !== -1) roster.splice(idx, 1);
+      creatures.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = `${c.face} ${c.name}`;
+        selectEl.appendChild(opt);
+      });
+
+      let nextId = 1;
+      const roster = []; // { id, face, name, power }
+
+      function render() {
+        listEl.innerHTML = '';
+        roster.forEach(entry => {
+          const box = document.createElement('div');
+          box.className = 'creature-box';
+          box.dataset.id = entry.id;
+          box.innerHTML = `
+            <span class="cb-face">${entry.face}</span>
+            <span class="cb-power">${entry.name} · Pwr ${entry.power}</span>
+            <span class="cb-remove" data-remove="${entry.id}">✕</span>
+          `;
+          listEl.appendChild(box);
+        });
+      }
+
+      addBtn.addEventListener('click', () => {
+        const name = selectEl.value;
+        const face = creatures.find(c => c.name === name).face;
+        let power = parseInt(powerEl.value, 10);
+        if (isNaN(power)) power = 0;
+        power = Math.max(0, Math.min(3, power));
+        roster.push({ id: nextId++, face, name, power });
         render();
+      });
+
+      listEl.addEventListener('click', async (e) => {
+        const removeId = e.target.dataset.remove;
+        if (removeId) {
+          const idx = roster.findIndex(r => String(r.id) === removeId);
+          if (idx !== -1) roster.splice(idx, 1);
+          if (pendingAttack && pendingAttack.attackerPrefix === prefix && String(pendingAttack.entry.id) === removeId) {
+            cancelPendingAttack();
+          }
+          render();
+          return;
+        }
+        const box = e.target.closest('.creature-box');
+        if (!box || isRolling) return;
+        const entry = roster.find(r => String(r.id) === box.dataset.id);
+        if (!entry) return;
+        onCreatureTapped(prefix, entry, box);
+      });
+
+      function reset() {
+        roster.length = 0;
+        render();
+      }
+
+      return { reset, getRoster: () => roster, listEl };
+    }
+
+    const panels = {}; // filled in once both panels exist, below
+
+    // =====================================================================
+    // Opposed rolls — tap your creature, then tap an enemy creature to have
+    // it defend; both roll the same d8 and the difference is the damage.
+    // Tap ⚡ Direct Hit to skip defense and roll unopposed instead.
+    // =====================================================================
+    const opposedToggle = document.getElementById('battle-opposed-toggle');
+    const defenderPrompt = document.getElementById('battle-defender-prompt');
+    const defenderPromptText = document.getElementById('battle-defender-prompt-text');
+    const directHitBtn = document.getElementById('battle-direct-hit-btn');
+    const cancelAttackBtn = document.getElementById('battle-cancel-attack-btn');
+
+    let pendingAttack = null; // { entry, attackerPrefix, box }
+
+    function opposedRollsEnabled() {
+      return opposedToggle.checked;
+    }
+
+    function setDefenderHighlight(prefix, on) {
+      panels[prefix].listEl.querySelectorAll('.creature-box').forEach(box => {
+        box.classList.toggle('selectable-defender', on);
+      });
+    }
+
+    function showDefenderPrompt(entry) {
+      defenderPromptText.textContent = `${entry.face} ${entry.name} is attacking — tap an enemy creature to defend`;
+      defenderPrompt.classList.add('open');
+    }
+    function hideDefenderPrompt() {
+      defenderPrompt.classList.remove('open');
+    }
+
+    function cancelPendingAttack() {
+      if (!pendingAttack) return;
+      pendingAttack.box.classList.remove('attacking-selected');
+      setDefenderHighlight(LifePoints.opponentOf(pendingAttack.attackerPrefix), false);
+      pendingAttack = null;
+      hideDefenderPrompt();
+    }
+
+    function onCreatureTapped(prefix, entry, box) {
+      if (isRolling) return;
+
+      // tapping the opponent's side while an attack is pending = pick a defender
+      if (pendingAttack && prefix !== pendingAttack.attackerPrefix) {
+        const atk = pendingAttack;
+        pendingAttack = null;
+        atk.box.classList.remove('attacking-selected');
+        setDefenderHighlight(prefix, false);
+        hideDefenderPrompt();
+        launchAttack(atk.entry, atk.attackerPrefix, { entry, prefix, box });
         return;
       }
-      const box = e.target.closest('.creature-box');
-      if (!box || isRolling) return;
-      const entry = roster.find(r => String(r.id) === box.dataset.id);
-      if (!entry) return;
-      isRolling = true;
-      box.classList.add('rolling');
-      await rollCreatureAttack(entry);
-      box.classList.remove('rolling');
-      isRolling = false;
-    });
 
-    function reset() {
-      roster.length = 0;
-      render();
+      // tapping your own side again — same creature cancels, a different one re-targets
+      if (pendingAttack && prefix === pendingAttack.attackerPrefix) {
+        const wasSame = String(pendingAttack.entry.id) === String(entry.id);
+        cancelPendingAttack();
+        if (wasSame) return;
+      }
+
+      if (!opposedRollsEnabled()) {
+        launchAttack(entry, prefix, null);
+        return;
+      }
+
+      const opponentPrefix = LifePoints.opponentOf(prefix);
+      const opponentRoster = panels[opponentPrefix].getRoster();
+      if (!opponentRoster.length) {
+        // nothing to defend with — just roll unopposed
+        launchAttack(entry, prefix, null);
+        return;
+      }
+
+      pendingAttack = { entry, attackerPrefix: prefix, box };
+      box.classList.add('attacking-selected');
+      setDefenderHighlight(opponentPrefix, true);
+      showDefenderPrompt(entry);
     }
 
-    return { reset };
-  }
+    async function launchAttack(entry, attackerPrefix, defender) {
+      isRolling = true;
+      const attackerBox = panels[attackerPrefix].listEl.querySelector(`.creature-box[data-id="${entry.id}"]`);
+      if (attackerBox) attackerBox.classList.add('rolling');
+      const defenderBox = defender ? defender.box : null;
+      if (defenderBox) defenderBox.classList.add('rolling');
+      try {
+        await rollCreatureAttack(entry, attackerPrefix, defender);
+      } finally {
+        if (attackerBox) attackerBox.classList.remove('rolling');
+        if (defenderBox) defenderBox.classList.remove('rolling');
+        isRolling = false;
+      }
+    }
 
-  async function rollCreatureAttack(entry) {
-    const numRolls = entry.power + 1; // guaranteed base roll + power bonus rolls
-    const values = [];
-    rollCaption.classList.add('open');
+    directHitBtn.addEventListener('click', () => {
+      if (!pendingAttack) return;
+      const atk = pendingAttack;
+      cancelPendingAttack();
+      launchAttack(atk.entry, atk.attackerPrefix, null);
+    });
+    cancelAttackBtn.addEventListener('click', () => cancelPendingAttack());
+    opposedToggle.addEventListener('change', () => cancelPendingAttack());
 
-    for (let i = 0; i < numRolls; i++) {
-      rollLabelEl.textContent = `${entry.face} ${entry.name} — rolling ${i + 1} of ${numRolls}...`;
-      rollDetailEl.textContent = values.length ? values.map(faceLabel).join(', ') : '';
-      const face = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-      if (peakInstance) await peakInstance.rollPowerDie(face);
-      values.push(face);
+    async function rollCreatureAttack(entry, attackerPrefix, defender) {
+      rollCaption.classList.add('open');
+
+      // ---- attack roll ----
+      rollLabelEl.textContent = defender
+        ? `${entry.face} ${entry.name} attacks ${defender.entry.face} ${defender.entry.name}!`
+        : `${entry.face} ${entry.name} — rolling...`;
+      rollDetailEl.textContent = '';
+      const atkFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+      if (peakInstance) await peakInstance.rollPowerDie(atkFace);
       rollCount += 1;
       rollCountEl.textContent = rollCount;
+      const atkVal = atkFace === 'burst' ? 4 : atkFace;
+      const atkTotal = atkVal + entry.power;
 
-      const val = face === 'burst' ? 4 : face;
-      rollLabelEl.textContent = `${entry.face} ${entry.name} rolled ${faceLabel(face)}!`;
-      const runningTotal = values.reduce((s, f) => s + (f === 'burst' ? 4 : f), 0);
-      rollDetailEl.textContent = `${values.map(faceLabel).join(', ')}  =  ${runningTotal} points so far`;
-      await sleepOrTap(1400);
+      if (!defender) {
+        rollLabelEl.textContent = `${entry.face} ${entry.name} rolled ${faceLabel(atkFace)}!`;
+        rollDetailEl.textContent = `${faceLabel(atkFace)} (${atkVal})  +  Power ${entry.power}  =  ${atkTotal} points so far`;
+        await sleepOrTap(1400);
+
+        const defenderPrefix = LifePoints.opponentOf(attackerPrefix);
+        LifePoints.damage(defenderPrefix, atkTotal);
+        const lifeAfter = LifePoints.get(defenderPrefix);
+
+        rollLabelEl.textContent = `${entry.face} ${entry.name} (Power ${entry.power}) — done`;
+        rollDetailEl.textContent = `${faceLabel(atkFace)} (${atkVal})  +  ${entry.power}  =  ${atkTotal} damage to ${defenderPrefix.toUpperCase()} (now ${lifeAfter})`;
+        // popup stays open (persists) until the next roll overwrites it, or Reset is pressed
+        return;
+      }
+
+      // ---- opposed: defense roll ----
+      rollLabelEl.textContent = `Attack: ${faceLabel(atkFace)} (${atkVal}) + ${entry.power} = ${atkTotal}. ${defender.entry.face} ${defender.entry.name} defends...`;
+      rollDetailEl.textContent = '';
+      await sleepOrTap(700);
+
+      const defFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+      if (peakInstance) await peakInstance.rollPowerDie(defFace);
+      rollCount += 1;
+      rollCountEl.textContent = rollCount;
+      const defVal = defFace === 'burst' ? 4 : defFace;
+      const defTotal = defVal + defender.entry.power;
+
+      const net = Math.max(0, atkTotal - defTotal);
+      const defenderPrefix = defender.prefix;
+      LifePoints.damage(defenderPrefix, net);
+      const lifeAfter = LifePoints.get(defenderPrefix);
+
+      rollLabelEl.textContent = net > 0
+        ? `${entry.face} ${entry.name} breaks through!`
+        : `${defender.entry.face} ${defender.entry.name} blocks the attack!`;
+      rollDetailEl.textContent =
+        `Attack ${faceLabel(atkFace)} (${atkVal})+${entry.power}=${atkTotal}  vs  Defense ${faceLabel(defFace)} (${defVal})+${defender.entry.power}=${defTotal}\n` +
+        (net > 0 ? `${net} damage to ${defenderPrefix.toUpperCase()} (now ${lifeAfter})` : `No damage — fully blocked`);
+      await sleepOrTap(1800);
     }
 
-    const total = values.reduce((s, f) => s + (f === 'burst' ? 4 : f), 0);
-    rollLabelEl.textContent = `${entry.face} ${entry.name} (Power ${entry.power}) — done`;
-    rollDetailEl.textContent = `${values.map(faceLabel).join(', ')}  =  ${total} points total`;
-    await sleepOrTap(1600);
-    rollCaption.classList.remove('open');
+    panels.p1 = buildPlayerPanel('p1');
+    panels.p2 = buildPlayerPanel('p2');
+    const p1Panel = panels.p1;
+    const p2Panel = panels.p2;
+
+    resetBtn.addEventListener('click', () => {
+      rollCount = 0;
+      rollCountEl.textContent = 0;
+      rollCaption.classList.remove('open');
+      cancelPendingAttack();
+      p1Panel.reset();
+      p2Panel.reset();
+    });
+
+    visibilityListeners.push(visible => {
+      if (!peakInstance) return;
+      if (visible && document.getElementById('phase-battle').classList.contains('active')) peakInstance.start();
+      else peakInstance.stop();
+    });
+
+    return {
+      activate() { try { showPeak(); } catch (e) { console.error('Peak failed to load:', e); } },
+      deactivate() { if (peakInstance) peakInstance.stop(); }
+    };
+  })();
+</script>
+
+<script>
+  // =====================================================================
+  // Tab wiring — swaps which phase is visible/active. Each phase's WebGL
+  // scene is built once (lazily, on first visit) and then just started or
+  // stopped as the user switches back and forth; player rosters and match
+  // counters are preserved across switches since the DOM isn't torn down.
+  // =====================================================================
+  const tabButtons = { summon: document.getElementById('tab-summon'), battle: document.getElementById('tab-battle') };
+  const phaseEls = { summon: document.getElementById('phase-summon'), battle: document.getElementById('phase-battle') };
+  const phaseModules = { summon: SummonPhase, battle: BattlePhase };
+  let currentPhase = null;
+
+  function switchPhase(name) {
+    if (name === currentPhase) return;
+    if (currentPhase) {
+      phaseEls[currentPhase].classList.remove('active');
+      tabButtons[currentPhase].classList.remove('active');
+      phaseModules[currentPhase].deactivate();
+    }
+    currentPhase = name;
+    phaseEls[name].classList.add('active');
+    tabButtons[name].classList.add('active');
+    phaseModules[name].activate();
   }
 
-  const p1Panel = buildPlayerPanel('p1');
-  const p2Panel = buildPlayerPanel('p2');
+  tabButtons.summon.addEventListener('click', () => switchPhase('summon'));
+  tabButtons.battle.addEventListener('click', () => switchPhase('battle'));
 
-  resetBtn.addEventListener('click', () => {
-    rollCount = 0;
-    rollCountEl.textContent = 0;
-    rollCaption.classList.remove('open');
-    p1Panel.reset();
-    p2Panel.reset();
-  });
-
-  try { showPeak(); } catch (e) { console.error('Peak failed to load:', e); }
+  switchPhase('summon');
 </script>
 
 </body>
