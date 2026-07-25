@@ -48,6 +48,35 @@
     cursor: pointer;
   }
 
+  #scene-transition-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: var(--night-deep);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 500ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #scene-transition-veil.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #scene-transition-veil::after {
+    content: '';
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(217,154,62,0.25);
+    border-top-color: var(--amber-bright);
+    animation: veilSpin 1s linear infinite;
+  }
+  @keyframes veilSpin {
+    to { transform: rotate(360deg); }
+  }
+
   body {
     font-family: 'EB Garamond', serif;
     background:
@@ -190,6 +219,51 @@
     justify-content: flex-start;
     padding-bottom: 1rem;
   }
+  .gallery-frame {
+    justify-content: flex-start;
+    padding-bottom: 1rem;
+    gap: 0.5rem;
+  }
+  .gallery-counter {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.72rem;
+    color: var(--bone-dim);
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+  .gallery-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+  .gallery-nav-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(20,18,14,0.7);
+    border: 1.5px solid rgba(232,223,196,0.3);
+    color: var(--bone);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .gallery-nav-btn:active {
+    background: rgba(217,154,62,0.2);
+  }
+  #gallery-mtg-card {
+    width: min(64vw, 280px);
+  }
+  .gallery-hint {
+    font-size: 0.6rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.4);
+    margin: 0;
+  }
   .howto-body {
     width: 100%;
     text-align: left;
@@ -222,6 +296,11 @@
     color: var(--bone-dim);
     text-align: center;
     margin: 0.2rem 0 0;
+  }
+  .round-indicator-small {
+    font-size: 0.56rem;
+    margin: 0 0 0.3rem;
+    opacity: 0.85;
   }
   .first-attacker-indicator {
     font-family: 'MedievalSharp', serif;
@@ -345,6 +424,335 @@
   .battle-side-panel.enemy-panel {
     right: max(0.4rem, env(safe-area-inset-right));
     align-items: flex-end;
+  }
+  .battle-side-panel.rolling-turn {
+    background: rgba(217,154,62,0.32);
+    border: 1.5px solid rgba(240,190,108,0.7);
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(217,154,62,0.75), inset 0 0 16px rgba(240,190,108,0.25);
+    animation: rollingTurnPulse 2s ease-in-out infinite;
+  }
+  .battle-side-panel.enemy-panel.rolling-turn {
+    background: rgba(107,43,58,0.36);
+    border-color: rgba(226,119,127,0.7);
+    box-shadow: 0 0 30px rgba(226,119,127,0.75), inset 0 0 16px rgba(226,119,127,0.3);
+    animation-name: rollingTurnPulseEnemy;
+  }
+
+  .hand-panel {
+    position: fixed;
+    bottom: max(0.5rem, env(safe-area-inset-bottom));
+    z-index: 4;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    max-width: 45vw;
+  }
+  .hand-panel.visible { display: flex; }
+  .p2-hand-panel { right: max(0.4rem, env(safe-area-inset-right)); align-items: flex-end; }
+  .hand-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+    margin: 0;
+  }
+  /* Player 1's hand takes over the whole bottom of the screen, like you're
+     looking down over your own cards toward the table beyond them. */
+  .p1-hand-panel {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+  }
+  .p1-hand-panel .hand-label { display: none; }
+  .p1-hand-panel .hand-row {
+    height: 148px;
+    perspective: 1000px;
+    padding-top: 1.4rem;
+  }
+  .p1-hand-panel .hand-card {
+    width: 82px;
+    height: 116px;
+    margin-left: -28px;
+    font-size: 2.5rem;
+    border-width: 3px;
+    border-radius: 11px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.4);
+    transform-style: preserve-3d;
+  }
+  .p2-hand-panel .hand-label { color: #e2777f; }
+  .hand-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    height: 74px;
+    padding-top: 0.6rem; /* room for the fan's lift so nothing clips */
+  }
+  .hand-empty {
+    font-size: 0.55rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.35);
+  }
+  .hand-card {
+    --hc-color: #d99a3e;
+    --hc-bright: #f0be6c;
+    width: 44px;
+    height: 62px;
+    margin-left: -16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 50% 35%, var(--hc-color) 0%, #16110b 85%);
+    border: 2px solid var(--hc-bright);
+    border-radius: 7px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.4);
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+    transform-origin: 50% 100%;
+  }
+  .hand-card:first-child { margin-left: 0; }
+  .hand-card:active:not(.unplayable) {
+    box-shadow: 0 8px 18px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .hand-card.unplayable {
+    cursor: default;
+    filter: grayscale(1) brightness(0.55);
+  }
+  .hc-icon {
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+  }
+  .hc-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .summon-toast.card-toast {
+    border-color: var(--amber-bright);
+    max-width: min(92vw, 380px);
+    white-space: normal;
+    text-align: center;
+  }
+  .summon-toast.card-toast.p2 {
+    border-color: #e2777f;
+  }
+
+  .mtg-card {
+    --card-color: #8b2a2a;
+    --card-bright: #e2777f;
+    width: min(88vw, 340px);
+    max-height: 92dvh;
+    aspect-ratio: 5 / 7.6;
+    background: linear-gradient(165deg, #211a12, #0c0a07);
+    border: 3px solid var(--card-color);
+    border-radius: 18px;
+    padding: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.7), 0 24px 60px rgba(0,0,0,0.65), 0 0 34px -4px var(--card-color);
+    overflow: hidden;
+  }
+  .mtg-card-owner {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--card-bright);
+    text-align: center;
+    margin: 0;
+  }
+  .mtg-card-title-bar {
+    background: linear-gradient(180deg, var(--card-bright), var(--card-color));
+    border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .mtg-card-name {
+    font-family: 'MedievalSharp', serif;
+    font-size: 1.25rem;
+    color: #16110b;
+    letter-spacing: 0.01em;
+  }
+  .mtg-card-art {
+    flex: 1;
+    min-height: 0;
+    border-radius: 9px;
+    background:
+      radial-gradient(ellipse at 50% 38%, var(--card-color) 0%, transparent 72%),
+      linear-gradient(160deg, #241d15, #0a0805);
+    border: 2px solid rgba(0,0,0,0.55);
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .card-detail-icon {
+    font-size: min(16vw, 5.2rem);
+    line-height: 1;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.7));
+  }
+  .mtg-card-type-line {
+    background: linear-gradient(180deg, #2c261c, #17130d);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 0.32rem 0.6rem;
+    font-family: 'MedievalSharp', serif;
+    font-style: italic;
+    font-size: 0.76rem;
+    color: var(--card-bright);
+  }
+  .mtg-card-text-box {
+    background: rgba(232,223,196,0.055);
+    border: 1px solid rgba(232,223,196,0.15);
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    min-height: 4.6rem;
+    flex-shrink: 0;
+  }
+  .card-detail-desc {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.98rem;
+    color: var(--bone-dim);
+    margin: 0;
+    line-height: 1.38;
+  }
+  .card-detail-unplayable-note {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.76rem;
+    color: #e2777f;
+    margin: 0.5rem 0 0;
+    line-height: 1.35;
+  }
+  .card-detail-buttons {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .card-detail-buttons .modal-continue {
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+  .card-detail-cancel {
+    background: none;
+    border: 1.5px solid rgba(232,223,196,0.35);
+    color: var(--bone-dim);
+  }
+  .discard-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    width: 100%;
+    margin-top: 0.8rem;
+  }
+  .discard-option {
+    --hc-color: #d99a3e;
+    --hc-bright: #f0be6c;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    background: #16110b;
+    box-shadow: inset 3px 0 0 var(--hc-color), 0 2px 8px rgba(0,0,0,0.4);
+    border: 2px solid var(--hc-bright);
+    border-radius: 10px;
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  .discard-option:active {
+    transform: scale(0.98);
+  }
+  .do-icon {
+    font-size: 1.7rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+  }
+  .do-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .do-name {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.88rem;
+    color: var(--bone);
+  }
+  .do-type {
+    font-family: 'MedievalSharp', serif;
+    font-style: italic;
+    font-size: 0.62rem;
+    color: var(--hc-bright);
+  }
+  .ai-card-popup-hint {
+    text-align: center;
+    font-size: 0.62rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.4);
+    margin: 0.2rem 0 0;
+  }
+  .lockroll-dice-row {
+    display: flex;
+    gap: 0.6rem;
+    width: 100%;
+    margin: 0.6rem 0;
+  }
+  .lockroll-die {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(20,18,14,0.7);
+    border: 2px solid rgba(232,223,196,0.25);
+    border-radius: 10px;
+    padding: 0.7rem 0.4rem;
+    cursor: pointer;
+  }
+  .lockroll-die-label {
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+  }
+  .lockroll-die-val {
+    font-size: 1.5rem;
+  }
+  .lockroll-die.locked {
+    border-color: var(--amber-bright);
+    background: rgba(217,154,62,0.22);
+    box-shadow: 0 0 14px rgba(217,154,62,0.5);
+  }
+  .lockroll-die.locked .lockroll-die-label {
+    color: var(--amber-bright);
+  }
+  .lockroll-hint {
+    text-align: center;
+    font-size: 0.6rem;
+    font-style: italic;
+    color: rgba(232,223,196,0.45);
+    margin: 0;
+  }
+  @keyframes rollingTurnPulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(217,154,62,0.55), inset 0 0 12px rgba(240,190,108,0.18); }
+    50% { box-shadow: 0 0 34px rgba(217,154,62,0.9), inset 0 0 18px rgba(240,190,108,0.32); }
+  }
+  @keyframes rollingTurnPulseEnemy {
+    0%, 100% { box-shadow: 0 0 22px rgba(226,119,127,0.55), inset 0 0 12px rgba(226,119,127,0.22); }
+    50% { box-shadow: 0 0 34px rgba(226,119,127,0.9), inset 0 0 18px rgba(226,119,127,0.36); }
   }
   .creature-box {
     width: min(15vw, 58px);
@@ -913,6 +1321,30 @@
     line-height: 1;
     cursor: pointer;
   }
+  .ai-toggle-btn {
+    width: auto;
+    height: auto;
+    padding: 0.45rem 1rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .ai-toggle-btn.active {
+    color: var(--amber-bright);
+    border-color: var(--amber);
+    border-style: solid;
+    background: rgba(217,154,62,0.14);
+  }
+  .title-bottom-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .title-bottom-row .ff-btn {
+    width: auto;
+    height: auto;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
   .ff-btn:active {
     opacity: 0.6;
   }
@@ -964,10 +1396,37 @@
     cursor: default;
   }
 
+  .declare-round-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--amber-bright), var(--amber));
+    border: 2px solid rgba(0,0,0,0.35);
+    color: var(--night-deep);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+    cursor: pointer;
+    margin-bottom: 0.15rem;
+  }
+  .declare-round-btn.enemy {
+    background: linear-gradient(180deg, #e2777f, var(--blood));
+  }
+  .declare-round-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .declare-round-btn:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
   .summon-toast {
     position: fixed;
     left: 50%;
-    top: max(1rem, env(safe-area-inset-top));
+    top: calc(max(1rem, env(safe-area-inset-top)) + 4rem);
     transform: translateX(-50%) translateY(-20px);
     z-index: 50;
     background: rgba(10,13,8,0.92);
@@ -980,12 +1439,19 @@
     box-shadow: 0 10px 24px rgba(0,0,0,0.5);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 300ms ease, transform 300ms ease;
+    transition: opacity 300ms ease, transform 300ms ease, top 250ms ease;
     white-space: nowrap;
   }
   .summon-toast.p2 {
     border-color: var(--blood);
     color: #e2777f;
+  }
+  .summon-toast.wait-toast {
+    border-color: var(--witch);
+    color: var(--witch-bright);
+    white-space: normal;
+    max-width: min(90vw, 360px);
+    text-align: center;
   }
   .summon-toast.visible {
     opacity: 1;
@@ -1168,62 +1634,60 @@
     margin: 0 0 0.35rem;
   }
 
-  .rslots {
+  .creature-match-row {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.3rem;
+    gap: 0.4rem;
     margin-bottom: 0.3rem;
   }
 
-  .rslot {
-    width: min(11.5vw, 42px);
-    height: min(11.5vw, 42px);
-    border-radius: 9px;
-    border: 1.5px dashed rgba(232,223,196,0.2);
-    background: rgba(255,255,255,0.02);
+  .creature-match-box {
+    width: min(12vw, 44px);
+    height: min(12vw, 44px);
+    border-radius: 10px;
+    border: 1.5px solid rgba(232,223,196,0.15);
+    background: rgba(20,18,14,0.5);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.03rem;
-    line-height: 1;
+    position: relative;
+    font-size: min(6.5vw, 1.3rem);
+    filter: grayscale(1) opacity(0.4);
+    transition: filter 300ms ease, border-color 300ms ease, background 300ms ease, box-shadow 300ms ease;
   }
 
-  .rslot .rslot-mark {
-    font-size: 0.78rem;
-    color: rgba(232,223,196,0.22);
-  }
-
-  .rslot.filled {
-    border-style: solid;
-  }
-
-  .rslot.filled.is-stone {
+  .creature-match-box.pending {
+    filter: none;
     border-color: var(--amber);
-    background: rgba(217,154,62,0.08);
+    background: rgba(217,154,62,0.18);
+    box-shadow: 0 0 10px rgba(217,154,62,0.4);
   }
 
-  .rslot.filled.is-shadow {
+  .creature-match-box.matched {
+    filter: none;
     border-color: var(--witch);
-    background: rgba(122,74,138,0.1);
+    background: rgba(122,74,138,0.18);
+    animation: creatureMatchGlow 2.4s ease-in-out infinite;
   }
 
-  .rslot-face {
-    font-size: min(5.2vw, 1.2rem);
+  @keyframes creatureMatchGlow {
+    0%, 100% { box-shadow: 0 0 5px rgba(168,116,187,0.25); }
+    50% { box-shadow: 0 0 16px rgba(168,116,187,0.9); }
   }
 
-  .rslot-power {
-    font-family: 'MedievalSharp', serif;
-    font-size: 0.54rem;
-  }
-
-  .rslot.is-stone .rslot-power {
-    color: var(--amber-bright);
-  }
-
-  .rslot.is-shadow .rslot-power {
+  .cmb-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--night-deep);
+    border: 1px solid var(--witch-bright);
     color: var(--witch-bright);
+    border-radius: 999px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.48rem;
+    padding: 0.05rem 0.28rem;
+    line-height: 1.3;
   }
 
   .collection-hint {
@@ -1327,6 +1791,11 @@
     color: var(--moss);
     margin: 0 0 0.3rem;
   }
+  #battle-roll-label {
+    color: var(--amber-bright);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
   .modal-title {
     font-family: 'MedievalSharp', serif;
     font-size: 1.3rem;
@@ -1422,22 +1891,20 @@
 
   .battle-roll-result {
     font-family: 'MedievalSharp', serif;
-    font-size: 0.78rem;
-    color: var(--bone-dim);
+    font-size: 0.88rem;
+    color: var(--amber-bright);
     margin: 0.9rem 0 0;
     min-height: 1.2em;
+    white-space: pre-line;
   }
   .battle-roll-result.hit {
     color: var(--amber-bright);
     text-shadow: 0 0 12px rgba(240,190,108,0.35);
   }
-  .battle-roll-result.miss {
-    color: #e2777f;
-  }
   .battle-roll-hint {
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-style: italic;
-    color: rgba(232,223,196,0.45);
+    color: rgba(240,190,108,0.55);
     margin: 0.6rem 0 0;
     animation: rollHintPulse 1.4s ease-in-out infinite;
   }
@@ -1451,6 +1918,16 @@
 <body>
 
   <div id="scene-wrap"></div>
+  <div id="scene-transition-veil"></div>
+
+  <div class="hand-panel p1-hand-panel">
+    <p class="hand-label">Player 1 Hand</p>
+    <div class="hand-row" id="p1-hand"><span class="hand-empty">no cards</span></div>
+  </div>
+  <div class="hand-panel p2-hand-panel">
+    <p class="hand-label">Player 2 Hand</p>
+    <div class="hand-row" id="p2-hand"><span class="hand-empty">no cards</span></div>
+  </div>
 
   <div class="wisp"></div>
   <div class="wisp"></div>
@@ -1458,41 +1935,43 @@
   <div class="wisp"></div>
 
   <div class="frame title-frame" id="title-screen">
-    <p class="eyebrow">A Rite of the Hollow Wood</p>
     <h1 class="title-heading">Ruwyn</h1>
-    <p class="sub">A two-player summoning duel — roll for creatures, match stone to shadow, and battle for the best of three rounds.</p>
     <div class="divider"></div>
     <div class="title-symbol">
       <svg viewBox="0 0 100 100"><polygon points="50,10 90,85 10,85" fill="none" stroke="var(--amber)" stroke-width="3" stroke-linejoin="round"/></svg>
     </div>
     <button class="roll-all" id="title-begin-btn">Begin the Rite</button>
-    <button class="ff-btn" id="howto-btn">❔ How to Play</button>
+    <button class="ff-btn ai-toggle-btn active" id="ai-toggle-btn">🤖 Player 2: Computer</button>
+    <div class="title-bottom-row">
+      <button class="ff-btn" id="howto-btn">❔ How to Play</button>
+      <button class="ff-btn" id="gallery-btn">🎴 Card Gallery</button>
+    </div>
   </div>
 
   <div class="frame" id="cast-screen" style="display:none;">
-    <div class="cast-top">
-      <div class="cast-top-bar">
-        <span class="target-indicator" id="target-indicator">
-          <span class="target-label">Rolling</span>
-          <span class="target-value" id="target-value">Player 1</span>
-        </span>
-        <span class="target-status" id="target-status">Roll a stone to lock in a creature</span>
-        <span class="roll-counter" id="roll-counter">P1: <span class="n" id="p1-roll-count">0</span>/11 · P2: <span class="n" id="p2-roll-count">0</span>/11</span>
-        <button class="roll-all declare-btn" id="declare-battle-p1" disabled>⚔️ P1</button>
-        <button class="ff-btn" id="fast-forward" title="Fast Forward (testing)">⏩</button>
-        <button class="roll-all declare-btn enemy" id="declare-battle-p2" disabled>⚔️ P2</button>
-      </div>
+    <div class="battle-side-panel ally-panel" id="p1-rite-slots">
+      <button class="declare-round-btn" id="declare-battle-p1" disabled>⚔️</button>
     </div>
-
-    <div class="cast-bottom">
-      <div class="record">
-        <p class="record-title">Player 1's Rolls</p>
-        <div class="rslots" id="p1-rite-slots"></div>
+    <div class="battle-side-panel enemy-panel" id="p2-rite-slots">
+      <button class="declare-round-btn enemy" id="declare-battle-p2" disabled>⚔️</button>
+    </div>
+    <div class="cast-top">
+      <p class="round-indicator round-indicator-small" id="cast-round-indicator">Round 1 of 3 · Score 0 – 0</p>
+      <div class="hp-row">
+        <div class="hp-block">
+          <span class="hp-label">Player 1</span>
+          <div class="hp-bar-track"><div class="hp-bar-fill" id="cast-player-hp-fill"></div></div>
+          <span class="hp-value" id="cast-player-hp-value">20</span>
+        </div>
+        <div class="hp-block">
+          <span class="hp-label enemy">Player 2</span>
+          <div class="hp-bar-track"><div class="hp-bar-fill enemy" id="cast-enemy-hp-fill"></div></div>
+          <span class="hp-value" id="cast-enemy-hp-value">20</span>
+        </div>
       </div>
-
-      <div class="record">
-        <p class="record-title enemy">Player 2's Rolls</p>
-        <div class="rslots" id="p2-rite-slots"></div>
+      <div class="cast-top-bar">
+        <span class="roll-counter" id="roll-counter">P1: <span class="n" id="p1-roll-count">0</span> rolls · P2: <span class="n" id="p2-roll-count">0</span> rolls</span>
+        <button class="ff-btn" id="fast-forward" title="Fast Forward (testing)">⏩</button>
       </div>
     </div>
   </div>
@@ -1504,13 +1983,39 @@
     <div class="howto-body">
       <p class="howto-step"><strong>1. Flip for first roll.</strong> A coin decides who rolls first each summoning phase. Then pass the device back and forth — one roll each — tapping the ground near the dice.</p>
       <p class="howto-step"><strong>2. Lock a target.</strong> The first stone creature you roll locks in as your target for that creature type. Keep rolling until you land its shadow — that's when the pair completes and joins your roster, with the shadow's power (0–3) attached. Then you're free to lock a new target on your next stone.</p>
-      <p class="howto-step"><strong>3. Declare battle.</strong> Once you've completed at least one pair, "Declare Battle" becomes available. There's no fixed roll count — declare whenever you're ready (rolls cap out at 11 each if you keep going). A coin flip then decides who attacks first.</p>
-      <p class="howto-step"><strong>4. Attack.</strong> Each creature attacks exactly once per battle. Its power (0–3) is literally how many times it rolls the attack d8 — power 0 can't deal damage, power 3 rolls three times, summed together. Rolling 🔆 on the attack die counts as 4 points.</p>
-      <p class="howto-step"><strong>5. Defend.</strong> If the defender has any creature summoned, they roll the same d8 back for every attack roll: a number sends that much damage right back at the attacker, and 🔆 reflects half the attacker's roll (rounded down). The defender still takes the attacker's full damage regardless.</p>
+      <p class="howto-step"><strong>3. Declare battle.</strong> Once you've completed at least one pair — and your opponent has too — "Declare Battle" becomes available. There's no fixed roll count — declare whenever you're ready (rolls cap out at 11 each if you keep going). Whoever declares attacks first.</p>
+      <p class="howto-step"><strong>4. Attack.</strong> Each creature attacks exactly once per battle: one roll of the attack d8, plus its power (0–3) added straight onto that roll as a flat bonus. Rolling 🔆 counts as 4 points before power is added. Extra Swing cards can grant additional attack rolls.</p>
+      <p class="howto-step"><strong>5. Defend.</strong> If the defender has any creature summoned, they roll the same d8 back for every attack roll. A numeral does nothing. 🔆 reflects half the attacker's total (rounded up, minimum 1) right back at them. Either way, the defender still takes the attacker's full damage. Extra Guard cards can grant additional defense rolls against each attack.</p>
       <p class="howto-step"><strong>6. Back and forth.</strong> Once every creature on both sides has attacked, if nobody's been knocked out, HP and rosters carry over and you return to summoning for more creatures before declaring again — same round.</p>
       <p class="howto-step"><strong>7. Best of three.</strong> A round ends only on a KO. When it does, everything wipes for a fresh round — new rosters, HP back to 20. First to 2 round wins takes the game.</p>
+      <p class="howto-step"><strong>8. Cards.</strong> Everyone starts holding 2, and draws more as the match goes — once at the start of every phase, plus a bonus draw whenever you play a card (costs your next roll if it's during summoning) and one more every 11th roll. Hand caps at 3; drawing past that forces a discard. One card per turn, and only on your own turn. Browse the full 20-card deck from the title screen's Card Gallery.</p>
     </div>
     <button class="modal-continue" id="howto-back-btn">Back</button>
+  </div>
+
+  <div class="frame gallery-frame" id="gallery-screen" style="display:none;">
+    <p class="eyebrow">The Deck of Ruwyn</p>
+    <h1>Card Gallery</h1>
+    <p class="gallery-counter" id="gallery-counter">1 / 13</p>
+    <div class="gallery-carousel" id="gallery-carousel">
+      <button class="gallery-nav-btn" id="gallery-prev-btn">‹</button>
+      <div class="mtg-card" id="gallery-mtg-card">
+        <p class="mtg-card-owner" id="gallery-card-typegroup">Damage</p>
+        <div class="mtg-card-title-bar">
+          <span class="mtg-card-name" id="gallery-card-name">Spark Bolt</span>
+        </div>
+        <div class="mtg-card-art">
+          <div class="card-detail-icon" id="gallery-card-icon">⚡</div>
+        </div>
+        <div class="mtg-card-type-line" id="gallery-card-typeline">Sorcery — Damage</div>
+        <div class="mtg-card-text-box">
+          <p class="card-detail-desc" id="gallery-card-desc">2 damage straight to your opponent.</p>
+        </div>
+      </div>
+      <button class="gallery-nav-btn" id="gallery-next-btn">›</button>
+    </div>
+    <p class="gallery-hint">swipe or tap the arrows to browse</p>
+    <button class="modal-continue" id="gallery-back-btn">Back</button>
   </div>
 
   <div class="frame battle-frame" id="battle-screen" style="display:none;">
@@ -1573,7 +2078,7 @@
       </div>
       <p class="battle-roll-result" id="coin-flip-result"></p>
       <button class="modal-continue" id="coin-flip-btn">Flip Coin</button>
-      <button class="modal-continue" id="coin-flip-continue-btn" style="display:none;">Continue to Battle</button>
+      <button class="modal-continue" id="coin-flip-continue-btn" style="display:none;">Commence Ritual</button>
     </div>
   </div>
 
@@ -1586,7 +2091,104 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="card-detail-overlay">
+    <div class="mtg-card" id="mtg-card">
+      <p class="mtg-card-owner" id="card-detail-owner">Player 1's Card</p>
+      <div class="mtg-card-title-bar">
+        <span class="mtg-card-name" id="card-detail-name">Spark Bolt</span>
+      </div>
+      <div class="mtg-card-art">
+        <div class="card-detail-icon" id="card-detail-icon">⚡</div>
+      </div>
+      <div class="mtg-card-type-line" id="card-detail-typeline">Sorcery — Damage</div>
+      <div class="mtg-card-text-box">
+        <p class="card-detail-desc" id="card-detail-desc">6 damage straight to your opponent.</p>
+        <p class="card-detail-unplayable-note" id="card-detail-note" style="display:none;"></p>
+      </div>
+      <div class="card-detail-buttons">
+        <button class="modal-continue card-detail-cancel" id="card-detail-cancel">Cancel</button>
+        <button class="modal-continue" id="card-detail-deploy">Deploy</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="discard-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="discard-owner">Player 1's Hand is Full</p>
+      <p class="modal-title">Choose a Card to Discard</p>
+      <div class="discard-options" id="discard-options"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="peekhand-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="peekhand-owner">Player 2's Hand</p>
+      <p class="modal-title">Choose a Card to Take</p>
+      <div class="discard-options" id="peekhand-options"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="lockroll-overlay">
+    <div class="modal-card">
+      <p class="modal-eyebrow" id="lockroll-eyebrow">Fortune's Grasp — Roll 1 of 3</p>
+      <p class="modal-title">Lock Any Dice, Then Reroll</p>
+      <div class="lockroll-dice-row" id="lockroll-dice-row">
+        <button type="button" class="lockroll-die" id="lockroll-die-coin">
+          <span class="lockroll-die-label">Coin</span>
+          <span class="lockroll-die-val" id="lockroll-val-coin">—</span>
+        </button>
+        <button type="button" class="lockroll-die" id="lockroll-die-creature">
+          <span class="lockroll-die-label">Creature</span>
+          <span class="lockroll-die-val" id="lockroll-val-creature">—</span>
+        </button>
+        <button type="button" class="lockroll-die" id="lockroll-die-power">
+          <span class="lockroll-die-label">Power</span>
+          <span class="lockroll-die-val" id="lockroll-val-power">—</span>
+        </button>
+      </div>
+      <p class="lockroll-hint">tap a die to lock it before rerolling</p>
+      <div class="card-detail-buttons">
+        <button class="modal-continue card-detail-cancel" id="lockroll-keep-btn">Keep This Result</button>
+        <button class="modal-continue" id="lockroll-reroll-btn">Reroll Unlocked</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop ai-card-popup-backdrop" id="ai-card-popup-overlay">
+    <div class="mtg-card" id="ai-mtg-card">
+      <p class="mtg-card-owner" id="ai-card-owner">🤖 Computer Played</p>
+      <div class="mtg-card-title-bar">
+        <span class="mtg-card-name" id="ai-card-name">Spark Bolt</span>
+      </div>
+      <div class="mtg-card-art">
+        <div class="card-detail-icon" id="ai-card-icon">⚡</div>
+      </div>
+      <div class="mtg-card-type-line" id="ai-card-typeline">Sorcery — Damage</div>
+      <div class="mtg-card-text-box">
+        <p class="card-detail-desc" id="ai-card-desc">2 damage straight to your opponent.</p>
+      </div>
+      <p class="ai-card-popup-hint">tap anywhere to dismiss</p>
+    </div>
+  </div>
+
 <script>
+  // Draws text (emoji or numerals) truly centered in a canvas, using the
+  // glyph's own measured bounding box rather than an assumed fixed offset.
+  // A hardcoded offset looks centered on whichever platform it was tuned on,
+  // but emoji fonts have very different internal vertical metrics across
+  // platforms (iOS's Apple Color Emoji vs. Windows/Android fonts), so a
+  // fixed offset drifts noticeably off-center on some devices. Measuring
+  // the actual rendered glyph keeps it centered everywhere.
+  function drawCenteredGlyph(ctx, text, cx, cy, fontSize, font) {
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const m = ctx.measureText(text);
+    const ascent = m.actualBoundingBoxAscent || fontSize * 0.5;
+    const descent = m.actualBoundingBoxDescent || fontSize * 0.36;
+    ctx.fillText(text, cx, cy + (ascent - descent) / 2);
+  }
+
   // =====================================================================
   // THE GROVE — a low-poly 3D forest clearing, background for the Circle
   // screen only. Built the same way as the Shrine/Knight environment in
@@ -1594,6 +2196,8 @@
   // instead of dynamic shadows, fog, and a hemi/sun/fill lighting rig.
   // =====================================================================
   const sceneWrap = document.getElementById('scene-wrap');
+  const p1HandPanelEl = document.querySelector('.p1-hand-panel');
+  const p2HandPanelEl = document.querySelector('.p2-hand-panel');
   let groveInstance = null;
   let groveRafId = null;
   let groveRunning = false;
@@ -1789,9 +2393,7 @@
       const c = document.createElement('canvas'); c.width = 256; c.height = 256;
       const ctx = c.getContext('2d');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
-      ctx.font = '150px "Segoe UI Emoji", sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, 128, 138);
+      drawCenteredGlyph(ctx, emoji, 128, 128, 150, '150px sans-serif');
       return new THREE.CanvasTexture(c);
     }
     function makeNumberTexture(num, bg, fg) {
@@ -1799,9 +2401,7 @@
       const ctx = c.getContext('2d');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
       ctx.fillStyle = fg;
-      ctx.font = 'bold 150px Georgia, serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(String(num), 128, 138);
+      drawCenteredGlyph(ctx, String(num), 128, 128, 150, 'bold 150px Georgia, serif');
       return new THREE.CanvasTexture(c);
     }
     function makeSymbolTexture(symbolType, bg, fg) {
@@ -1895,6 +2495,120 @@
 
     diceGroup.visible = false;
 
+    // ---------- played-card toss: a thin card that tumbles down and lands
+    // face-up on the table, showing just the played card's symbol ----------
+    function makeGenericCardBackTexture() {
+      const c = document.createElement('canvas'); c.width = 320; c.height = 448;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createRadialGradient(160, 200, 20, 160, 224, 260);
+      grad.addColorStop(0, '#2c2013');
+      grad.addColorStop(1, '#120d08');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 320, 448);
+      ctx.strokeStyle = 'rgba(240,190,108,0.7)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(12, 12, 296, 424);
+      ctx.strokeStyle = 'rgba(240,190,108,0.32)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(26, 26, 268, 396);
+      ctx.strokeStyle = '#f0be6c';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(160, 210, 95, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(160, 210 - 72); ctx.lineTo(160 + 62, 210 + 50); ctx.lineTo(160 - 62, 210 + 50);
+      ctx.closePath();
+      ctx.stroke();
+      return new THREE.CanvasTexture(c);
+    }
+    const cardW = 0.68, cardH = 0.94, cardT = 0.02;
+    const cardGeo = new THREE.BoxGeometry(cardW, cardT, cardH);
+    const cardBackTexture = makeGenericCardBackTexture();
+    const cardEdgeMat = new THREE.MeshPhongMaterial({ color: 0x2a2018, flatShading: true, shininess: 0 });
+    const cardFaceMat = new THREE.MeshPhongMaterial({ map: cardBackTexture, flatShading: true, shininess: 0 });
+    // BoxGeometry material order: [+X, -X, +Y, -Y, +Z, -Z] — same design on both the +Y and -Y faces
+    const cardMesh = new THREE.Mesh(cardGeo, [cardEdgeMat, cardEdgeMat, cardFaceMat, cardFaceMat, cardEdgeMat, cardEdgeMat]);
+    const cardRestPos = new THREE.Vector3(0, daisTopY + cardT * 3, 0.75);
+    cardMesh.position.copy(cardRestPos);
+    cardMesh.visible = false;
+    diceGroup.add(cardMesh);
+
+    const cardState = {
+      active: false, settled: true,
+      startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
+      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1500,
+      clearance: 0.6 // must cover the card's full tumbling half-diagonal (~0.58) so a corner never dips through the table while spinning
+    };
+
+    function playCardToss() {
+      return new Promise(resolve => {
+        cardMesh.visible = true;
+
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 0.3 + Math.random() * 0.25;
+        cardState.startPos.set(cardRestPos.x + Math.cos(ang) * dist, cardRestPos.y + 2.1 + Math.random() * 0.3, cardRestPos.z + Math.sin(ang) * dist);
+        cardMesh.position.copy(cardState.startPos);
+        cardState.targetPos.copy(cardRestPos);
+
+        // always lands front-face-up: the +Y face already points world-up
+        // with no rotation applied, so align is just the identity
+        const align = new THREE.Quaternion();
+        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+        cardState.targetQuat.copy(spin).multiply(align);
+
+        cardState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        cardState.spinSpeed = 8 + Math.random() * 4; // slower tumble than the dice — more weight, less chaos
+        cardState.startTime = performance.now();
+        cardState.duration = 1500 + Math.random() * 250;
+        cardState.active = true;
+        cardState.settled = false;
+
+        const poll = setInterval(() => {
+          if (cardState.settled) {
+            clearInterval(poll);
+            resolve();
+          }
+        }, 60);
+      });
+    }
+
+    function hideCardMesh() {
+      cardMesh.visible = false;
+    }
+
+    function updateCardToss(dt) {
+      const state = cardState;
+      if (!state.active) return;
+      const now = performance.now();
+      const t = Math.min(1, (now - state.startTime) / state.duration);
+      if (t < 0) return;
+      const easedT = 1 - Math.pow(1 - t, 3);
+      cardMesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
+      cardMesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
+      // an even quicker, near-bounceless settle — most of the fall height
+      // bleeds off well before touchdown instead of overshooting the floor
+      const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-9 * t);
+      const settleT = Math.max(0, Math.min(1, (t - 0.88) / 0.12));
+      const floorY = state.targetPos.y + state.clearance * (1 - settleT);
+      cardMesh.position.y = floorY + amp;
+
+      if (t < 0.88) {
+        cardMesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.88) * dt);
+      } else {
+        cardMesh.quaternion.slerp(state.targetQuat, 0.3);
+      }
+
+      if (t >= 1) {
+        state.active = false;
+        state.settled = true;
+        cardMesh.position.copy(state.targetPos);
+        cardMesh.quaternion.copy(state.targetQuat);
+        triggerTableShake();
+      }
+    }
+
     // shared toss/spin/bounce/settle animation state per die
     function makeDieState(mesh, restPos, faceNormals, resultToNormalIndex, clearance) {
       return {
@@ -1968,15 +2682,48 @@
       });
     }
 
+    let lastCoinFaceIndex = 0, lastCreatureFaceIndex = 0, lastPowerFaceIndex = 0;
+
     function rollDice() {
       return new Promise(resolve => {
         const coinFaceIndex = Math.random() < 0.5 ? 0 : 1; // 0=stone,1=shadow
         const creatureFaceIndex = Math.floor(Math.random() * creatures.length);
         const powerFaceIndex = Math.floor(Math.random() * powerFaces.length);
+        lastCoinFaceIndex = coinFaceIndex;
+        lastCreatureFaceIndex = creatureFaceIndex;
+        lastPowerFaceIndex = powerFaceIndex;
 
         launchDie(coinState, coinFaceIndex, 0);
         launchDie(creatureState, creatureFaceIndex, 60);
         launchDie(powerState, powerFaceIndex, 120);
+
+        const poll = setInterval(() => {
+          if (allDice.every(d => d.settled)) {
+            clearInterval(poll);
+            resolve({
+              coin: { isStone: coinFaceIndex === 0 },
+              creature: creatures[creatureFaceIndex],
+              power: { value: powerFaces[powerFaceIndex] }
+            });
+          }
+        }, 60);
+      });
+    }
+
+    // Like rollDice, but any die marked locked keeps its previous value
+    // instead of being relaunched — used by the lock-and-reroll card.
+    function rollDiceSelective(locked) {
+      return new Promise(resolve => {
+        const coinFaceIndex = locked.coin ? lastCoinFaceIndex : (Math.random() < 0.5 ? 0 : 1);
+        const creatureFaceIndex = locked.creature ? lastCreatureFaceIndex : Math.floor(Math.random() * creatures.length);
+        const powerFaceIndex = locked.power ? lastPowerFaceIndex : Math.floor(Math.random() * powerFaces.length);
+        lastCoinFaceIndex = coinFaceIndex;
+        lastCreatureFaceIndex = creatureFaceIndex;
+        lastPowerFaceIndex = powerFaceIndex;
+
+        if (!locked.coin) launchDie(coinState, coinFaceIndex, 0);
+        if (!locked.creature) launchDie(creatureState, creatureFaceIndex, 60);
+        if (!locked.power) launchDie(powerState, powerFaceIndex, 120);
 
         const poll = setInterval(() => {
           if (allDice.every(d => d.settled)) {
@@ -2010,10 +2757,19 @@
         camera.fov = baseFovDeg;
       }
     }
+    let tableShakeIntensity = 0;
+    function triggerTableShake() {
+      tableShakeIntensity = 0.16;
+    }
     function updateCamera() {
       camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
       camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
       camera.position.y = target.y + radius * Math.cos(phi);
+      if (tableShakeIntensity > 0.0008) {
+        camera.position.x += (Math.random() - 0.5) * tableShakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * tableShakeIntensity * 0.6;
+        camera.position.z += (Math.random() - 0.5) * tableShakeIntensity;
+      }
       camera.lookAt(target);
     }
     fitFovToAspect();
@@ -2039,6 +2795,23 @@
         t.flame.scale.y = 1 + flicker * 0.3;
       });
       updateDice(dt);
+      updateCardToss(dt);
+      if (tableShakeIntensity > 0.0008) {
+        allDice.forEach(state => {
+          if (state.active) return; // don't fight an in-progress roll
+          state.mesh.position.x = state.restPos.x + (Math.random() - 0.5) * tableShakeIntensity * 0.7;
+          state.mesh.position.z = state.restPos.z + (Math.random() - 0.5) * tableShakeIntensity * 0.7;
+        });
+        tableShakeIntensity *= Math.exp(-5 * dt);
+        if (tableShakeIntensity <= 0.0008) {
+          tableShakeIntensity = 0;
+          allDice.forEach(state => {
+            if (state.active) return;
+            state.mesh.position.x = state.restPos.x;
+            state.mesh.position.z = state.restPos.z;
+          });
+        }
+      }
       renderer.render(scene, camera);
       groveRafId = requestAnimationFrame(frame);
     }
@@ -2047,7 +2820,10 @@
       canvas: renderer.domElement,
       start() { if (!groveRunning) { groveRunning = true; frame(); } diceGroup.visible = true; },
       stop() { groveRunning = false; if (groveRafId) cancelAnimationFrame(groveRafId); diceGroup.visible = false; },
-      rollDice
+      rollDice,
+      rollDiceSelective,
+      playCardToss,
+      hideCard: hideCardMesh
     };
   }
 
@@ -2073,6 +2849,7 @@
     scene.fog = new THREE.Fog(0x3a2c40, 10, 42);
 
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
+    scene.add(camera); // needed so the attack die, parented to the camera, gets traversed for rendering
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
@@ -2216,18 +2993,14 @@
       const ctx = c.getContext('2d');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
       ctx.fillStyle = fg;
-      ctx.font = 'bold 150px Georgia, serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(String(num), 128, 138);
+      drawCenteredGlyph(ctx, String(num), 128, 128, 150, 'bold 150px Georgia, serif');
       return new THREE.CanvasTexture(c);
     }
     function makeBurstTexture(bg) {
       const c = document.createElement('canvas'); c.width = 256; c.height = 256;
       const ctx = c.getContext('2d');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, 256, 256);
-      ctx.font = '150px "Segoe UI Emoji", sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('🔆', 128, 138);
+      drawCenteredGlyph(ctx, '🔆', 128, 128, 150, '150px sans-serif');
       return new THREE.CanvasTexture(c);
     }
     function buildOctahedronGeometry(size) {
@@ -2260,16 +3033,161 @@
       if (n.dot(centroid) < 0) n.negate();
       return n;
     });
+    // vertex `a` of every triangle here is always the octahedron's pole (top or
+    // bottom apex) — a consistent reference direction we can use to keep the
+    // rolled face's texture upright instead of at a random in-plane rotation.
+    const ATTACK_OCT_UPRIGHT_HINTS = attackOctTris.map(([a]) => a.clone().normalize());
+
+    function computeUprightQuat(normal, upHint) {
+      const n = normal.clone().normalize();
+      let up = upHint.clone().sub(n.clone().multiplyScalar(upHint.dot(n)));
+      if (up.lengthSq() < 1e-6) {
+        up = Math.abs(n.x) < 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+        up.sub(n.clone().multiplyScalar(up.dot(n)));
+      }
+      up.normalize();
+      const right = new THREE.Vector3().crossVectors(up, n).normalize();
+      const srcBasis = new THREE.Matrix4().makeBasis(right, up, n);
+
+      // Same "looking down at a die on a table" angle as the Circle screen —
+      // tilted by the camera's own pitch (phi) instead of pointing dead-on at
+      // the lens, so the top face reads the way an actual d8 lands, not like
+      // it's been held up to the camera.
+      const targetN = new THREE.Vector3(0, Math.sin(phi), Math.cos(phi));
+      let targetUp = new THREE.Vector3(0, 1, 0).sub(targetN.clone().multiplyScalar(new THREE.Vector3(0, 1, 0).dot(targetN)));
+      targetUp.normalize();
+      const targetRight = new THREE.Vector3().crossVectors(targetUp, targetN).normalize();
+      const targetBasis = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetN);
+
+      const rotMatrix = new THREE.Matrix4().multiplyMatrices(targetBasis, srcBasis.clone().invert());
+      return new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
+    }
+
     const attackPowerMats = attackFaces.map(v => new THREE.MeshPhongMaterial({
       map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
       flatShading: true, shininess: 0, side: THREE.DoubleSide
     }));
     const attackDieMesh = new THREE.Mesh(attackOctGeo, attackPowerMats);
-    const attackDieRestPos = new THREE.Vector3(0, 0.5 + attackDieSize * 0.9, 2.1);
+    // camera-local coordinates now (camera looks down its own -Z) — this keeps
+    // the die anchored to the same spot on screen even as the camera orbits,
+    // instead of drifting off to the side like a world-space position would.
+    const attackDieRestPos = new THREE.Vector3(0, -0.45, -2.3);
     attackDieMesh.position.copy(attackDieRestPos);
     attackDieMesh.visible = false;
-    scene.add(attackDieMesh);
+    camera.add(attackDieMesh);
     const attackDieClearance = attackDieSize * (1 - 1 / Math.sqrt(3));
+
+    // ---------- played-card toss: same idea as the summoning scene's, but
+    // sitting in world space on the actual battlefield ground ----------
+    function makeGenericCardBackTexture() {
+      const c = document.createElement('canvas'); c.width = 320; c.height = 448;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createRadialGradient(160, 200, 20, 160, 224, 260);
+      grad.addColorStop(0, '#2c2013');
+      grad.addColorStop(1, '#120d08');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 320, 448);
+      ctx.strokeStyle = 'rgba(240,190,108,0.7)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(12, 12, 296, 424);
+      ctx.strokeStyle = 'rgba(240,190,108,0.32)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(26, 26, 268, 396);
+      ctx.strokeStyle = '#f0be6c';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(160, 210, 95, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(160, 210 - 72); ctx.lineTo(160 + 62, 210 + 50); ctx.lineTo(160 - 62, 210 + 50);
+      ctx.closePath();
+      ctx.stroke();
+      return new THREE.CanvasTexture(c);
+    }
+    const cardW = 0.68, cardH = 0.94, cardT = 0.02;
+    const cardGeo = new THREE.BoxGeometry(cardW, cardT, cardH);
+    const cardBackTexture = makeGenericCardBackTexture();
+    const cardEdgeMat = new THREE.MeshPhongMaterial({ color: 0x2a2018, flatShading: true, shininess: 0, depthTest: false });
+    const cardFaceMat = new THREE.MeshPhongMaterial({ map: cardBackTexture, flatShading: true, shininess: 0, depthTest: false });
+    const cardMesh = new THREE.Mesh(cardGeo, [cardEdgeMat, cardEdgeMat, cardFaceMat, cardFaceMat, cardEdgeMat, cardEdgeMat]);
+    const cardRestPos = new THREE.Vector3(0, 0.55, 0.7); // near the battlefield's center, same area the camera orbits around
+    cardMesh.position.copy(cardRestPos);
+    cardMesh.visible = false;
+    cardMesh.renderOrder = 999; // always draws on top — otherwise nearby terrain can occlude it, same issue the attack die had
+    scene.add(cardMesh);
+
+    const cardState = {
+      active: false, settled: true,
+      startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
+      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
+      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1500,
+      clearance: 0.6 // must cover the card's full tumbling half-diagonal (~0.58) so a corner never dips through the table while spinning
+    };
+
+    function playCardToss() {
+      return new Promise(resolve => {
+        cardMesh.visible = true;
+
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 0.3 + Math.random() * 0.25;
+        cardState.startPos.set(cardRestPos.x + Math.cos(ang) * dist, cardRestPos.y + 2.1 + Math.random() * 0.3, cardRestPos.z + Math.sin(ang) * dist);
+        cardMesh.position.copy(cardState.startPos);
+        cardState.targetPos.copy(cardRestPos);
+
+        const align = new THREE.Quaternion();
+        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
+        cardState.targetQuat.copy(spin).multiply(align);
+
+        cardState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        cardState.spinSpeed = 8 + Math.random() * 4; // slower tumble than the dice — more weight, less chaos
+        cardState.startTime = performance.now();
+        cardState.duration = 1500 + Math.random() * 250;
+        cardState.active = true;
+        cardState.settled = false;
+
+        const poll = setInterval(() => {
+          if (cardState.settled) {
+            clearInterval(poll);
+            resolve();
+          }
+        }, 60);
+      });
+    }
+
+    function hideCardMesh() {
+      cardMesh.visible = false;
+    }
+
+    function updateCardToss(dt) {
+      const state = cardState;
+      if (!state.active) return;
+      const now = performance.now();
+      const t = Math.min(1, (now - state.startTime) / state.duration);
+      if (t < 0) return;
+      const easedT = 1 - Math.pow(1 - t, 3);
+      cardMesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
+      cardMesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
+      // an even quicker, near-bounceless settle — most of the fall height
+      // bleeds off well before touchdown instead of overshooting the floor
+      const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-9 * t);
+      const settleT = Math.max(0, Math.min(1, (t - 0.88) / 0.12));
+      const floorY = state.targetPos.y + state.clearance * (1 - settleT);
+      cardMesh.position.y = floorY + amp;
+
+      if (t < 0.88) {
+        cardMesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.88) * dt);
+      } else {
+        cardMesh.quaternion.slerp(state.targetQuat, 0.3);
+      }
+
+      if (t >= 1) {
+        state.active = false;
+        state.settled = true;
+        cardMesh.position.copy(state.targetPos);
+        cardMesh.quaternion.copy(state.targetQuat);
+        triggerTableShake();
+      }
+    }
 
     const attackDieState = {
       active: false, settled: true,
@@ -2315,9 +3233,7 @@
         attackDieState.targetPos.copy(attackDieRestPos);
 
         const normal = ATTACK_OCT_NORMALS[useIndex].clone().normalize();
-        const align = new THREE.Quaternion().setFromUnitVectors(normal, new THREE.Vector3(0, 1, 0));
-        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
-        attackDieState.targetQuat.copy(spin).multiply(align);
+        attackDieState.targetQuat.copy(computeUprightQuat(normal, ATTACK_OCT_UPRIGHT_HINTS[useIndex]));
 
         attackDieState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
         attackDieState.spinSpeed = 14 + Math.random() * 8;
@@ -2335,9 +3251,11 @@
       });
     }
 
-    // ---------- camera: static overview of the plateau ----------
+    // ---------- camera: slow ambient drift around the plateau, like the Grove ----------
     const target = new THREE.Vector3(0, 0.5, 0);
-    const camPos = new THREE.Vector3(0, 2.6, 4.0);
+    let theta = 0;
+    const phi = 1.0876; // preserves the original fixed camera's height/distance ratio
+    const radius = 4.518;
     const baseFovDeg = 50;
     const minHorizontalFovDeg = 62; // guarantees both dice groups stay in frame on tall phone screens
     function fitFovToAspect() {
@@ -2350,8 +3268,19 @@
         camera.fov = baseFovDeg;
       }
     }
+    let tableShakeIntensity = 0;
+    function triggerTableShake() {
+      tableShakeIntensity = 0.16;
+    }
     function updateCamera() {
-      camera.position.copy(camPos);
+      camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+      camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = target.y + radius * Math.cos(phi);
+      if (tableShakeIntensity > 0.0008) {
+        camera.position.x += (Math.random() - 0.5) * tableShakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * tableShakeIntensity * 0.6;
+        camera.position.z += (Math.random() - 0.5) * tableShakeIntensity;
+      }
       camera.lookAt(target);
     }
     fitFovToAspect();
@@ -2370,7 +3299,14 @@
     const peakClock = new THREE.Clock();
     function frame() {
       const dt = peakClock.getDelta();
+      theta += dt * 0.015; // slow drift around the battlefield
+      updateCamera();
       updateAttackDie(dt);
+      updateCardToss(dt);
+      if (tableShakeIntensity > 0.0008) {
+        tableShakeIntensity *= Math.exp(-5 * dt);
+        if (tableShakeIntensity <= 0.0008) tableShakeIntensity = 0;
+      }
       renderer.render(scene, camera);
       peakRafId = requestAnimationFrame(frame);
     }
@@ -2378,6 +3314,8 @@
     return {
       canvas: renderer.domElement,
       rollPowerDie,
+      playCardToss,
+      hideCard: hideCardMesh,
       start() { if (!peakRunning) { peakRunning = true; frame(); } },
       stop() { peakRunning = false; if (peakRafId) cancelAnimationFrame(peakRafId); }
     };
@@ -2404,14 +3342,13 @@
   ];
 
   const powerFaces = [0, 0, 1, 1, 2, 2, 3, 3]; // summoning d4 (0-3), shown on the octahedron's 8 faces two-at-a-time
-  const attackFaces = ['burst', 0, 1, 2, 2, 3, 3, 3]; // battle d8 — burst = 4 dmg, used for both attack and defense rolls
+  const attackFaces = ['burst', 'burst', 0, 1, 2, 2, 2, 3]; // battle d8 — burst = 4 dmg, used for both attack and defense rolls
 
   const rollCounterEl = document.getElementById('roll-counter');
   const p1RollCountEl = document.getElementById('p1-roll-count');
   const p2RollCountEl = document.getElementById('p2-roll-count');
-  const targetValueEl = document.getElementById('target-value');
-  const targetIndicatorEl = document.getElementById('target-indicator');
-  const targetStatusEl = document.getElementById('target-status');
+  const p1SidePanelEl = document.getElementById('p1-rite-slots');
+  const p2SidePanelEl = document.getElementById('p2-rite-slots');
 
   rollCounterEl.addEventListener('click', () => {
     p1RollLog = [];
@@ -2434,85 +3371,129 @@
   let stoneEverRolled = { 1: false, 2: false }; // once true, non-matching shadows stop being recorded
   let hasNewMatchThisPhase = { 1: false, 2: false }; // must summon something new before re-declaring
 
+  // whose turn it is now shows as a highlighted glow behind that player's
+  // matched-creature boxes, rather than a separate text readout
   function renderTurnIndicator() {
-    targetValueEl.textContent = `Player ${activePlayer}`;
-    targetIndicatorEl.classList.toggle('player2', activePlayer === 2);
+    p1SidePanelEl.classList.toggle('rolling-turn', activePlayer === 1);
+    p2SidePanelEl.classList.toggle('rolling-turn', activePlayer === 2);
   }
 
-  function renderTargetStatus() {
-    const pending = summonPending[activePlayer];
-    targetStatusEl.textContent = pending.length
-      ? `Player ${activePlayer} is hunting: ${pending.join(', ')}`
-      : `Player ${activePlayer} needs to roll a stone`;
-  }
-
-  // Build 11 empty roll slots for each player, once
-  function buildSlotRow(containerId) {
+  // Build one fixed box per creature type (6 total), once, for each player.
+  function buildCreatureBoxRow(containerId) {
     const container = document.getElementById(containerId);
-    const els = [];
-    for (let i = 0; i < 11; i++) {
+    const els = {};
+    creatures.forEach(c => {
       const div = document.createElement('div');
-      div.className = 'rslot';
-      div.innerHTML = `<span class="rslot-mark">—</span>`;
+      div.className = 'creature-match-box';
+      div.innerHTML = `<span class="cmb-face">${c.face}</span><span class="cmb-badge" style="display:none;"></span>`;
       container.appendChild(div);
-      els.push(div);
-    }
+      els[c.name] = div;
+    });
     return els;
   }
-  const p1SlotEls = buildSlotRow('p1-rite-slots');
-  const p2SlotEls = buildSlotRow('p2-rite-slots');
+  const p1CreatureBoxEls = buildCreatureBoxRow('p1-rite-slots');
+  const p2CreatureBoxEls = buildCreatureBoxRow('p2-rite-slots');
+  let matchCounts = { 1: {}, 2: {} }; // creature name -> how many times matched this round
 
-  function renderSlotRow(slotEls, rollLog) {
-    slotEls.forEach((el, i) => {
-      const entry = rollLog[i];
-      if (!entry) {
-        el.className = 'rslot';
-        el.innerHTML = `<span class="rslot-mark">—</span>`;
+  function renderCreatureBoxRow(player) {
+    const els = player === 1 ? p1CreatureBoxEls : p2CreatureBoxEls;
+    const pending = summonPending[player];
+    const counts = matchCounts[player];
+    creatures.forEach(c => {
+      const el = els[c.name];
+      const isPending = pending.includes(c.name);
+      const count = counts[c.name] || 0;
+      el.classList.toggle('pending', isPending);
+      el.classList.toggle('matched', !isPending && count > 0);
+      const badge = el.querySelector('.cmb-badge');
+      if (count > 1) {
+        badge.textContent = `×${count}`;
+        badge.style.display = '';
       } else {
-        el.className = `rslot filled ${entry.isStone ? 'is-stone' : 'is-shadow'}`;
-        el.innerHTML = `
-          <span class="rslot-face">${entry.face}</span>
-          <span class="rslot-power">${entry.power}</span>
-        `;
+        badge.style.display = 'none';
       }
     });
   }
 
   function renderRiteSlots() {
-    renderSlotRow(p1SlotEls, p1RollLog);
-    renderSlotRow(p2SlotEls, p2RollLog);
+    renderCreatureBoxRow(1);
+    renderCreatureBoxRow(2);
     p1RollCountEl.textContent = p1RollLog.length;
     p2RollCountEl.textContent = p2RollLog.length;
   }
 
-  // A player is capped once they've rolled 11 times this summoning phase.
+  // No more roll cap — players can keep rolling as long as they like.
   function isCapped(player) {
-    return (player === 1 ? p1RollLog : p2RollLog).length >= 11;
+    return false;
   }
 
-  // After a roll, hand the turn to the other player — unless they're already
-  // capped, in which case the current player keeps going.
+  // After a roll, hand the turn to the other player.
   function advanceRollTurn() {
-    const other = activePlayer === 1 ? 2 : 1;
-    if (!isCapped(other)) {
-      activePlayer = other;
+    const next = activePlayer === 1 ? 2 : 1;
+    if (skipTurns[next] > 0) {
+      skipTurns[next] -= 1; // that roll's skipped — the current player goes again
+      cardPlayedThisTurn[activePlayer] = false;
+      renderHand(1);
+      renderHand(2);
+      return;
     }
+    activePlayer = next;
+    cardPlayedThisTurn[activePlayer] = false;
+    renderHand(1);
+    renderHand(2);
   }
 
   // A stone roll locks a fresh target (if not already hunting one). A shadow
   // roll matching the locked target completes that creature and banks it
   // immediately; the player is then free to lock a new target on their next stone.
-  function showSummonToast(player, face, name) {
+  // Shared stacking so multiple toasts appearing close together (both
+  // players drawing at once, an AI action right after a human one, etc.)
+  // queue up vertically instead of all landing in the same spot on top of
+  // each other.
+  let activeToasts = [];
+  function restackToasts() {
+    const infoBar = document.querySelector('.cast-top-bar');
+    let top = infoBar ? Math.max(infoBar.getBoundingClientRect().bottom + 10, 10) : 10;
+    activeToasts.forEach(toast => {
+      toast.style.top = `${top}px`;
+      top += toast.offsetHeight + 8;
+    });
+  }
+  function createStackedToast(className, html, duration) {
     const toast = document.createElement('div');
-    toast.className = `summon-toast ${player === 2 ? 'p2' : ''}`;
-    toast.innerHTML = `✅ Player ${player} summoned ${face} ${name}!`;
+    toast.className = className;
+    toast.innerHTML = html;
     document.body.appendChild(toast);
+    activeToasts.push(toast);
+    restackToasts();
     requestAnimationFrame(() => toast.classList.add('visible'));
     setTimeout(() => {
       toast.classList.remove('visible');
-      setTimeout(() => toast.remove(), 400);
-    }, 1900);
+      setTimeout(() => {
+        toast.remove();
+        activeToasts = activeToasts.filter(t => t !== toast);
+        restackToasts();
+      }, 400);
+    }, duration);
   }
+
+  function showSummonToast(player, face, name) {
+    createStackedToast(
+      `summon-toast ${player === 2 ? 'p2' : ''}`,
+      `✅ Player ${player} summoned ${face} ${name}!`,
+      1900 + extraDelay(player)
+    );
+  }
+
+  function showWaitingToast(declaringPlayer, opponent) {
+    createStackedToast(
+      `summon-toast wait-toast ${declaringPlayer === 2 ? 'p2' : ''}`,
+      `⏳ Player ${declaringPlayer} has declared! Battle begins the moment Player ${opponent} summons a creature.`,
+      2600 + extraDelay(declaringPlayer)
+    );
+  }
+
+  let pendingDeclarer = null; // set when a player declares before their opponent has any creature
 
   // Returns true if this roll should be kept in the roll log/slots, false if
   // it should be silently discarded (a non-matching shadow after the player's
@@ -2538,6 +3519,13 @@
       }
       showSummonToast(player, pair.face, pair.name);
       hasNewMatchThisPhase[player] = true;
+      matchCounts[player][entry.name] = (matchCounts[player][entry.name] || 0) + 1;
+
+      // if the OTHER player already declared and was waiting on exactly this,
+      // battle commences right now — no extra tap needed
+      if (pendingDeclarer !== null && pendingDeclarer !== player) {
+        commenceBattle(pendingDeclarer);
+      }
       return true;
     }
 
@@ -2547,8 +3535,8 @@
   }
 
   function canPlayerDeclare(player) {
-    const list = player === 1 ? cardCreatures : enemyCards;
-    return list.length > 0 && hasNewMatchThisPhase[player];
+    const myList = player === 1 ? cardCreatures : enemyCards;
+    return myList.length > 0 && hasNewMatchThisPhase[player];
   }
 
   function canDeclareBattle() {
@@ -2564,53 +3552,122 @@
 
   let isRolling = false;
 
-  async function triggerRoll() {
-    if (castScreenEl.style.display === 'none') return; // not on the Circle screen — ignore
-    if (isRolling) return;
-    if (isCapped(activePlayer) && !isCapped(activePlayer === 1 ? 2 : 1)) {
-      activePlayer = activePlayer === 1 ? 2 : 1; // self-heal if somehow stuck on a capped player
-    }
-    if (isCapped(1) && isCapped(2)) return; // both capped — nothing left to roll, must declare
-    if (!groveInstance) return; // grove/dice not built yet
+  // --- Fortune's Grasp: 3 rolls, lock any dice between them to keep them ---
+  const lockrollOverlay = document.getElementById('lockroll-overlay');
+  const lockrollEyebrowEl = document.getElementById('lockroll-eyebrow');
+  const lockrollDieCoinEl = document.getElementById('lockroll-die-coin');
+  const lockrollDieCreatureEl = document.getElementById('lockroll-die-creature');
+  const lockrollDiePowerEl = document.getElementById('lockroll-die-power');
+  const lockrollValCoinEl = document.getElementById('lockroll-val-coin');
+  const lockrollValCreatureEl = document.getElementById('lockroll-val-creature');
+  const lockrollValPowerEl = document.getElementById('lockroll-val-power');
+  const lockrollRerollBtn = document.getElementById('lockroll-reroll-btn');
+  const lockrollKeepBtn = document.getElementById('lockroll-keep-btn');
 
-    isRolling = true;
+  function runLockRollSequence(player) {
+    return new Promise(async (resolve) => {
+      let rollCount = 1;
+      const locked = { coin: false, creature: false, power: false };
+      let currentResult = await groveInstance.rollDice();
 
-    const result = await groveInstance.rollDice();
+      function render() {
+        lockrollEyebrowEl.textContent = `Fortune's Grasp — Roll ${rollCount} of 3`;
+        lockrollValCoinEl.textContent = currentResult.coin.isStone ? '🪙 Stone' : '👤 Shadow';
+        lockrollValCreatureEl.textContent = `${currentResult.creature.face} ${currentResult.creature.name}`;
+        lockrollValPowerEl.textContent = currentResult.power.value;
+        lockrollDieCoinEl.classList.toggle('locked', locked.coin);
+        lockrollDieCreatureEl.classList.toggle('locked', locked.creature);
+        lockrollDiePowerEl.classList.toggle('locked', locked.power);
+        const noRerollsLeft = rollCount >= 3;
+        lockrollRerollBtn.disabled = noRerollsLeft;
+        lockrollRerollBtn.style.opacity = noRerollsLeft ? '0.4' : '1';
+      }
+      render();
+      lockrollOverlay.classList.add('open');
 
+      function toggleLock(key) {
+        if (rollCount >= 3) return; // no rerolls left — locking wouldn't matter anymore
+        locked[key] = !locked[key];
+        render();
+      }
+      function onDieClick(e) {
+        const btn = e.target.closest('.lockroll-die');
+        if (!btn) return;
+        if (btn === lockrollDieCoinEl) toggleLock('coin');
+        else if (btn === lockrollDieCreatureEl) toggleLock('creature');
+        else if (btn === lockrollDiePowerEl) toggleLock('power');
+      }
+      async function onReroll() {
+        if (rollCount >= 3) return;
+        rollCount += 1;
+        currentResult = await groveInstance.rollDiceSelective(locked);
+        render();
+      }
+      function finish() {
+        lockrollDieCoinEl.parentElement.removeEventListener('click', onDieClick);
+        lockrollRerollBtn.removeEventListener('click', onReroll);
+        lockrollKeepBtn.removeEventListener('click', finish);
+        lockrollOverlay.classList.remove('open');
+        resolve(currentResult);
+      }
+
+      lockrollDieCoinEl.parentElement.addEventListener('click', onDieClick);
+      lockrollRerollBtn.addEventListener('click', onReroll);
+      lockrollKeepBtn.addEventListener('click', finish);
+    });
+  }
+
+  function finishRollTurn(player, result) {
     const entry = {
       face: result.creature.face,
       name: result.creature.name,
       power: result.power.value,
       isStone: result.coin.isStone
     };
-
-    const shouldRecord = processRoll(activePlayer, entry);
+    const shouldRecord = processRoll(player, entry);
     if (shouldRecord) {
-      const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
+      const activeLog = player === 1 ? p1RollLog : p2RollLog;
       activeLog.push(entry);
+      if (activeLog.length % 11 === 0) {
+        drawCardForPlayer(player);
+      }
     }
     renderRiteSlots();
     updateDeclareButton();
     advanceRollTurn();
     renderTurnIndicator();
-    renderTargetStatus();
+  }
 
+  async function triggerRoll() {
+    if (castScreenEl.style.display === 'none') return; // not on the Circle screen — ignore
+    if (isRolling) return;
+    if (!groveInstance) return; // grove/dice not built yet
+
+    isRolling = true;
+
+    if (lockRollArmed[activePlayer]) {
+      lockRollArmed[activePlayer] = false;
+      const player = activePlayer;
+      const result = await runLockRollSequence(player);
+      finishRollTurn(player, result);
+      isRolling = false;
+      return;
+    }
+
+    const result = await groveInstance.rollDice();
+    finishRollTurn(activePlayer, result);
     isRolling = false;
   }
 
   sceneWrap.addEventListener('click', triggerRoll);
 
   // Testing helper: instantly rolls (respecting target-lock + alternation) until
-  // either player could legally declare battle, or both hit the 11-roll cap.
+  // either player could legally declare battle.
   const fastForwardBtn = document.getElementById('fast-forward');
   fastForwardBtn.addEventListener('click', () => {
     let safety = 0;
-    while (!canDeclareBattle() && !(isCapped(1) && isCapped(2)) && safety < 5000) {
+    while (!canDeclareBattle() && safety < 5000) {
       safety++;
-      if (isCapped(activePlayer) && !isCapped(activePlayer === 1 ? 2 : 1)) {
-        activePlayer = activePlayer === 1 ? 2 : 1;
-      }
-      if (isCapped(1) && isCapped(2)) break;
       const creature = creatures[Math.floor(Math.random() * creatures.length)];
       const power = powerFaces[Math.floor(Math.random() * powerFaces.length)];
       const isStone = Math.random() < 0.5;
@@ -2619,59 +3676,717 @@
       if (shouldRecord) {
         const activeLog = activePlayer === 1 ? p1RollLog : p2RollLog;
         activeLog.push(entry);
+        if (activeLog.length % 11 === 0) {
+          drawCardForPlayer(activePlayer);
+        }
       }
       advanceRollTurn();
     }
     renderRiteSlots();
     renderTurnIndicator();
-    renderTargetStatus();
     updateDeclareButton();
   });
 
-  function declareBattle() {
+  let battleCommencing = false;
+  async function commenceBattle(declaringPlayer) {
+    if (battleCommencing) return; // guards against any path calling this twice for the same transition
+    battleCommencing = true;
+
     p1RollLog = [];
     p2RollLog = [];
     summonPending = { 1: [], 2: [] };
     stoneEverRolled = { 1: false, 2: false };
     hasNewMatchThisPhase = { 1: false, 2: false };
+    pendingDeclarer = null;
     Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
     Object.keys(battleResults).forEach(k => delete battleResults[k]);
     renderRiteSlots();
-    openCoinFlipOverlay('attack');
+    updateDeclareButton();
+
+    // whoever holds First Strike goes first — otherwise it's whoever declared
+    const firstAttacker = firstStrikeOverride || declaringPlayer;
+    firstStrikeOverride = null;
+    roundFirstPlayer = firstAttacker;
+    currentAttacker = firstAttacker;
+    cardPlayedThisTurn = { 1: false, 2: false };
+
+    await transitionToScreen('battle');
+    drawCardsForBothPlayers();
+    renderHand(1);
+    renderHand(2);
+
+    setTimeout(() => { battleCommencing = false; }, 800);
   }
-  declareBattleP1Btn.addEventListener('click', () => { if (canPlayerDeclare(1)) declareBattle(); });
-  declareBattleP2Btn.addEventListener('click', () => { if (canPlayerDeclare(2)) declareBattle(); });
+
+  function declareBattle(declaringPlayer) {
+    const opponent = declaringPlayer === 1 ? 2 : 1;
+    const opponentList = declaringPlayer === 1 ? enemyCards : cardCreatures;
+    if (opponentList.length === 0) {
+      if (pendingDeclarer === declaringPlayer) return; // already declared and waiting — don't re-toast
+      pendingDeclarer = declaringPlayer;
+      showWaitingToast(declaringPlayer, opponent);
+      return; // stay in summoning — battle can't start until the opponent has a creature
+    }
+    commenceBattle(declaringPlayer);
+  }
+  let declaringInProgress = false;
+  declareBattleP1Btn.addEventListener('click', () => {
+    if (declaringInProgress || !canPlayerDeclare(1)) return;
+    declaringInProgress = true;
+    declareBattle(1);
+    setTimeout(() => { declaringInProgress = false; }, 500);
+  });
+  declareBattleP2Btn.addEventListener('click', () => {
+    if (declaringInProgress || !canPlayerDeclare(2)) return;
+    declaringInProgress = true;
+    declareBattle(2);
+    setTimeout(() => { declaringInProgress = false; }, 500);
+  });
 
 
   const titleScreenEl = document.getElementById('title-screen');
   const titleBeginBtn = document.getElementById('title-begin-btn');
   const castScreenEl = document.getElementById('cast-screen');
   const howtoScreenEl = document.getElementById('howto-screen');
+  const galleryScreenEl = document.getElementById('gallery-screen');
   const howtoBtn = document.getElementById('howto-btn');
   const howtoBackBtn = document.getElementById('howto-back-btn');
   let screenBeforeHowto = 'title';
 
-  let cardCreatures = [];       // [{ face, name }] in the order they first earned a card
-  const cardShadowPower = {};   // name -> most recent matched shadow power
+  // --- Player 2 as a computer opponent (default game mode) ---
+  let p2IsAI = true;
+  const aiToggleBtn = document.getElementById('ai-toggle-btn');
+  aiToggleBtn.addEventListener('click', () => {
+    p2IsAI = !p2IsAI;
+    aiToggleBtn.textContent = p2IsAI ? '🤖 Player 2: Computer' : '🤖 Player 2: Human';
+    aiToggleBtn.classList.toggle('active', p2IsAI);
+  });
 
-  let enemyCards = [];          // [{ face, name }] — Player 2's creature roster
-  const enemyPower = {};        // name -> most recent matched power
+  // =====================================================================
+  // CARDS — drawn one per player at the start of every phase (summoning or
+  // battle), capped at 3 in hand. Each player has their own shuffled deck
+  // (2 copies of each card below) that persists for the whole match.
+  // =====================================================================
+  const CARD_DEFS = [
+    { id: 'dmg2', name: 'Spark Bolt', type: 'damage', amount: 2, icon: '⚡', desc: '2 damage straight to your opponent.' },
+    { id: 'dmg3', name: 'Flame Lance', type: 'damage', amount: 3, icon: '🔥', desc: '3 damage straight to your opponent.' },
+    { id: 'dmg6', name: "Ruin's Wrath", type: 'damage', amount: 6, icon: '💥', desc: '6 damage straight to your opponent.' },
+    { id: 'skip2', name: 'Binding Hex', type: 'skip', amount: 2, icon: '⛓️', desc: "Opponent skips their next 2 rolls in the summoning phase." },
+    { id: 'skip3', name: 'Chains of Silence', type: 'skip', amount: 3, icon: '🔇', desc: "Opponent skips their next 3 rolls in the summoning phase." },
+    { id: 'skip4', name: 'Eternal Slumber', type: 'skip', amount: 4, icon: '💤', desc: "Opponent skips their next 4 rolls in the summoning phase." },
+    { id: 'destroy1', name: 'Soul Rend', type: 'destroy', icon: '💀', desc: "Destroy one of your opponent's creatures. You must have a creature of your own to cast this." },
+    { id: 'destroy2', name: 'Void Consume', type: 'destroy', icon: '🕳️', desc: "Destroy one of your opponent's creatures. You must have a creature of your own to cast this." },
+    { id: 'addcreature', name: 'Conjured Ally', type: 'addcreature', icon: '✨', desc: "Summon a random creature straight to your roster — this counts toward being able to declare battle." },
+    { id: 'heal2', name: 'Minor Mending', type: 'heal', amount: 2, icon: '💚', desc: 'Restore 2 of your own health points.' },
+    { id: 'heal4', name: 'Restoration', type: 'heal', amount: 4, icon: '✚', desc: 'Restore 4 of your own health points.' },
+    { id: 'heal8', name: 'Greater Renewal', type: 'heal', amount: 8, icon: '🌿', desc: 'Restore 8 of your own health points.' },
+    { id: 'firststrike', name: 'First Strike', type: 'firststrike', icon: '🗡️', desc: "Guarantees you attack first the next time battle begins, no matter who declares it. Summoning phase only." },
+    { id: 'steal1', name: 'Mind Snatch', type: 'steal', icon: '🫴', desc: "Steal one of your opponent's creatures onto your own roster. Summoning phase only." },
+    { id: 'steal2', name: 'Coax Beast', type: 'steal', icon: '🎭', desc: "Steal one of your opponent's creatures onto your own roster. Summoning phase only." },
+    { id: 'bonusattack', name: 'Extra Swing', type: 'bonusattack', icon: '🌀', desc: "Your next attacking creature gets one additional attack roll. Battle phase only." },
+    { id: 'bonusdefense', name: 'Extra Guard', type: 'bonusdefense', icon: '🛡️', desc: "The next time you defend, roll one additional defense die against each attack roll. Battle phase only." },
+    { id: 'draw1', name: 'Insight', type: 'draw', icon: '📖', desc: 'Draw an extra card.' },
+    { id: 'peekhand', name: 'Mind Read', type: 'peekhand', icon: '👁️', desc: "See your opponent's hand and take one card from it into your own." },
+    { id: 'lockroll', name: "Fortune's Grasp", type: 'lockroll', icon: '🎯', desc: "Your next roll becomes 3 rolls — lock any dice between rolls to keep them, and only the unlocked ones roll again. Summoning phase only." }
+  ];
+  const MAX_HAND = 3;
+  let sharedDeck; // one 60-card pool, shared by both players — built just below
+  let discardPile = []; // played/discarded cards — reshuffled back into sharedDeck once it runs dry
+  let p1Hand = [], p2Hand = [];
+  let skipTurns = { 1: 0, 2: 0 }; // pending skipped rolls, consumed in advanceRollTurn
+  let firstStrikeOverride = null; // player who's guaranteed to attack first next battle, if set
+  let bonusAttackRolls = { 1: 0, 2: 0 };  // extra attack rolls banked for a player's next attack
+  let bonusDefenseRolls = { 1: 0, 2: 0 }; // extra defense rolls banked for a player's next defense
+  let lockRollArmed = { 1: false, 2: false }; // consumed on this player's next roll — triggers the 3-roll lock sequence
+  let cardPlayedThisTurn = { 1: false, 2: false }; // caps card play at one per turn, reset when the turn changes
 
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Per-card counts for the shared 60-card pool (from the tuned CSV)
+  const CARD_COUNTS = {
+    dmg2: 4, dmg3: 4, dmg6: 2,
+    skip2: 3, skip3: 3, skip4: 2,
+    destroy1: 2, destroy2: 2,
+    addcreature: 3,
+    heal2: 4, heal4: 3, heal8: 2,
+    firststrike: 4,
+    steal1: 2, steal2: 2,
+    bonusattack: 4, bonusdefense: 4,
+    draw1: 4, peekhand: 2, lockroll: 4
+  };
+
+  function buildDeck() {
+    const deck = [];
+    CARD_DEFS.forEach(c => {
+      const count = CARD_COUNTS[c.id] || 2;
+      for (let i = 0; i < count; i++) deck.push(c.id);
+    });
+    return shuffle(deck);
+  }
+  sharedDeck = buildDeck();
+
+  function cardDef(id) {
+    return CARD_DEFS.find(c => c.id === id);
+  }
+
+  const CARD_STYLE = {
+    damage:       { color: '#8b2a2a', bright: '#e2777f', type: 'Sorcery — Damage' },
+    heal:         { color: '#2d6b3f', bright: '#7fc98f', type: 'Sorcery — Restoration' },
+    skip:         { color: '#5a3a7a', bright: '#a874bb', type: 'Hex — Binding' },
+    destroy:      { color: '#382a4a', bright: '#a874bb', type: 'Curse — Destruction' },
+    steal:        { color: '#2a4a6b', bright: '#7ab3d9', type: 'Charm — Theft' },
+    addcreature:  { color: '#8a6b1f', bright: '#f0be6c', type: 'Conjuration — Creature' },
+    firststrike:  { color: '#8a6b1f', bright: '#f0be6c', type: 'Enchantment — Tactics' },
+    bonusattack:  { color: '#8b2a2a', bright: '#e2777f', type: 'Instant — Fury' },
+    bonusdefense: { color: '#2d6b3f', bright: '#7fc98f', type: 'Instant — Ward' },
+    draw: { color: '#2a4a6b', bright: '#7ab3d9', type: 'Sorcery — Insight' },
+    peekhand: { color: '#382a4a', bright: '#a874bb', type: 'Curse — Deception' },
+    lockroll: { color: '#8a6b1f', bright: '#f0be6c', type: 'Enchantment — Fortune' }
+  };
+
+  function drawCardForPlayer(player) {
+    const hand = player === 1 ? p1Hand : p2Hand;
+    if (sharedDeck.length === 0) {
+      if (discardPile.length === 0) return; // truly nothing left anywhere — no draw
+      sharedDeck = shuffle(discardPile);
+      discardPile = [];
+      showCardToast(player, `🔀 The deck ran dry — the discard pile was reshuffled back in!`);
+    }
+    const cardId = sharedDeck.pop();
+    hand.push(cardId);
+    renderHand(player);
+    if (player === 1) {
+      showCardToast(player, `🃏 Player 1 drew ${cardDef(cardId).icon} ${cardDef(cardId).name}!`);
+    }
+    if (hand.length > MAX_HAND) {
+      requestDiscard(player);
+    }
+  }
+
+  function drawCardsForBothPlayers() {
+    drawCardForPlayer(1);
+    drawCardForPlayer(2);
+  }
+
+  const discardOverlay = document.getElementById('discard-overlay');
+  const discardOwnerEl = document.getElementById('discard-owner');
+  const discardOptionsEl = document.getElementById('discard-options');
+  let discardPlayer = null;
+
+  let discardQueue = []; // player numbers waiting their turn to discard
+  let cardTossInProgress = false; // true for the whole toss+popup sequence, not just the popup
+
+  // Ensures card-play animations (toss + detail popup) never run two at a
+  // time — everything chains onto this promise so a second play's sequence
+  // always waits for the first one to fully finish, in order.
+  let cardAnimationQueue = Promise.resolve();
+  function queueCardAnimation(fn) {
+    const run = cardAnimationQueue.then(fn, fn);
+    cardAnimationQueue = run.catch(() => {});
+    return run;
+  }
+
+  // Queues a discard request instead of opening straight over whatever's
+  // already showing — otherwise a second player needing to discard around
+  // the same moment would silently clobber the first player's prompt before
+  // they ever got to resolve it.
+  function requestDiscard(player) {
+    if (discardPlayer === player) {
+      openDiscardPrompt(player); // already showing for this player — just refresh it
+      return;
+    }
+    if (discardPlayer !== null) {
+      if (!discardQueue.includes(player)) discardQueue.push(player);
+      return;
+    }
+    openDiscardPrompt(player);
+  }
+
+  function openDiscardPrompt(player) {
+    discardPlayer = player;
+    const hand = player === 1 ? p1Hand : p2Hand;
+    discardOwnerEl.textContent = `Player ${player}'s Hand is Full`;
+    discardOptionsEl.innerHTML = hand.map(id => {
+      const def = cardDef(id);
+      const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+      return `<button type="button" class="discard-option" data-card="${id}" style="--hc-color:${style.color};--hc-bright:${style.bright};">
+        <span class="do-icon">${def.icon}</span>
+        <span class="do-text">
+          <span class="do-name">${def.name}</span>
+          <span class="do-type">${style.type}</span>
+        </span>
+      </button>`;
+    }).join('');
+    discardOverlay.classList.add('open');
+  }
+
+  discardOptionsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.discard-option');
+    if (!btn || discardPlayer === null) return;
+    const hand = discardPlayer === 1 ? p1Hand : p2Hand;
+    const idx = hand.indexOf(btn.dataset.card);
+    if (idx !== -1) {
+      const [discarded] = hand.splice(idx, 1);
+      discardPile.push(discarded);
+    }
+    renderHand(discardPlayer);
+    if (hand.length > MAX_HAND) {
+      // more than one card stacked up before this got resolved — keep
+      // prompting until the hand is actually back down to the cap
+      openDiscardPrompt(discardPlayer);
+    } else if (discardQueue.length > 0) {
+      // this player's clear — move on to whoever else is waiting
+      const next = discardQueue.shift();
+      openDiscardPrompt(next);
+    } else {
+      discardOverlay.classList.remove('open');
+      discardPlayer = null;
+      if (pendingAfterDiscard) {
+        const fn = pendingAfterDiscard;
+        pendingAfterDiscard = null;
+        fn();
+      }
+    }
+  });
+
+  // --- Mind Read: view the opponent's hand and take one card from it ---
+  const peekhandOverlay = document.getElementById('peekhand-overlay');
+  const peekhandOwnerEl = document.getElementById('peekhand-owner');
+  const peekhandOptionsEl = document.getElementById('peekhand-options');
+  let peekhandPlayer = null; // the player doing the taking
+  let peekhandResolve = null;
+
+  function showPeekHandPrompt(player) {
+    return new Promise(resolve => {
+      const opponent = player === 1 ? 2 : 1;
+      const oppHand = player === 1 ? p2Hand : p1Hand;
+      if (oppHand.length === 0) { resolve(); return; } // nothing to take after all
+      peekhandPlayer = player;
+      peekhandResolve = resolve;
+      peekhandOwnerEl.textContent = `Player ${opponent}'s Hand`;
+      peekhandOptionsEl.innerHTML = oppHand.map(id => {
+        const def = cardDef(id);
+        const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+        return `<button type="button" class="discard-option" data-card="${id}" style="--hc-color:${style.color};--hc-bright:${style.bright};">
+          <span class="do-icon">${def.icon}</span>
+          <span class="do-text">
+            <span class="do-name">${def.name}</span>
+            <span class="do-type">${style.type}</span>
+          </span>
+        </button>`;
+      }).join('');
+      peekhandOverlay.classList.add('open');
+    });
+  }
+
+  peekhandOptionsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.discard-option');
+    if (!btn || peekhandPlayer === null) return;
+    const takingPlayer = peekhandPlayer;
+    const opponent = takingPlayer === 1 ? 2 : 1;
+    const oppHand = takingPlayer === 1 ? p2Hand : p1Hand;
+    const myHand = takingPlayer === 1 ? p1Hand : p2Hand;
+    const idx = oppHand.indexOf(btn.dataset.card);
+    if (idx !== -1) {
+      const [taken] = oppHand.splice(idx, 1);
+      myHand.push(taken);
+      showCardToast(takingPlayer, `👁️ Player ${takingPlayer} took ${cardDef(taken).icon} ${cardDef(taken).name} from Player ${opponent}'s hand!`);
+      renderHand(1);
+      renderHand(2);
+    }
+    peekhandOverlay.classList.remove('open');
+    peekhandPlayer = null;
+    const resolveFn = peekhandResolve;
+    peekhandResolve = null;
+    if (resolveFn) resolveFn();
+    // taking a card can push the hand over the cap — handle it same as any draw
+    if (myHand.length > MAX_HAND) requestDiscard(takingPlayer);
+  });
+
+  // Lets the human see exactly what the computer opponent just cast, styled
+  // like the same card they'd see if they'd played it themselves. Separate
+  // overlay from the human's own card-detail view so the two can never clash
+  // if they happen to land at the same moment.
+  const aiCardPopupOverlay = document.getElementById('ai-card-popup-overlay');
+  const aiMtgCardEl = document.getElementById('ai-mtg-card');
+  const aiCardOwnerEl = document.getElementById('ai-card-owner');
+  const aiCardNameEl = document.getElementById('ai-card-name');
+  const aiCardIconEl = document.getElementById('ai-card-icon');
+  const aiCardTypelineEl = document.getElementById('ai-card-typeline');
+  const aiCardDescEl = document.getElementById('ai-card-desc');
+  let aiCardPopupTimer = null;
+
+  let aiCardPopupResolve = null;
+  function showPlayedCardPopup(player, cardId) {
+    return new Promise(resolve => {
+      const inGameScreen = castScreenEl.style.display !== 'none' || battleScreenEl.style.display !== 'none';
+      if (!inGameScreen) {
+        resolve(); // match's already over / we've left the game screens — don't show this
+        return;
+      }
+      const def = cardDef(cardId);
+      const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+      aiCardOwnerEl.textContent = (player === 2 && p2IsAI) ? '🤖 Computer Played' : `Player ${player} Played`;
+      aiCardNameEl.textContent = def.name;
+      aiCardIconEl.textContent = def.icon;
+      aiCardTypelineEl.textContent = style.type;
+      aiCardDescEl.textContent = def.desc;
+      aiMtgCardEl.style.setProperty('--card-color', style.color);
+      aiMtgCardEl.style.setProperty('--card-bright', style.bright);
+      aiCardPopupOverlay.classList.add('open');
+      clearTimeout(aiCardPopupTimer);
+      aiCardPopupResolve = resolve;
+      aiCardPopupTimer = setTimeout(() => {
+        aiCardPopupOverlay.classList.remove('open');
+        aiCardPopupResolve = null;
+        resolve();
+      }, 3000 + extraDelay(player));
+    });
+  }
+  aiCardPopupOverlay.addEventListener('click', () => {
+    aiCardPopupOverlay.classList.remove('open');
+    clearTimeout(aiCardPopupTimer);
+    if (aiCardPopupResolve) {
+      const r = aiCardPopupResolve;
+      aiCardPopupResolve = null;
+      r();
+    }
+  });
+
+  // A damage card can KO on its own, even outside the battle screen — reuse
+  // the exact same round-end machinery combat attacks already use. Safe to
+  // call any time: checkBattleEnd() only takes the "someone died" branch
+  // when a KO has actually happened, so this can never accidentally trigger
+  // the (battle-only) exhaustion/return-to-summoning branch.
+  function checkForKOFromCard() {
+    if ((playerHP <= 0 || enemyHP <= 0) && !battleOver) {
+      checkBattleEnd();
+    }
+  }
+
+  function canPlayCard(player, cardId) {
+    // cards can only be cast on your own turn — during summoning that means
+    // it's your roll, during battle it means you're the current attacker
+    if (castScreenEl.style.display !== 'none') {
+      if (activePlayer !== player) return false;
+    } else if (battleScreenEl.style.display !== 'none') {
+      if (currentAttacker !== player) return false;
+    } else {
+      return false;
+    }
+    if (cardPlayedThisTurn[player]) return false; // one card per turn
+
+    const def = cardDef(cardId);
+    if (def.type === 'skip' || def.type === 'firststrike') {
+      return castScreenEl.style.display !== 'none'; // summoning phase only
+    }
+    if (def.type === 'destroy') {
+      const myList = player === 1 ? cardCreatures : enemyCards;
+      const oppList = player === 1 ? enemyCards : cardCreatures;
+      return myList.length > 0 && oppList.length > 0;
+    }
+    if (def.type === 'steal') {
+      if (castScreenEl.style.display === 'none') return false; // summoning phase only
+      const oppList = player === 1 ? enemyCards : cardCreatures;
+      return oppList.length > 0;
+    }
+    if (def.type === 'bonusattack' || def.type === 'bonusdefense') {
+      return battleScreenEl.style.display !== 'none'; // battle phase only
+    }
+    if (def.type === 'lockroll') {
+      return castScreenEl.style.display !== 'none'; // summoning phase only
+    }
+    if (def.type === 'peekhand') {
+      const oppHand = player === 1 ? p2Hand : p1Hand;
+      return oppHand.length > 0;
+    }
+    return true; // damage, heal, draw, and add-creature cards are always playable
+  }
+
+  async function playCard(player, cardId, alreadySeenByPlayer = false) {
+    if (!canPlayCard(player, cardId)) return;
+    const hand = player === 1 ? p1Hand : p2Hand;
+    const idx = hand.indexOf(cardId);
+    if (idx === -1) return;
+    const def = cardDef(cardId);
+    const opponent = player === 1 ? 2 : 1;
+    let needsRosterRefresh = false;
+
+    if (def.type === 'damage') {
+      if (player === 1) {
+        enemyHP = Math.max(0, enemyHP - def.amount);
+      } else {
+        playerHP = Math.max(0, playerHP - def.amount);
+      }
+      updateHpDisplay();
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — ${def.amount} damage to Player ${opponent}!`);
+      checkForKOFromCard();
+
+    } else if (def.type === 'skip') {
+      skipTurns[opponent] += def.amount;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — Player ${opponent} skips ${def.amount} rolls!`);
+
+    } else if (def.type === 'destroy') {
+      const oppList = player === 1 ? enemyCards : cardCreatures;
+      const removeIdx = Math.floor(Math.random() * oppList.length);
+      const removed = oppList.splice(removeIdx, 1)[0];
+      Object.keys(attackCounts).forEach(k => { if (k.endsWith(`:${removed.id}`)) delete attackCounts[k]; });
+      Object.keys(battleResults).forEach(k => { if (k.endsWith(`:${removed.id}`)) delete battleResults[k]; });
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — destroyed Player ${opponent}'s ${removed.face} ${removed.name}!`);
+      needsRosterRefresh = true;
+
+    } else if (def.type === 'heal') {
+      if (player === 1) {
+        playerHP = Math.min(MAX_HP, playerHP + def.amount);
+      } else {
+        enemyHP = Math.min(MAX_HP, enemyHP + def.amount);
+      }
+      updateHpDisplay();
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — heals ${def.amount} HP!`);
+
+    } else if (def.type === 'addcreature') {
+      const creature = creatures[Math.floor(Math.random() * creatures.length)];
+      const power = Math.floor(Math.random() * 4); // 0-3
+      const entry = { id: `c${nextCreatureId++}`, face: creature.face, name: creature.name, power };
+      if (player === 1) {
+        cardCreatures.push(entry);
+      } else {
+        enemyCards.push(entry);
+      }
+      hasNewMatchThisPhase[player] = true;
+      matchCounts[player][creature.name] = (matchCounts[player][creature.name] || 0) + 1;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — conjured a ${creature.face} ${creature.name} (Power ${power})!`);
+      needsRosterRefresh = true;
+
+    } else if (def.type === 'firststrike') {
+      firstStrikeOverride = player;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — will attack first when battle begins!`);
+
+    } else if (def.type === 'steal') {
+      const oppList = player === 1 ? enemyCards : cardCreatures;
+      const myList = player === 1 ? cardCreatures : enemyCards;
+      const stealIdx = Math.floor(Math.random() * oppList.length);
+      const stolen = oppList.splice(stealIdx, 1)[0];
+      myList.push(stolen);
+      hasNewMatchThisPhase[player] = true;
+      matchCounts[player][stolen.name] = (matchCounts[player][stolen.name] || 0) + 1;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — stole Player ${opponent}'s ${stolen.face} ${stolen.name}!`);
+      needsRosterRefresh = true;
+
+    } else if (def.type === 'bonusattack') {
+      bonusAttackRolls[player] += 1;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — their next attack gets an extra roll!`);
+
+    } else if (def.type === 'bonusdefense') {
+      bonusDefenseRolls[player] += 1;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — their next defense gets an extra roll per attack!`);
+
+    } else if (def.type === 'draw') {
+      drawCardForPlayer(player);
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — drew an extra card!`);
+
+    } else if (def.type === 'peekhand') {
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — peeking at their opponent's hand!`);
+      await showPeekHandPrompt(player);
+
+    } else if (def.type === 'lockroll') {
+      lockRollArmed[player] = true;
+      showCardToast(player, `${def.icon} Player ${player} casts ${def.name} — their next roll becomes a 3-roll lock sequence!`);
+
+    } else {
+      return; // unrecognized card type — don't consume it
+    }
+
+    hand.splice(idx, 1);
+    discardPile.push(cardId);
+    renderHand(player);
+    if (needsRosterRefresh) {
+      renderRiteSlots();
+      updateDeclareButton();
+      if (battleScreenEl.style.display !== 'none') renderBattleScreen();
+    }
+
+    cardPlayedThisTurn[player] = true;
+
+    // Deploying any card earns an immediate bonus draw — but during the
+    // summoning phase, that costs you your next roll.
+    drawCardForPlayer(player);
+    if (castScreenEl.style.display !== 'none') {
+      skipTurns[player] += 1;
+    }
+
+    // Visual flourish: the card physically lands on the table/battlefield,
+    // then we linger on a close-up of exactly what was just played. Queued
+    // so that if two cards get played close together, their animations run
+    // one after another instead of both fighting over the same card mesh —
+    // that overlap was the cause of the popup sometimes beating the landing.
+    await queueCardAnimation(async () => {
+      cardTossInProgress = true;
+      const sceneInstance = castScreenEl.style.display !== 'none' ? groveInstance
+        : (battleScreenEl.style.display !== 'none' ? peakInstance : null);
+      if (sceneInstance && sceneInstance.playCardToss) {
+        await sceneInstance.playCardToss();
+      }
+      // if the player just tapped Deploy on their own card, they already saw
+      // its full details seconds ago in the confirm view — showing the same
+      // card again right after would just be a repeat of what they saw
+      if (!alreadySeenByPlayer) {
+        await showPlayedCardPopup(player, cardId);
+      }
+      if (sceneInstance && sceneInstance.hideCard) {
+        sceneInstance.hideCard();
+      }
+      cardTossInProgress = false;
+    });
+  }
+
+  function showCardToast(player, message) {
+    createStackedToast(
+      `summon-toast card-toast ${player === 2 ? 'p2' : ''}`,
+      message,
+      2400 + extraDelay(player)
+    );
+  }
+
+  const p1HandEl = document.getElementById('p1-hand');
+  const p2HandEl = document.getElementById('p2-hand');
+
+  function cardMarkup(player, cardId) {
+    const def = cardDef(cardId);
+    const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+    const playable = canPlayCard(player, cardId);
+    return `<button type="button" class="hand-card ${playable ? '' : 'unplayable'}" data-card="${cardId}" data-player="${player}" style="--hc-color:${style.color};--hc-bright:${style.bright};" title="${def.name}">
+      <span class="hc-icon">${def.icon}</span>
+    </button>`;
+  }
+
+  function renderHand(player) {
+    const hand = player === 1 ? p1Hand : p2Hand;
+    const el = player === 1 ? p1HandEl : p2HandEl;
+    el.innerHTML = hand.length
+      ? hand.map(id => cardMarkup(player, id)).join('')
+      : `<span class="hand-empty">no cards</span>`;
+
+    // fan the cards out like they're actually held in a hand — angle and
+    // lift scale with how many are there, so 1 card sits flat and 3 cards
+    // spread into a proper fan. Player 1's cards also get a slight 3D tilt,
+    // like you're looking down over your own hand toward the table.
+    const cards = el.querySelectorAll('.hand-card');
+    const total = cards.length;
+    const tiltX = player === 1 ? 14 : 0;
+    cards.forEach((card, i) => {
+      if (total <= 1) {
+        card.style.transform = `rotateX(${tiltX}deg) rotate(0deg) translateY(0px)`;
+      } else {
+        const maxAngle = total === 2 ? 7 : 12;
+        const step = (maxAngle * 2) / (total - 1);
+        const angle = -maxAngle + step * i;
+        const centerOffset = Math.abs(i - (total - 1) / 2);
+        const lift = centerOffset * 5;
+        card.style.transform = `rotateX(${tiltX}deg) rotate(${angle}deg) translateY(${lift}px)`;
+      }
+      card.style.zIndex = i + 1;
+    });
+  }
+
+  const cardDetailOverlay = document.getElementById('card-detail-overlay');
+  const mtgCardEl = document.getElementById('mtg-card');
+  const cardDetailOwnerEl = document.getElementById('card-detail-owner');
+  const cardDetailIconEl = document.getElementById('card-detail-icon');
+  const cardDetailNameEl = document.getElementById('card-detail-name');
+  const cardDetailTypelineEl = document.getElementById('card-detail-typeline');
+  const cardDetailDescEl = document.getElementById('card-detail-desc');
+  const cardDetailNoteEl = document.getElementById('card-detail-note');
+  const cardDetailCancelBtn = document.getElementById('card-detail-cancel');
+  const cardDetailDeployBtn = document.getElementById('card-detail-deploy');
+  let cardDetailPlayer = null;
+  let cardDetailCardId = null;
+
+  function onHandClick(e) {
+    const btn = e.target.closest('.hand-card');
+    if (!btn) return;
+    const player = Number(btn.dataset.player);
+    const cardId = btn.dataset.card;
+    const def = cardDef(cardId);
+    const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+    const playable = canPlayCard(player, cardId);
+
+    cardDetailPlayer = player;
+    cardDetailCardId = cardId;
+    cardDetailOwnerEl.textContent = `Player ${player}'s Card`;
+    cardDetailIconEl.textContent = def.icon;
+    cardDetailNameEl.textContent = def.name;
+    cardDetailDescEl.textContent = def.desc;
+    cardDetailTypelineEl.textContent = style.type;
+    mtgCardEl.style.setProperty('--card-color', style.color);
+    mtgCardEl.style.setProperty('--card-bright', style.bright);
+    if (playable) {
+      cardDetailNoteEl.style.display = 'none';
+      cardDetailDeployBtn.style.display = '';
+    } else {
+      let reason;
+      const isMyTurn = castScreenEl.style.display !== 'none'
+        ? activePlayer === player
+        : (battleScreenEl.style.display !== 'none' ? currentAttacker === player : false);
+      if (!isMyTurn) {
+        reason = "It's not your turn.";
+      } else if (cardPlayedThisTurn[player]) {
+        reason = "You've already played a card this turn.";
+      } else if (def.type === 'skip' || def.type === 'firststrike') {
+        reason = 'Can only be deployed during the summoning phase.';
+      } else if (def.type === 'steal') {
+        reason = 'Can only be deployed during the summoning phase, and your opponent needs a creature to steal.';
+      } else if (def.type === 'bonusattack' || def.type === 'bonusdefense') {
+        reason = 'Can only be deployed during the battle phase.';
+      } else if (def.type === 'lockroll') {
+        reason = 'Can only be deployed during the summoning phase.';
+      } else if (def.type === 'peekhand') {
+        reason = "Your opponent doesn't have any cards to take right now.";
+      } else {
+        reason = "You need a creature of your own, and your opponent needs one to destroy.";
+      }
+      cardDetailNoteEl.textContent = `Not deployable right now — ${reason}`;
+      cardDetailNoteEl.style.display = '';
+      cardDetailDeployBtn.style.display = 'none';
+    }
+    cardDetailOverlay.classList.add('open');
+  }
+  p1HandEl.addEventListener('click', onHandClick);
+  p2HandEl.addEventListener('click', onHandClick);
+
+  cardDetailCancelBtn.addEventListener('click', () => {
+    cardDetailOverlay.classList.remove('open');
+  });
+  cardDetailDeployBtn.addEventListener('click', () => {
+    if (cardDetailPlayer !== null && cardDetailCardId !== null) {
+      playCard(cardDetailPlayer, cardDetailCardId, true);
+    }
+    cardDetailOverlay.classList.remove('open');
+  });
+
+
+  let nextCreatureId = 1;
+  let cardCreatures = [];       // [{ id, face, name, power }] — every matched copy is its own entry
+  let enemyCards = [];          // [{ id, face, name, power }] — Player 2's creature roster
+
+  // Every completed match becomes its OWN roster entry (with a unique id), even
+  // if the player already has one of that same creature type — duplicates fight
+  // as separate creatures, each with their own attack and their own power.
   function addMatchedCreaturesToCards(matchedEntries) {
     matchedEntries.forEach(entry => {
-      if (!cardShadowPower.hasOwnProperty(entry.name)) {
-        cardCreatures.push({ face: entry.face, name: entry.name });
-      }
-      cardShadowPower[entry.name] = entry.shadowPower;
+      cardCreatures.push({ id: `c${nextCreatureId++}`, face: entry.face, name: entry.name, power: entry.shadowPower });
     });
   }
 
   function addEnemyMatchesToCards(enemyMatches) {
     enemyMatches.forEach(entry => {
-      if (!enemyPower.hasOwnProperty(entry.name)) {
-        enemyCards.push({ face: entry.face, name: entry.name });
-      }
-      enemyPower[entry.name] = entry.power;
+      enemyCards.push({ id: `c${nextCreatureId++}`, face: entry.face, name: entry.name, power: entry.power });
     });
   }
 
@@ -2683,16 +4398,21 @@
   const enemyHpFillEl = document.getElementById('enemy-hp-fill');
   const playerHpValueEl = document.getElementById('player-hp-value');
   const enemyHpValueEl = document.getElementById('enemy-hp-value');
+  const castPlayerHpFillEl = document.getElementById('cast-player-hp-fill');
+  const castEnemyHpFillEl = document.getElementById('cast-enemy-hp-fill');
+  const castPlayerHpValueEl = document.getElementById('cast-player-hp-value');
+  const castEnemyHpValueEl = document.getElementById('cast-enemy-hp-value');
   const battleBannerEl = document.getElementById('battle-banner');
   const resetBattleBtn = document.getElementById('reset-battle');
   const roundIndicatorEl = document.getElementById('round-indicator');
+  const castRoundIndicatorEl = document.getElementById('cast-round-indicator');
 
   const MAX_HP = 20;
   let playerHP = MAX_HP;
   let enemyHP = MAX_HP;
   let battleOver = false;
-  const battleResults = {}; // key `${side}:${name}` -> last result detail string + hit bool
-  const attackCounts = {};  // key `${side}:${name}` -> number of attacks made this battle
+  const battleResults = {}; // key `${side}:${id}` -> last result detail string + hit bool
+  const attackCounts = {};  // key `${side}:${id}` -> number of attacks made this battle
   const MAX_ATTACKS = 1;
 
   // --- Best of 3 rounds: keep rosters across rounds, only HP/attacks reset each round ---
@@ -2701,7 +4421,9 @@
   let currentRound = 1;
 
   function renderRoundIndicator() {
-    roundIndicatorEl.textContent = `Round ${currentRound} of ${BEST_OF} · Score ${roundWins.p1} – ${roundWins.p2}`;
+    const text = `Round ${currentRound} of ${BEST_OF} · Score ${roundWins.p1} – ${roundWins.p2}`;
+    roundIndicatorEl.textContent = text;
+    castRoundIndicatorEl.textContent = text;
   }
 
   // --- Coin flip decides who goes first — used both to open a summoning phase
@@ -2718,6 +4440,20 @@
   const coinFlipCoinEl = document.getElementById('coin-flip-coin');
   const coinFlipBtn = document.getElementById('coin-flip-btn');
   const coinFlipContinueBtn = document.getElementById('coin-flip-continue-btn');
+
+  let pendingAfterDiscard = null;
+
+  // If a discard is still unresolved, opening the coin-flip on top of it
+  // would visually bury the discard prompt — the player would never see it
+  // needed resolving. Queue the coin-flip instead, and it fires the moment
+  // the discard is actually cleared.
+  function openCoinFlipOverlaySafe(purpose) {
+    if (discardOverlay.classList.contains('open')) {
+      pendingAfterDiscard = () => openCoinFlipOverlay(purpose);
+      return;
+    }
+    openCoinFlipOverlay(purpose);
+  }
 
   function openCoinFlipOverlay(purpose) {
     coinFlipPurpose = purpose;
@@ -2759,7 +4495,6 @@
     if (coinFlipPurpose === 'summon') {
       activePlayer = landsHeads ? 1 : 2;
       renderTurnIndicator();
-      renderTargetStatus();
       coinFlipTitleEl.textContent = `Player ${activePlayer} Rolls First!`;
     } else {
       roundFirstPlayer = landsHeads ? 1 : 2;
@@ -2776,61 +4511,76 @@
     coinFlipContinueBtn.style.display = '';
   });
 
-  coinFlipContinueBtn.addEventListener('click', () => {
+  coinFlipContinueBtn.addEventListener('click', async () => {
+    if (coinFlipContinueBtn.disabled) return; // guard against a rapid double-tap double-firing this
+    coinFlipContinueBtn.disabled = true;
     coinFlipOverlay.classList.remove('open');
-    showScreen(coinFlipPurpose === 'summon' ? 'cast' : 'battle');
+    await transitionToScreen(coinFlipPurpose === 'summon' ? 'cast' : 'battle');
+    if (coinFlipPurpose === 'summon') drawCardsForBothPlayers();
+    renderHand(1);
+    renderHand(2);
+    setTimeout(() => { coinFlipContinueBtn.disabled = false; }, 500);
   });
 
   function renderFirstAttackerIndicator() {
-    firstAttackerIndicatorEl.textContent = `Coin says: Player ${roundFirstPlayer} attacks first`;
+    firstAttackerIndicatorEl.textContent = `Player ${roundFirstPlayer} declared battle and attacks first`;
   }
 
-  // Resolves one creature's attack. Its bound power (0-3) IS the number of times
-  // it rolls the attack d8 (a power-0 creature deals no damage). For each of those
-  // rolls, the defender — if they have any creature summoned at all — rolls the
-  // same d8 in response: a numeral sends that much damage back at the attacker,
-  // and the burst symbol (🔆) reflects half the attacker's roll (rounded down)
-  // back at them. Either way the defender still takes the attacker's full roll.
+  // Resolves one creature's attack. It always gets one guaranteed roll of the
+  // attack d8, plus additional rolls equal to its bound power (0-3) from the
+  // shadow's d4 — so a power-0 creature still rolls once, a power-3 creature
+  // rolls four times. For each roll, the defender — if they have any creature
+  // summoned at all — rolls the same d8 in response: a numeral does nothing,
+  // and the burst symbol (🔆) reflects half the attacker's roll (rounded down,
+  // minimum 1) back at them. Either way the defender still takes the attacker's full roll.
   function resolveAttack(cardName, power, side) {
-    const numRolls = power;
     const attackerPlayer = side === 'ally' ? 1 : 2;
     const defenderPlayer = attackerPlayer === 1 ? 2 : 1;
     const defenderSide = side === 'ally' ? 'enemy' : 'ally';
     const defenderHasCreature = (defenderSide === 'ally' ? cardCreatures.length : enemyCards.length) > 0;
 
+    const numAttackRolls = 1 + (bonusAttackRolls[attackerPlayer] || 0);
+    const numDefenseRollsEach = 1 + (bonusDefenseRolls[defenderPlayer] || 0);
+    bonusAttackRolls[attackerPlayer] = 0;
+    bonusDefenseRolls[defenderPlayer] = 0;
+
     const steps = [];
     let damage = 0;        // total to the defender
     let counterDamage = 0; // total back to the attacker
 
-    for (let i = 0; i < numRolls; i++) {
+    for (let i = 0; i < numAttackRolls; i++) {
       const attackFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-      const attackVal = attackFace === 'burst' ? 4 : attackFace;
+      const rolledVal = attackFace === 'burst' ? 4 : attackFace;
+      const attackVal = rolledVal + power; // the shadow's power is now a flat bonus on the roll, not extra rolls
       damage += attackVal;
 
-      let defenseFace = null, counterDmg = 0;
+      const defenseRolls = [];
       if (defenderHasCreature) {
-        defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : 0;
-        counterDamage += counterDmg;
+        for (let d = 0; d < numDefenseRollsEach; d++) {
+          const defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+          const counterDmg = defenseFace === 'burst' ? (attackVal === 0 ? 1 : Math.ceil(attackVal / 2)) : 0;
+          counterDamage += counterDmg;
+          defenseRolls.push({ defenseFace, counterDmg });
+        }
       }
 
-      steps.push({ attackFace, attackVal, defenseFace, counterDmg });
+      steps.push({ attackFace, rolledVal, power, attackVal, defenseRolls });
     }
 
-    const detailLines = steps.map((s, i) => {
-      const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
-      if (s.defenseFace === null) return `#${i + 1}: P${attackerPlayer} attacks ${atk}`;
-      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}!` : `defends ${s.defenseFace} (no effect)`;
-      return `#${i + 1}: P${attackerPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
-    });
-
-    const noDefenderNote = !defenderHasCreature && numRolls > 0 ? ` (Player ${defenderPlayer} has no creature summoned — no defense)` : '';
+    const attackFacesStr = steps.map(s => `${faceLabel(s.attackFace)}+${s.power}=${s.attackVal}`).join(', ');
+    let detail = `P${attackerPlayer} (attack): ${attackFacesStr} = ${damage} points`;
+    if (defenderHasCreature) {
+      const defenseFacesStr = steps.flatMap(s => s.defenseRolls.map(d => faceLabel(d.defenseFace))).join(', ');
+      detail += `\nP${defenderPlayer} (defense): ${defenseFacesStr} = ${counterDamage} points`;
+    } else {
+      detail += `\nP${defenderPlayer} has no creature summoned — no defense`;
+    }
 
     return {
-      hit: numRolls > 0,
+      hit: true,
       damage,
       counterDamage,
-      detail: numRolls > 0 ? detailLines.join(' | ') + ` — ${damage} dmg dealt, ${counterDamage} dmg returned${noDefenderNote}` : 'Power 0 — no attack rolls',
+      detail,
       rolls: { type: 'attackDefense', steps }
     };
   }
@@ -2850,16 +4600,23 @@
   }
 
   function updateHpDisplay() {
-    playerHpFillEl.style.width = `${Math.max(0, (playerHP / MAX_HP) * 100)}%`;
-    enemyHpFillEl.style.width = `${Math.max(0, (enemyHP / MAX_HP) * 100)}%`;
+    const pct1 = Math.max(0, (playerHP / MAX_HP) * 100);
+    const pct2 = Math.max(0, (enemyHP / MAX_HP) * 100);
+    playerHpFillEl.style.width = `${pct1}%`;
+    enemyHpFillEl.style.width = `${pct2}%`;
     playerHpValueEl.textContent = Math.max(0, playerHP);
     enemyHpValueEl.textContent = Math.max(0, enemyHP);
+
+    castPlayerHpFillEl.style.width = `${pct1}%`;
+    castEnemyHpFillEl.style.width = `${pct2}%`;
+    castPlayerHpValueEl.textContent = Math.max(0, playerHP);
+    castEnemyHpValueEl.textContent = Math.max(0, enemyHP);
   }
 
   function isSideExhausted(side) {
     const cards = side === 'ally' ? cardCreatures : enemyCards;
     if (cards.length === 0) return true; // nothing to attack with
-    return cards.every(c => (attackCounts[`${side}:${c.name}`] || 0) >= MAX_ATTACKS);
+    return cards.every(c => (attackCounts[`${side}:${c.id}`] || 0) >= MAX_ATTACKS);
   }
 
   function checkBattleEnd() {
@@ -2904,9 +4661,11 @@
     summonPending = { 1: [], 2: [] };
     stoneEverRolled = { 1: false, 2: false };
     hasNewMatchThisPhase = { 1: false, 2: false };
+    pendingDeclarer = null;
     renderRiteSlots();
     updateDeclareButton();
-    openCoinFlipOverlay('summon');
+    updateHpDisplay();
+    openCoinFlipOverlaySafe('summon');
   }
 
   const roundResultOverlay = document.getElementById('round-result-overlay');
@@ -2959,9 +4718,8 @@
 
     // rule change: no creatures persist between rounds — everyone starts blank
     cardCreatures = [];
-    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
     enemyCards = [];
-    Object.keys(enemyPower).forEach(k => delete enemyPower[k]);
+    matchCounts = { 1: {}, 2: {} };
 
     Object.keys(battleResults).forEach(k => delete battleResults[k]);
     Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
@@ -2973,6 +4731,8 @@
     renderRoundIndicator();
 
     activePlayer = 1;
+    cardPlayedThisTurn = { 1: false, 2: false };
+    lockRollArmed = { 1: false, 2: false };
     renderTurnIndicator();
 
     p1RollLog = [];
@@ -2980,20 +4740,38 @@
     summonPending = { 1: [], 2: [] };
     stoneEverRolled = { 1: false, 2: false };
     hasNewMatchThisPhase = { 1: false, 2: false };
+    pendingDeclarer = null;
+    skipTurns = { 1: 0, 2: 0 };
+    firstStrikeOverride = null;
+    bonusAttackRolls = { 1: 0, 2: 0 };
+    bonusDefenseRolls = { 1: 0, 2: 0 };
+    lockRollArmed = { 1: false, 2: false };
+    cardPlayedThisTurn = { 1: false, 2: false };
     renderRiteSlots();
     updateDeclareButton();
 
     renderBattleScreen();
-    openCoinFlipOverlay('summon');
+    openCoinFlipOverlaySafe('summon');
   }
 
   function fullMatchReset() {
     // the match is decided — wipe the creature roster on both sides for a fresh match
     cardCreatures = [];
-    Object.keys(cardShadowPower).forEach(k => delete cardShadowPower[k]);
-
     enemyCards = [];
-    Object.keys(enemyPower).forEach(k => delete enemyPower[k]);
+
+    matchCounts = { 1: {}, 2: {} };
+
+    sharedDeck = buildDeck();
+    discardPile = [];
+    p1Hand = [];
+    p2Hand = [];
+    skipTurns = { 1: 0, 2: 0 };
+    firstStrikeOverride = null;
+    bonusAttackRolls = { 1: 0, 2: 0 };
+    bonusDefenseRolls = { 1: 0, 2: 0 };
+    lockRollArmed = { 1: false, 2: false };
+    cardPlayedThisTurn = { 1: false, 2: false };
+    dealStartingHands();
 
     Object.keys(battleResults).forEach(k => delete battleResults[k]);
     Object.keys(attackCounts).forEach(k => delete attackCounts[k]);
@@ -3022,8 +4800,8 @@
   // 2D creature boxes, styled like the matched-rolls boxes on the Circle screen — one
   // vertical stack per side. Clicking a box (unless retired or not that side's turn)
   // triggers that creature's attack.
-  function creatureBoxMarkup(face, name, power, side) {
-    const key = `${side}:${name}`;
+  function creatureBoxMarkup(id, face, name, power, side) {
+    const key = `${side}:${id}`;
     const attacks = attackCounts[key] || 0;
     const retired = attacks >= MAX_ATTACKS;
     const attackingPlayer = side === 'ally' ? 1 : 2;
@@ -3034,15 +4812,15 @@
     else if (!isMyTurn || battleOver) cls.push('waiting-turn');
     else if (isMyTurn) cls.push('active-turn');
     const disabled = retired || !isMyTurn || battleOver || attackInProgress;
-    return `<button type="button" class="${cls.join(' ')}" data-side="${side}" data-name="${name}" ${disabled ? 'disabled' : ''} aria-label="${name}, power ${power}${retired ? ', retired' : ''}">
+    return `<button type="button" class="${cls.join(' ')}" data-side="${side}" data-id="${id}" data-name="${name}" data-power="${power}" ${disabled ? 'disabled' : ''} aria-label="${name}, power ${power}${retired ? ', retired' : ''}">
       <span class="creature-box-face">${face}</span>
       <span class="creature-box-power">${power}</span>
     </button>`;
   }
 
-  function renderSidePanel(panelEl, list, powerObj, side) {
+  function renderSidePanel(panelEl, list, side) {
     panelEl.innerHTML = list.length
-      ? list.map(({ face, name }) => creatureBoxMarkup(face, name, powerObj[name], side)).join('')
+      ? list.map(c => creatureBoxMarkup(c.id, c.face, c.name, c.power, side)).join('')
       : `<span class="prev-empty">no creatures matched yet</span>`;
   }
 
@@ -3050,16 +4828,17 @@
     const btn = e.target.closest('.creature-box');
     if (!btn || btn.disabled) return;
     const side = btn.dataset.side;
+    const id = btn.dataset.id;
     const name = btn.dataset.name;
-    const power = side === 'ally' ? cardShadowPower[name] : enemyPower[name];
-    handleAttack(side, name, power);
+    const power = Number(btn.dataset.power);
+    handleAttack(side, id, name, power);
   }
   battleAllyPanelEl.addEventListener('click', onCreatureBoxClick);
   battleEnemyPanelEl.addEventListener('click', onCreatureBoxClick);
 
   function renderBattleScreen() {
-    renderSidePanel(battleAllyPanelEl, cardCreatures, cardShadowPower, 'ally');
-    renderSidePanel(battleEnemyPanelEl, enemyCards, enemyPower, 'enemy');
+    renderSidePanel(battleAllyPanelEl, cardCreatures, 'ally');
+    renderSidePanel(battleEnemyPanelEl, enemyCards, 'enemy');
 
     updateHpDisplay();
     renderRoundIndicator();
@@ -3100,6 +4879,30 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // Extra pacing delay for pop-ups/events: +500ms in general, +1000ms for
+  // anything belonging to Player 2's turn (mainly so the human has enough
+  // time to actually read what the computer opponent just did).
+  function extraDelay(relevantPlayer) {
+    return relevantPlayer === 2 ? 1000 : 500;
+  }
+
+  // Waits out a delay, but a tap anywhere ends it early — used after each roll
+  // lands so players have time to read the result without being forced to.
+  function sleepOrTap(ms) {
+    return new Promise(resolve => {
+      let done = false;
+      const timer = setTimeout(finish, ms);
+      function finish() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        document.removeEventListener('click', finish);
+        resolve();
+      }
+      document.addEventListener('click', finish);
+    });
+  }
+
   function advanceTurn() {
     const nextPlayer = currentAttacker === 1 ? 2 : 1;
     const nextSide = nextPlayer === 1 ? 'ally' : 'enemy';
@@ -3107,15 +4910,18 @@
       currentAttacker = nextPlayer;
     }
     // otherwise the opponent has nothing left to attack with — same player keeps going
+    cardPlayedThisTurn[currentAttacker] = false;
+    renderHand(1);
+    renderHand(2);
   }
 
   let attackInProgress = false;
 
-  async function handleAttack(side, name, power) {
+  async function handleAttack(side, id, name, power) {
     if (battleOver || attackInProgress) return;
     const attackingPlayer = side === 'ally' ? 1 : 2;
     if (attackingPlayer !== currentAttacker) return; // not this player's turn
-    const key = `${side}:${name}`;
+    const key = `${side}:${id}`;
     if ((attackCounts[key] || 0) >= MAX_ATTACKS) return; // already attacked this round
     attackInProgress = true;
     setAllAttackButtonsDisabled(true);
@@ -3123,6 +4929,11 @@
     const defenderPlayer = attackingPlayer === 1 ? 2 : 1;
     const defenderSide = side === 'ally' ? 'enemy' : 'ally';
     const defenderHasCreature = (defenderSide === 'ally' ? cardCreatures.length : enemyCards.length) > 0;
+
+    const numAttackRolls = 1 + (bonusAttackRolls[attackingPlayer] || 0);
+    const numDefenseRollsEach = 1 + (bonusDefenseRolls[defenderPlayer] || 0);
+    bonusAttackRolls[attackingPlayer] = 0;
+    bonusDefenseRolls[defenderPlayer] = 0;
 
     const steps = [];
     let damage = 0;
@@ -3132,82 +4943,86 @@
     battleRollResultEl.classList.remove('hit', 'miss');
     battleRollOverlay.classList.add('open');
 
-    for (let i = 0; i < power; i++) {
+    for (let i = 0; i < numAttackRolls; i++) {
       // --- attacker taps to roll ---
-      battleRollLabelEl.textContent = `Player ${attackingPlayer}, tap to roll your attack (${i + 1} of ${power})`;
+      battleRollLabelEl.textContent = `Player ${attackingPlayer}, tap to roll your attack (${i + 1} of ${numAttackRolls})`;
       battleRollHintEl.textContent = 'tap to roll';
       battleRollHintEl.style.display = '';
       await waitForSingleTap();
       battleRollHintEl.style.display = 'none';
 
       const attackFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-      const attackVal = attackFace === 'burst' ? 4 : attackFace;
+      const rolledVal = attackFace === 'burst' ? 4 : attackFace;
+      const attackVal = rolledVal + power; // the shadow's power is a flat bonus on this one roll
       damage += attackVal;
 
       battleRollLabelEl.textContent = `Player ${attackingPlayer} rolls...`;
       if (peakInstance) await peakInstance.rollPowerDie(attackFace);
-      battleRollLabelEl.textContent = `Player ${attackingPlayer} rolled ${faceLabel(attackFace)}!`;
-      await sleep(700);
+      battleRollLabelEl.textContent = `Player ${attackingPlayer} rolled ${faceLabel(attackFace)} + ${power} power = ${attackVal}!`;
+      await sleepOrTap(1800 + extraDelay(attackingPlayer));
 
-      let defenseFace = null, counterDmg = 0;
+      const defenseRolls = [];
       if (defenderHasCreature) {
-        // --- defender taps to roll ---
-        battleRollLabelEl.textContent = `Player ${defenderPlayer}, tap to roll your defense`;
-        battleRollHintEl.textContent = 'tap to roll';
-        battleRollHintEl.style.display = '';
-        await waitForSingleTap();
-        battleRollHintEl.style.display = 'none';
+        for (let d = 0; d < numDefenseRollsEach; d++) {
+          // --- defender taps to roll ---
+          battleRollLabelEl.textContent = numDefenseRollsEach > 1
+            ? `Player ${defenderPlayer}, tap to roll defense (${d + 1} of ${numDefenseRollsEach})`
+            : `Player ${defenderPlayer}, tap to roll your defense`;
+          battleRollHintEl.textContent = 'tap to roll';
+          battleRollHintEl.style.display = '';
+          await waitForSingleTap();
+          battleRollHintEl.style.display = 'none';
 
-        defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
-        counterDmg = defenseFace === 'burst' ? Math.floor(attackVal / 2) : 0;
-        counterDamage += counterDmg;
+          const defenseFace = attackFaces[Math.floor(Math.random() * attackFaces.length)];
+          const counterDmg = defenseFace === 'burst' ? (attackVal === 0 ? 1 : Math.ceil(attackVal / 2)) : 0;
+          counterDamage += counterDmg;
 
-        battleRollLabelEl.textContent = `Player ${defenderPlayer} rolls...`;
-        if (peakInstance) await peakInstance.rollPowerDie(defenseFace);
-        battleRollLabelEl.textContent = defenseFace === 'burst'
-          ? `Player ${defenderPlayer} rolled 🔆 — reflects ${counterDmg}!`
-          : `Player ${defenderPlayer} rolled ${faceLabel(defenseFace)} — no effect`;
-        await sleep(700);
+          battleRollLabelEl.textContent = `Player ${defenderPlayer} rolls...`;
+          if (peakInstance) await peakInstance.rollPowerDie(defenseFace);
+          battleRollLabelEl.textContent = defenseFace === 'burst'
+            ? `Player ${defenderPlayer} rolled 🔆 — reflects ${counterDmg}!`
+            : `Player ${defenderPlayer} rolled ${faceLabel(defenseFace)} — no effect`;
+          await sleepOrTap(1800 + extraDelay(defenderPlayer));
+
+          defenseRolls.push({ defenseFace, counterDmg });
+        }
       }
 
-      steps.push({ attackFace, attackVal, defenseFace, counterDmg });
+      steps.push({ attackFace, rolledVal, power, attackVal, defenseRolls });
     }
 
-    const detailLines = steps.map((s, i) => {
-      const atk = s.attackFace === 'burst' ? '🔆(4)' : s.attackFace;
-      if (s.defenseFace === null) return `#${i + 1}: P${attackingPlayer} attacks ${atk}`;
-      const def = s.defenseFace === 'burst' ? `🔆 reflects ${s.counterDmg}!` : `defends ${s.defenseFace} (no effect)`;
-      return `#${i + 1}: P${attackingPlayer} attacks ${atk} · P${defenderPlayer} ${def}`;
-    });
-    const noDefenderNote = !defenderHasCreature && power > 0 ? ` (Player ${defenderPlayer} has no creature summoned — no defense)` : '';
+    const attackFacesStr = steps.map(s => `${faceLabel(s.attackFace)}+${s.power}=${s.attackVal}`).join(', ');
+    let detail = `P${attackingPlayer} (attack): ${attackFacesStr} = ${damage} points`;
+    if (defenderHasCreature) {
+      const defenseFacesStr = steps.flatMap(s => s.defenseRolls.map(d => faceLabel(d.defenseFace))).join(', ');
+      detail += `\nP${defenderPlayer} (defense): ${defenseFacesStr} = ${counterDamage} points`;
+    } else {
+      detail += `\nP${defenderPlayer} has no creature summoned — no defense`;
+    }
     const result = {
-      hit: power > 0,
+      hit: true,
       damage,
       counterDamage,
-      detail: power > 0 ? detailLines.join(' | ') + ` — ${damage} dmg dealt, ${counterDamage} dmg returned${noDefenderNote}` : 'Power 0 — no attack rolls',
+      detail,
       rolls: { type: 'attackDefense', steps }
     };
 
     // apply damage now so the HP bars update while the caption is still open
     battleResults[key] = result;
     attackCounts[key] = (attackCounts[key] || 0) + 1;
-    if (result.hit) {
-      if (side === 'ally') {
-        enemyHP = Math.max(0, enemyHP - result.damage);
-        playerHP = Math.max(0, playerHP - result.counterDamage);
-      } else {
-        playerHP = Math.max(0, playerHP - result.damage);
-        enemyHP = Math.max(0, enemyHP - result.counterDamage);
-      }
+    if (side === 'ally') {
+      enemyHP = Math.max(0, enemyHP - result.damage);
+      playerHP = Math.max(0, playerHP - result.counterDamage);
+    } else {
+      playerHP = Math.max(0, playerHP - result.damage);
+      enemyHP = Math.max(0, enemyHP - result.counterDamage);
     }
     updateHpDisplay();
 
     // hold on the final result — tap twice on the popup to see the life totals land
-    battleRollLabelEl.textContent = result.hit
-      ? `${result.damage} dmg dealt, ${result.counterDamage} returned!`
-      : 'Power 0 — no attack landed';
+    battleRollLabelEl.textContent = `${result.damage} dmg dealt, ${result.counterDamage} returned!`;
     battleRollResultEl.textContent = result.detail;
-    battleRollResultEl.classList.add(result.hit ? 'hit' : 'miss');
+    battleRollResultEl.classList.add('hit');
     battleRollHintEl.textContent = 'tap to continue';
     battleRollHintEl.style.display = '';
     await waitForTapToContinue();
@@ -3239,8 +5054,8 @@
   fastForwardBattleBtn.addEventListener('click', () => {
     if (battleOver) return;
 
-    function instantAttack(side, name, power) {
-      const key = `${side}:${name}`;
+    function instantAttack(side, id, name, power) {
+      const key = `${side}:${id}`;
       const result = resolveAttack(name, power, side);
       battleResults[key] = result;
       attackCounts[key] = (attackCounts[key] || 0) + 1;
@@ -3261,16 +5076,16 @@
       for (let i = 0; i < maxLen; i++) {
         const tryAlly = () => {
           const allyCard = cardCreatures[i];
-          if (allyCard && (attackCounts[`ally:${allyCard.name}`] || 0) < MAX_ATTACKS) {
-            instantAttack('ally', allyCard.name, cardShadowPower[allyCard.name]);
+          if (allyCard && (attackCounts[`ally:${allyCard.id}`] || 0) < MAX_ATTACKS) {
+            instantAttack('ally', allyCard.id, allyCard.name, allyCard.power);
             return playerHP <= 0 || enemyHP <= 0;
           }
           return false;
         };
         const tryEnemy = () => {
           const enemyCard = enemyCards[i];
-          if (enemyCard && (attackCounts[`enemy:${enemyCard.name}`] || 0) < MAX_ATTACKS) {
-            instantAttack('enemy', enemyCard.name, enemyPower[enemyCard.name]);
+          if (enemyCard && (attackCounts[`enemy:${enemyCard.id}`] || 0) < MAX_ATTACKS) {
+            instantAttack('enemy', enemyCard.id, enemyCard.name, enemyCard.power);
             return playerHP <= 0 || enemyHP <= 0;
           }
           return false;
@@ -3298,9 +5113,15 @@
     castScreenEl.style.display = which === 'cast' ? '' : 'none';
     battleScreenEl.style.display = which === 'battle' ? '' : 'none';
     howtoScreenEl.style.display = which === 'howto' ? '' : 'none';
+    galleryScreenEl.style.display = which === 'gallery' ? '' : 'none';
+
+    const showHands = which === 'cast' || which === 'battle';
+    p1HandPanelEl.classList.toggle('visible', showHands);
+    p2HandPanelEl.classList.toggle('visible', showHands && !p2IsAI);
 
     if (which === 'cast') {
       try { showGrove(); } catch (e) { console.error('Grove failed to load:', e); }
+      updateHpDisplay();
     } else if (which === 'battle') {
       try { showPeak(); } catch (e) { console.error('Peak failed to load:', e); }
     } else {
@@ -3311,9 +5132,186 @@
     if (which === 'battle') renderBattleScreen();
   }
 
+  const sceneTransitionVeilEl = document.getElementById('scene-transition-veil');
+  // Scene-to-scene changes (Circle <-> Battle) get a deliberate pause behind
+  // a veil, rather than snapping straight over — gives the change some weight.
+  function transitionToScreen(which, delayMs = 2000) {
+    return new Promise(resolve => {
+      sceneTransitionVeilEl.classList.add('active');
+      setTimeout(() => {
+        showScreen(which);
+        setTimeout(() => {
+          sceneTransitionVeilEl.classList.remove('active');
+          resolve();
+        }, 250);
+      }, delayMs);
+    });
+  }
+
   titleBeginBtn.addEventListener('click', () => openCoinFlipOverlay('summon'));
   howtoBtn.addEventListener('click', () => showScreen('howto'));
   howtoBackBtn.addEventListener('click', () => showScreen(screenBeforeHowto));
+
+  // =====================================================================
+  // CARD GALLERY — browse every card in the deck, title-screen only.
+  // =====================================================================
+  const galleryBtn = document.getElementById('gallery-btn');
+  const galleryBackBtn = document.getElementById('gallery-back-btn');
+  const galleryPrevBtn = document.getElementById('gallery-prev-btn');
+  const galleryNextBtn = document.getElementById('gallery-next-btn');
+  const galleryCounterEl = document.getElementById('gallery-counter');
+  const galleryCarouselEl = document.getElementById('gallery-carousel');
+  const galleryMtgCardEl = document.getElementById('gallery-mtg-card');
+  const galleryCardGroupEl = document.getElementById('gallery-card-typegroup');
+  const galleryCardNameEl = document.getElementById('gallery-card-name');
+  const galleryCardIconEl = document.getElementById('gallery-card-icon');
+  const galleryCardTypelineEl = document.getElementById('gallery-card-typeline');
+  const galleryCardDescEl = document.getElementById('gallery-card-desc');
+  let galleryIndex = 0;
+
+  function renderGalleryCard() {
+    const def = CARD_DEFS[galleryIndex];
+    const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
+    galleryCounterEl.textContent = `${galleryIndex + 1} / ${CARD_DEFS.length}`;
+    galleryCardGroupEl.textContent = def.type.charAt(0).toUpperCase() + def.type.slice(1);
+    galleryCardNameEl.textContent = def.name;
+    galleryCardIconEl.textContent = def.icon;
+    galleryCardTypelineEl.textContent = style.type;
+    galleryCardDescEl.textContent = def.desc;
+    galleryMtgCardEl.style.setProperty('--card-color', style.color);
+    galleryMtgCardEl.style.setProperty('--card-bright', style.bright);
+  }
+  function galleryStep(delta) {
+    galleryIndex = (galleryIndex + delta + CARD_DEFS.length) % CARD_DEFS.length;
+    renderGalleryCard();
+  }
+
+  galleryBtn.addEventListener('click', () => {
+    galleryIndex = 0;
+    renderGalleryCard();
+    showScreen('gallery');
+  });
+  galleryBackBtn.addEventListener('click', () => showScreen('title'));
+  galleryPrevBtn.addEventListener('click', () => galleryStep(-1));
+  galleryNextBtn.addEventListener('click', () => galleryStep(1));
+
+  // swipe support
+  let gallerySwipeStartX = null;
+  galleryCarouselEl.addEventListener('touchstart', (e) => {
+    gallerySwipeStartX = e.touches[0].clientX;
+  }, { passive: true });
+  galleryCarouselEl.addEventListener('touchend', (e) => {
+    if (gallerySwipeStartX === null) return;
+    const dx = e.changedTouches[0].clientX - gallerySwipeStartX;
+    gallerySwipeStartX = null;
+    if (Math.abs(dx) < 40) return; // too small to count as a swipe
+    galleryStep(dx < 0 ? 1 : -1); // swipe left -> next, swipe right -> previous
+  }, { passive: true });
+
+
+  // =====================================================================
+  // AI OPPONENT — when enabled, Player 2 plays itself. Rather than hook
+  // into every possible state-change site, a lightweight heartbeat checks
+  // the current game state every tick and takes whatever action makes
+  // sense. This is what lets it recover cleanly no matter how it got here.
+  // =====================================================================
+  function maybeAIPlayCard(player) {
+    const hand = player === 1 ? p1Hand : p2Hand;
+    const playable = hand.filter(id => canPlayCard(player, id));
+    if (playable.length === 0) return false;
+    if (Math.random() < 0.25) {
+      const pick = playable[Math.floor(Math.random() * playable.length)];
+      playCard(player, pick);
+      return true;
+    }
+    return false;
+  }
+
+  function aiHeartbeat() {
+    if (!p2IsAI) return;
+    if (titleScreenEl.style.display !== 'none' || howtoScreenEl.style.display !== 'none' || galleryScreenEl.style.display !== 'none') return;
+    if (coinFlipOverlay.classList.contains('open')) return; // let the human flip — they're always around for this
+    if (roundResultOverlay.classList.contains('open')) return; // let the human control round pacing
+    if (cardDetailOverlay.classList.contains('open')) return; // never interrupt whatever the human is looking at
+    if (aiCardPopupOverlay.classList.contains('open') || cardTossInProgress) return; // let a just-played card's animation/popup finish first
+
+    if (discardOverlay.classList.contains('open')) {
+      if (discardPlayer === 2) {
+        const options = document.querySelectorAll('#discard-options .discard-option');
+        if (options.length) options[Math.floor(Math.random() * options.length)].click();
+      }
+      return;
+    }
+
+    if (peekhandOverlay.classList.contains('open')) {
+      if (peekhandPlayer === 2) {
+        const options = document.querySelectorAll('#peekhand-options .discard-option');
+        if (options.length) options[Math.floor(Math.random() * options.length)].click();
+      }
+      return;
+    }
+
+    if (lockrollOverlay.classList.contains('open')) {
+      // simple heuristic: burn through all 3 rolls without bothering to lock
+      // anything, then keep whatever the last roll landed on
+      if (activePlayer === 2) {
+        if (!lockrollRerollBtn.disabled) {
+          lockrollRerollBtn.click();
+        } else {
+          lockrollKeepBtn.click();
+        }
+      }
+      return;
+    }
+
+    if (battleScreenEl.style.display !== 'none') {
+      if (battleRollOverlay.classList.contains('open')) {
+        // mid-exchange — tap on Player 2's behalf whenever it's their prompt,
+        // whether that's their own attack roll or a defense roll against P1
+        if (battleRollHintEl.style.display !== 'none' && battleRollLabelEl.textContent.includes('Player 2')) {
+          document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        }
+        return;
+      }
+      if (currentAttacker === 2 && !attackInProgress && !battleOver) {
+        if (maybeAIPlayCard(2)) return; // sometimes cast something before swinging
+        const available = enemyCards.filter(c => (attackCounts[`enemy:${c.id}`] || 0) < MAX_ATTACKS);
+        if (available.length) {
+          const pick = available[Math.floor(Math.random() * available.length)];
+          handleAttack('enemy', pick.id, pick.name, pick.power);
+        }
+      }
+      return;
+    }
+
+    if (castScreenEl.style.display !== 'none') {
+      if (maybeAIPlayCard(2)) return;
+      if (!declaringInProgress && pendingDeclarer !== 2 && canPlayerDeclare(2) && Math.random() < 0.35) {
+        declaringInProgress = true;
+        declareBattle(2);
+        setTimeout(() => { declaringInProgress = false; }, 500);
+        return;
+      }
+      if (activePlayer === 2 && !isRolling) {
+        triggerRoll();
+      }
+    }
+  }
+  setInterval(aiHeartbeat, 700);
+
+  // Every fresh match — including this very first one — starts each player
+  // with a 2-card hand. Called here (not inline where decks are declared)
+  // since drawCardForPlayer touches DOM references that aren't set up yet
+  // at that point in the script.
+  function dealStartingHands() {
+    drawCardForPlayer(1);
+    drawCardForPlayer(1);
+    drawCardForPlayer(2);
+    drawCardForPlayer(2);
+    renderHand(1);
+    renderHand(2);
+  }
+  dealStartingHands();
 </script>
 
 </body>
